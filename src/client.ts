@@ -256,55 +256,6 @@ class RPCClient extends EventEmitter {
 		await this.destroy()
 		try {
 			await this.connect()
-
-			const refreshToken = this.instance.config.refreshToken
-			let tokens: Tokens | null = null
-
-			if (refreshToken) tokens = await this.refreshTokens(refreshToken)
-			if (tokens === null) tokens = await this.authorize()
-
-			this.instance.config.refreshToken = tokens.refresh_token
-			this.instance.saveConfig()
-
-			await this.authenticate(tokens.access_token)
-			await this.updateChannelList()
-			this.userVoiceSettings = await this.getVoiceSettings()
-
-			const voiceChannel = await this.getSelectedVoiceChannel()
-
-			if (voiceChannel !== null) {
-				this.voiceChannel = voiceChannel
-				this.voiceChannel!.voice_states.sort((a, b) => {
-					if (a.nick < b.nick) return -1
-					if (b.nick > a.nick) return 1
-					return a.user.id < b.user.id ? -1 : 1
-				})
-
-				this.subscriptions.SPEAKING_START = await this.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
-				this.subscriptions.SPEAKING_STOP = await this.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
-				this.subscriptions.VOICE_STATE_CREATE = await this.subscribe('VOICE_STATE_CREATE', {
-					channel_id: voiceChannel.id,
-				})
-				this.subscriptions.VOICE_STATE_DELETE = await this.subscribe('VOICE_STATE_DELETE', {
-					channel_id: voiceChannel.id,
-				})
-				this.subscriptions.VOICE_STATE_UPDATE = await this.subscribe('VOICE_STATE_UPDATE', {
-					channel_id: voiceChannel.id,
-				})
-			}
-
-			this.initListeners()
-
-			// Initial subscriptions that are global
-			this.subscribe('CHANNEL_CREATE')
-			this.subscribe('GUILD_CREATE')
-			this.subscribe('VOICE_CHANNEL_SELECT')
-			this.subscribe('VOICE_CONNECTION_STATUS')
-			this.subscribe('VOICE_SETTINGS_UPDATE')
-
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceChannel', 'voiceStyling')
-			this.instance.status(this.instance.STATUS_OK, 'OK')
 		} catch (err: any) {
 			this.instance.log('warn', err.message)
 			this.IPC.socket?.destroy()
@@ -313,6 +264,57 @@ class RPCClient extends EventEmitter {
 			this.reconnectTimer = setTimeout(this.init, 5000)
 			return
 		}
+	}
+
+	private initAuth = async () => {
+		const refreshToken = this.instance.config.refreshToken
+		let tokens: Tokens | null = null
+
+		if (refreshToken) tokens = await this.refreshTokens(refreshToken)
+		if (tokens === null) tokens = await this.authorize()
+
+		this.instance.config.refreshToken = tokens.refresh_token
+		this.instance.saveConfig()
+
+		await this.authenticate(tokens.access_token)
+		await this.updateChannelList()
+		this.userVoiceSettings = await this.getVoiceSettings()
+
+		const voiceChannel = await this.getSelectedVoiceChannel()
+
+		if (voiceChannel !== null) {
+			this.voiceChannel = voiceChannel
+			this.voiceChannel!.voice_states.sort((a, b) => {
+				if (a.nick < b.nick) return -1
+				if (b.nick > a.nick) return 1
+				return a.user.id < b.user.id ? -1 : 1
+			})
+
+			this.subscriptions.SPEAKING_START = await this.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
+			this.subscriptions.SPEAKING_STOP = await this.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
+			this.subscriptions.VOICE_STATE_CREATE = await this.subscribe('VOICE_STATE_CREATE', {
+				channel_id: voiceChannel.id,
+			})
+			this.subscriptions.VOICE_STATE_DELETE = await this.subscribe('VOICE_STATE_DELETE', {
+				channel_id: voiceChannel.id,
+			})
+			this.subscriptions.VOICE_STATE_UPDATE = await this.subscribe('VOICE_STATE_UPDATE', {
+				channel_id: voiceChannel.id,
+			})
+		}
+
+		this.initListeners()
+
+		// Initial subscriptions that are global
+		this.subscribe('CHANNEL_CREATE')
+		this.subscribe('GUILD_CREATE')
+		this.subscribe('VOICE_CHANNEL_SELECT')
+		this.subscribe('VOICE_CONNECTION_STATUS')
+		this.subscribe('VOICE_SETTINGS_UPDATE')
+
+		this.instance.variables.updateVariables()
+		this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceChannel', 'voiceStyling')
+		this.instance.status(this.instance.STATUS_OK, 'OK')
 	}
 
 	// Uses Access Token to authenticate with Discord client
@@ -354,7 +356,9 @@ class RPCClient extends EventEmitter {
 	private connect = async (): Promise<void> => {
 		this.once('connected', () => {
 			this.instance.log('debug', 'Client connected')
-			this.initListeners()
+			this.initAuth()
+			
+			//this.initListeners()
 		})
 
 		this.on('disconnected', () => {
