@@ -357,7 +357,7 @@ class RPCClient extends EventEmitter {
 		this.once('connected', () => {
 			this.instance.log('debug', 'Client connected')
 			this.initAuth()
-			
+
 			//this.initListeners()
 		})
 

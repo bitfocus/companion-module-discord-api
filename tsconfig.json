@@ -31,7 +31,7 @@
     "typeRoots": ["./node_modules/@types", "./types"],
     "esModuleInterop": true
   },
-  "include": ["src/*.ts"],
+  "include": ["src/**/*.ts"],
   "compileOnSave": false,
   "exclude": ["node_modules/**"]
 }
