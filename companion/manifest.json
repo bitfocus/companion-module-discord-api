@@ -1,0 +1,32 @@
+{
+	"id": "discord-api",
+	"name": "discord-api",
+	"shortname": "discord",
+	"description": "Discord",
+	"version": "1.0.0",
+	"license": "MIT",
+	"repository": "git+https://github.com/bitfocus/companion-module-discord-api.git",
+	"bugs": "https://github.com/thedist/companion-module-discord-api/issues",
+	"maintainers": [
+		{
+			"name": "Jeff Martin",
+			"email": "dist@dist.dev",
+			"url": "https://dist.dev"
+		}
+	],
+	"legacyIds": [],
+	"runtime": {
+		"type": "node18",
+		"api": "nodejs-ipc",
+		"apiVersion": "0.0.0",
+		"entrypoint": "..\\dist\\index.js"
+	},
+	"manufacturer": "Discord",
+	"products": [
+		"API"
+	],
+	"keywords": [
+		"Software",
+		"Chat"
+	]
+}

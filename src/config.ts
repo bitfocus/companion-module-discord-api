@@ -1,17 +1,17 @@
-import { SomeCompanionConfigField } from '../../../instance_skel_types'
+import { SomeCompanionConfigField } from '@companion-module/base'
 
 export interface Config {
 	//
+	accessToken?: string
 	clientID: string
 	clientSecret: string
-
 	refreshToken?: string
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
 	return [
 		{
-			type: 'text',
+			type: 'static-text',
 			id: 'info',
 			width: 12,
 			label: 'Information',

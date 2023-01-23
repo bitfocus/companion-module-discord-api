@@ -1,13 +1,14 @@
 import DiscordInstance from './index'
 import { voicePNG64 } from './png64'
 import {
-	CompanionFeedbackEvent,
-	SomeCompanionInputField,
-	CompanionBankRequiredProps,
-	CompanionBankAdditionalStyleProps,
-	CompanionFeedbackEventInfo,
-	CompanionBankPNG,
-} from '../../../instance_skel_types'
+  combineRgb,
+  CompanionAdvancedFeedbackResult,
+  CompanionFeedbackButtonStyleResult,
+  CompanionFeedbackAdvancedEvent,
+  CompanionFeedbackBooleanEvent,
+  //CompanionFeedbackContext,
+  SomeCompanionFeedbackInputField,
+} from '@companion-module/base'
 
 export interface DiscordFeedbacks {
 	selfMute: DiscordFeedback<SelfMuteCallback>
@@ -22,54 +23,60 @@ export interface DiscordFeedbacks {
 }
 
 interface SelfMuteCallback {
-	type: 'selfMute'
+	feedbackId: 'selfMute'
 	options: Record<string, never>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 interface SelfDeafCallback {
-	type: 'selfDeaf'
+	feedbackId: 'selfDeaf'
 	options: Record<string, never>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 interface OtherMuteCallback {
-	type: 'otherMute'
+	feedbackId: 'otherMute'
 	options: Readonly<{
 		user: string
 	}>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 interface OtherDeafCallback {
-	type: 'otherDeaf'
+	feedbackId: 'otherDeaf'
 	options: Readonly<{
 		user: string
 	}>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 interface VoiceChannelCallback {
-	type: 'voiceChannel'
+	feedbackId: 'voiceChannel'
 	options: Readonly<{
 		channel: string
 	}>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 interface VoiceStylingCallback {
-	type: 'voiceStyling'
+	feedbackId: 'voiceStyling'
 	options: Readonly<{
 		user: string
 	}>
 }
 
 interface SelectedUserCallback {
-	type: 'selectedUser'
+	feedbackId: 'selectedUser'
 	options: Readonly<{
 		user: string
 	}>
-	style: Readonly<Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
 // Callback type for Presets
@@ -83,40 +90,28 @@ export type FeedbackCallbacks =
 	| SelectedUserCallback
 
 // Force options to have a default to prevent sending undefined values
-type InputFieldWithDefault = Exclude<SomeCompanionInputField, 'default'> & { default: string | number | boolean | null }
+type InputFieldWithDefault = Exclude<SomeCompanionFeedbackInputField, 'default'> & { default: string | number | boolean | null }
 
 // Discord Boolean and Advanced feedback types
 interface DiscordFeedbackBoolean<T> {
-	type: 'boolean'
-	label: string
-	description: string
-	style: Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps>
-	options: InputFieldWithDefault[]
-	callback?: (
-		feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>,
-		bank: Readonly<CompanionBankPNG | null>,
-		info: Readonly<CompanionFeedbackEventInfo | null>
-	) => boolean
-	subscribe?: (feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>) => boolean
-	unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>) => boolean
+  type: 'boolean'
+  name: string
+  description: string
+  defaultStyle: Partial<CompanionFeedbackButtonStyleResult>
+  options: InputFieldWithDefault[]
+  callback: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>, context: any) => boolean | Promise<boolean>
+  subscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
+  unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
 }
 
 interface DiscordFeedbackAdvanced<T> {
-	type: 'advanced'
-	label: string
-	description: string
-	options: InputFieldWithDefault[]
-	callback?: (
-		feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>,
-		bank: Readonly<CompanionBankPNG | null>,
-		info: Readonly<CompanionFeedbackEventInfo | null>
-	) => Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps> | void
-	subscribe?: (
-		feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>
-	) => Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps> | void
-	unsubscribe?: (
-		feedback: Readonly<Omit<CompanionFeedbackEvent, 'options' | 'type'> & T>
-	) => Partial<CompanionBankRequiredProps & CompanionBankAdditionalStyleProps> | void
+  type: 'advanced'
+  name: string
+  description: string
+  options: InputFieldWithDefault[]
+  callback: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>, context: any) => CompanionAdvancedFeedbackResult | Promise<CompanionAdvancedFeedbackResult>
+  subscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
+  unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
 }
 
 export type DiscordFeedback<T> = DiscordFeedbackBoolean<T> | DiscordFeedbackAdvanced<T>
@@ -125,35 +120,35 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 	return {
 		selfMute: {
 			type: 'boolean',
-			label: 'Voice - Self Mute',
+			name: 'Voice - Self Mute',
 			description: `Indicates if you've muted yourself`,
 			options: [],
-			style: {
-				color: instance.rgb(0, 0, 0),
-				bgcolor: instance.rgb(255, 0, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
 			callback: () => {
-				return instance.client.userVoiceSettings?.mute || instance.client.userVoiceSettings?.deaf || false
+				return instance.clientData.userVoiceSettings?.mute || instance.clientData.userVoiceSettings?.deaf || false
 			},
 		},
 
 		selfDeaf: {
 			type: 'boolean',
-			label: 'Voice - Self Deaf',
+			name: 'Voice - Self Deaf',
 			description: `Indicates if you've deafened yourself`,
 			options: [],
-			style: {
-				color: instance.rgb(0, 0, 0),
-				bgcolor: instance.rgb(255, 0, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
 			callback: () => {
-				return instance.client.userVoiceSettings?.deaf || false
+				return instance.clientData.userVoiceSettings?.deaf || false
 			},
 		},
 
 		otherMute: {
 			type: 'boolean',
-			label: 'Voice - Other Mute',
+			name: 'Voice - Other Mute',
 			description: 'Indicates if another user is muted',
 			options: [
 				{
@@ -164,18 +159,15 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					default: '',
 				},
 			],
-			style: {
-				color: instance.rgb(0, 0, 0),
-				bgcolor: instance.rgb(255, 0, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
-			callback: (feedback) => {
-				let userOption = ''
+			callback: async (feedback, context) => {
+				let userOption = await context.parseVariablesInString(feedback.options.user)
+				if (!userOption) userOption === feedback.options.user
 
-				instance.parseVariables(feedback.options.user, (value) => {
-					userOption = userOption = value || feedback.options.user
-				})
-
-				const voiceUser = instance.client.sortedVoiceUsers().find((voiceState, index) => {
+				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
 					if (!isNaN(parseInt(userOption, 10)) && parseInt(userOption, 10) === index) return true
 					return (
 						userOption === voiceState.user.id ||
@@ -190,7 +182,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 
 		otherDeaf: {
 			type: 'boolean',
-			label: 'Voice - Other Deaf',
+			name: 'Voice - Other Deaf',
 			description: 'Indicates if another user is deafened',
 			options: [
 				{
@@ -201,18 +193,15 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					default: '',
 				},
 			],
-			style: {
-				color: instance.rgb(0, 0, 0),
-				bgcolor: instance.rgb(255, 0, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
 			},
-			callback: (feedback) => {
-				let userOption = ''
+			callback: async (feedback, context) => {
+				let userOption = await context.parseVariablesInString(feedback.options.user)
+				if (!userOption) userOption === feedback.options.user
 
-				instance.parseVariables(feedback.options.user, (value) => {
-					userOption = userOption = value || feedback.options.user
-				})
-
-				const voiceUser = instance.client.sortedVoiceUsers().find((voiceState, index) => {
+				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
 					if (!isNaN(parseInt(userOption, 10)) && parseInt(userOption, 10) === index) return true
 					return (
 						userOption === voiceState.user.id ||
@@ -227,7 +216,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 
 		voiceChannel: {
 			type: 'boolean',
-			label: 'Voice - Channel',
+			name: 'Voice - Channel',
 			description: `Indicates if you're in the specified Voice Channel`,
 			options: [
 				{
@@ -235,21 +224,21 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.client.sortedVoiceChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedVoiceChannelChoices()],
 				},
 			],
-			style: {
-				color: instance.rgb(0, 0, 0),
-				bgcolor: instance.rgb(0, 255, 0),
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(0, 255, 0),
 			},
 			callback: (feedback) => {
-				return feedback.options.channel === instance.client.voiceChannel?.id
+				return feedback.options.channel === instance.clientData.voiceChannel?.id
 			},
 		},
 
 		voiceStyling: {
 			type: 'advanced',
-			label: 'Voice - Styled Voice Status',
+			name: 'Voice - Styled Voice Status',
 			description: 'PNG styled mute/deaf/speaking status',
 			options: [
 				{
@@ -260,12 +249,9 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					default: 'Self',
 				},
 			],
-			callback: (feedback) => {
-				let userOption = ''
-
-				instance.parseVariables(feedback.options.user, (value) => {
-					userOption = userOption = value || feedback.options.user
-				})
+			callback: async (feedback, context) => {
+				let userOption = await context.parseVariablesInString(feedback.options.user)
+				if (!userOption) userOption === feedback.options.user
 
 				const self = userOption.toLowerCase() === 'self'
 				let mute = '0'
@@ -273,7 +259,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 
 				// 0 = unmuted, 1 = muted other, 2 = server mute, 3 = self mute/suppressed
 
-				const voiceUser = instance.client.sortedVoiceUsers().find((voiceState, index) => {
+				const voiceUser = await instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
 					if (!isNaN(parseInt(userOption, 10)) && parseInt(userOption, 10) === index) return true
 
 					if (self) voiceState.user.id === instance.client.user.id
@@ -287,7 +273,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				if (voiceUser) {
 					if (voiceUser.voice_state.self_mute || voiceUser.voice_state.suppress) mute = '3'
 					if (voiceUser.mute) mute = '1'
-					if (instance.client.speaking.has(voiceUser.user.id)) mute = 's'
+					if (instance.clientData.speaking.has(voiceUser.user.id)) mute = 's'
 					if (voiceUser.voice_state.mute) mute = '2'
 					if (voiceUser.voice_state.self_deaf) deaf = '3'
 					if (voiceUser.voice_state.deaf) deaf = '2'
@@ -296,13 +282,13 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					if (voicePNG64[status]) return { pngalignment: 'center:bottom', png64: voicePNG64[status] }
 				}
 
-				return
+				return {}
 			},
 		},
 
 		selectedUser: {
 			type: 'boolean',
-			label: 'Selected User',
+			name: 'Selected User',
 			description: 'Indicates currently selected user',
 			options: [
 				{
@@ -313,18 +299,15 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					default: '',
 				},
 			],
-			style: {
-				color: instance.rgb(255, 255, 255),
-				bgcolor: instance.rgb(0, 100, 0),
+			defaultStyle: {
+				color: combineRgb(255, 255, 255),
+				bgcolor: combineRgb(0, 100, 0),
 			},
-			callback: (feedback) => {
-				let userOption = ''
+			callback: async (feedback, context) => {
+				let userOption = await context.parseVariablesInString(feedback.options.user)
+				if (!userOption) userOption === feedback.options.user
 
-				instance.parseVariables(feedback.options.user, (value) => {
-					userOption = userOption = value || feedback.options.user
-				})
-
-				const voiceUser = instance.client.sortedVoiceUsers().find((voiceState, index) => {
+				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
 					if (!isNaN(parseInt(userOption, 10)) && parseInt(userOption, 10) === index) return true
 					return (
 						userOption === voiceState.user.id ||
@@ -333,7 +316,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					)
 				})
 
-				return voiceUser?.user.id === instance.client.selectedUser || false
+				return voiceUser?.user.id === instance.clientData.selectedUser || false
 			},
 		},
 	}

@@ -1,44 +1,46 @@
-import instance_skel = require('../../../instance_skel')
 import {
-	CompanionActions,
-	CompanionConfigField,
-	CompanionFeedbacks,
-	CompanionSystem,
-	CompanionPreset,
-	CompanionStaticUpgradeScript,
-} from '../../../instance_skel_types'
+	InstanceBase,
+	runEntrypoint,
+	CompanionFeedbackDefinitions,
+	SomeCompanionConfigField,
+} from '@companion-module/base'
 import { getActions } from './actions'
+import { discordInit } from './client'
 import { Config, getConfigFields } from './config'
 import { getFeedbacks } from './feedback'
 import { getPresets } from './presets'
 import { getUpgrades } from './upgrade'
 import { Variables } from './variables'
-import RPCClient from './client'
+//import RPCClient from './client'
 
 /**
  * Companion instance class for Discord's API
  */
-class DiscordInstance extends instance_skel<Config> {
-	constructor(system: CompanionSystem, id: string, config: Config) {
-		super(system, id, config)
-		this.config = config
-		this.variables = new Variables(this)
+class DiscordInstance extends InstanceBase<Config> {
+	constructor(internal: unknown) {
+		super(internal)
+		this.instanceOptions.disableVariableValidation = true
 	}
 
-	public client = new RPCClient(this)
+	public client: any
+	public clientData: any
 
-	public readonly variables
-
-	static GetUpgradeScripts(): CompanionStaticUpgradeScript[] {
-		return getUpgrades()
+	public config: Config = {
+		clientID: '',
+		clientSecret: '',
+		refreshToken: ''
 	}
+
+	public readonly variables = new Variables(this)
+
 
 	/**
 	 * @description triggered on instance being enabled
 	 */
-	public init(): void {
+	public async init(config: Config): Promise<void> {
+		await this.configUpdated(config)
 		this.updateInstance()
-
+		this.setPresetDefinitions(getPresets())
 		this.clientInit()
 	}
 
@@ -51,16 +53,14 @@ class DiscordInstance extends instance_skel<Config> {
 			return
 		}
 
-		this.client.init().catch((e) => {
-			this.log('warn', e.message)
-		})
+		discordInit(this)
 	}
 
 	/**
 	 * @description close connections and stop timers/intervals
 	 */
-	public readonly destroy = (): void => {
-		this.client.destroy()
+	public async destroy(): Promise<void> {
+		//this.client.destroy()
 		this.log('debug', `Instance destroyed: ${this.id}`)
 	}
 
@@ -68,7 +68,7 @@ class DiscordInstance extends instance_skel<Config> {
 	 * @returns config options
 	 * @description generates the config options available for this instance
 	 */
-	public readonly config_fields = (): CompanionConfigField[] => {
+	public getConfigFields(): SomeCompanionConfigField[] {
 		return getConfigFields()
 	}
 
@@ -76,7 +76,7 @@ class DiscordInstance extends instance_skel<Config> {
 	 * @param config new configuration data
 	 * @description triggered every time the config for this instance is saved
 	 */
-	public async updateConfig(config: Config): Promise<void> {
+	public async configUpdated(config: Config): Promise<void> {
 		if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret) {
 			this.config = config
 			this.clientInit()
@@ -92,14 +92,15 @@ class DiscordInstance extends instance_skel<Config> {
 	 */
 	public async updateInstance(): Promise<void> {
 		// Cast actions and feedbacks from Discord types to Companion types
-		const actions = getActions(this) as CompanionActions
-		const feedbacks = getFeedbacks(this) as CompanionFeedbacks
+		const actions = getActions(this)
+		const feedbacks = getFeedbacks(this) as unknown as CompanionFeedbackDefinitions
 
-		this.setActions(actions)
+		this.setActionDefinitions(actions)
 		this.setFeedbackDefinitions(feedbacks)
-		this.setPresetDefinitions(getPresets(this) as CompanionPreset[])
 		this.variables.updateVariables()
 	}
 }
 
 export = DiscordInstance
+
+runEntrypoint(DiscordInstance, getUpgrades())

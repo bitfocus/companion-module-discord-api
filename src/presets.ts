@@ -1,265 +1,332 @@
-import DiscordInstance from './index'
 import { ActionCallbacks } from './actions'
 import { FeedbackCallbacks } from './feedback'
-import { CompanionAlignment } from '../../../instance_skel_types'
+import { combineRgb, CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
 
 type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Discord Status'
 
-export interface DiscordPreset {
-	category: PresetCategory
-	label: string
-	bank: {
-		alignment?: CompanionAlignment
-		bgcolor: number
-		color: number
-		pngalignment?: CompanionAlignment
-		size: 'auto' | '7' | '14' | '18' | '24' | '30' | '44'
-		style: 'text'
-		text: string
-	}
-	actions: ActionCallbacks[]
-	release_actions?: ActionCallbacks[]
-	feedbacks: FeedbackCallbacks[]
+interface DiscordPresetAdditions {
+  category: PresetCategory
+  steps: {
+    down: ActionCallbacks[],
+    up: ActionCallbacks[]
+  }[]
+  feedbacks: FeedbackCallbacks[]
 }
 
-export function getPresets(instance: DiscordInstance): DiscordPreset[] {
+export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> & DiscordPresetAdditions
+
+export function getPresets(): CompanionPresetDefinitions {
 	const presets: DiscordPreset[] = [
 		{
 			category: 'Voice Control',
-			label: 'Self Mute',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Mute',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nMute',
 				size: '18',
 			},
-			actions: [{ action: 'selfMute', options: { type: 'Toggle' } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfMute', options: { type: 'Toggle' } }],
+					up: []
+				}
+			],
 			feedbacks: [
 				{
-					type: 'selfMute',
+					feedbackId: 'selfMute',
 					options: {},
-					style: { color: instance.rgb(255, 255, 255), bgcolor: instance.rgb(255, 0, 0) },
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
 				},
 			],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Self Deafen',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Deafen',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nDeafen',
 				size: '18',
 			},
-			actions: [{ action: 'selfDeafen', options: { type: 'Toggle' } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfDeafen', options: { type: 'Toggle' } }],
+					up: []
+				}
+			],
 			feedbacks: [
 				{
-					type: 'selfDeaf',
+					feedbackId: 'selfDeaf',
 					options: {},
-					style: { color: instance.rgb(255, 255, 255), bgcolor: instance.rgb(255, 0, 0) },
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
 				},
 			],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Self Increase Input Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Increase Input Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nIn Vol\\n+10',
 				size: '18',
 			},
-			actions: [{ action: 'selfInputVolume', options: { type: 'Increase', volume: 10 } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfInputVolume', options: { type: 'Increase', volume: 10 } }],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Self Decrease Input Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Decrease Input Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nIn Vol\\n-10',
 				size: '18',
 			},
-			actions: [{ action: 'selfInputVolume', options: { type: 'Decrease', volume: 10 } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfInputVolume', options: { type: 'Decrease', volume: 10 } }],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Self Increase Input Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Increase Input Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nOut Vol\\n+10',
 				size: '18',
 			},
-			actions: [{ action: 'selfOutputVolume', options: { type: 'Increase', volume: 10 } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfOutputVolume', options: { type: 'Increase', volume: 10 } }],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Self Decrease Input Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Self Decrease Input Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Self\\nOut Vol\\n-10',
 				size: '18',
 			},
-			actions: [{ action: 'selfOutputVolume', options: { type: 'Decrease', volume: 10 } }],
+			steps: [
+				{
+					down: [{ actionId: 'selfOutputVolume', options: { type: 'Decrease', volume: 10 } }],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Selected User Mute',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Selected User Mute',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Toggle\\nUser\\nMute',
 				size: '18',
 			},
-			actions: [
-				{ action: 'otherMute', options: { type: 'Toggle', user: `$(${instance.label}}:voice_user_selected_id)` } },
+			steps: [
+				{
+					down: [{ actionId: 'otherMute', options: { type: 'Toggle', user: `$(label}:voice_user_selected_id)` } }],
+					up: []
+				}
 			],
 			feedbacks: [
 				{
-					type: 'otherMute',
+					feedbackId: 'otherMute',
 					options: { user: '' },
-					style: { color: instance.rgb(255, 255, 255), bgcolor: instance.rgb(255, 0, 0) },
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
 				},
 			],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Increase Selected User Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Increase Selected User Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Vol\\n+10',
 				size: '18',
 			},
-			actions: [
+			steps: [
 				{
-					action: 'otherVolume',
-					options: { type: 'Increase', volume: 10, user: `$(${instance.label}}:voice_user_selected_id)` },
-				},
+					down: [{
+						actionId: 'otherVolume',
+						options: { type: 'Increase', volume: 10, user: `$(label}:voice_user_selected_id)` },
+					}],
+					up: []
+				}
 			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Control',
-			label: 'Decrease Selected User Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
+			name: 'Decrease Selected User Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				text: 'Vol\\n-10',
 				size: '18',
 			},
-			actions: [
+			steps: [
 				{
-					action: 'otherVolume',
-					options: { type: 'Decrease', volume: 10, user: `$(${instance.label}}:voice_user_selected_id)` },
-				},
+					down: [{
+						actionId: 'otherVolume',
+						options: { type: 'Decrease', volume: 10, user: `$(label}:voice_user_selected_id)` },
+					},],
+					up: []
+				}
 			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Status & User Selection',
-			label: 'Mic Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `Mic\\n$(${instance.label}:voice_self_input_volume)`,
+			name: 'Mic Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `Mic\\n$(label:voice_self_input_volume)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Status & User Selection',
-			label: 'Headset Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `Headset\\n$(${instance.label}:voice_self_output_volume)`,
+			name: 'Headset Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `Headset\\n$(label:voice_self_output_volume)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Status & User Selection',
-			label: 'Selected User',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `User\\n$(${instance.label}:voice_user_selected_nick)`,
+			name: 'Selected User',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `User\\n$(label:voice_user_selected_nick)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Voice Status & User Selection',
-			label: 'Selected User Volume',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `Vol\\n$(${instance.label}:voice_user_selected_volume)`,
+			name: 'Selected User Volume',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `Vol\\n$(label:voice_user_selected_volume)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Discord Status',
-			label: 'Voice Ping',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `Ping\\n$(${instance.label}:voice_connection_ping)`,
+			name: 'Voice Ping',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `Ping\\n$(label:voice_connection_ping)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Discord Status',
-			label: 'Voice Avg, Min, Max, Ping',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `Avg: $(${instance.label}:voice_connection_ping_avg)\\nMin: $(${instance.label}:voice_connection_ping_min)\\nMax: $(${instance.label}:voice_connection_ping_max)`,
+			name: 'Voice Avg, Min, Max, Ping',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `Avg: $(label:voice_connection_ping_avg)\\nMin: $(label:voice_connection_ping_min)\\nMax: $(label:voice_connection_ping_max)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 		{
 			category: 'Discord Status',
-			label: 'Voice Connection',
-			bank: {
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
-				style: 'text',
-				text: `$(${instance.label}:voice_connection_status)`,
+			name: 'Voice Connection',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: `$(label:voice_connection_status)`,
 				size: '18',
 			},
-			actions: [],
+			steps: [
+				{
+					down: [],
+					up: []
+				}
+			],
 			feedbacks: [],
 		},
 	]
@@ -267,27 +334,32 @@ export function getPresets(instance: DiscordInstance): DiscordPreset[] {
 	for (let i = 0; i < 10; i++) {
 		presets.push({
 			category: 'Voice Status & User Selection',
-			label: `User ${i}`,
-			bank: {
+			name: `User ${i}`,
+			type: 'button',
+			style: {
 				alignment: 'center:top',
-				bgcolor: instance.rgb(0, 0, 0),
-				color: instance.rgb(255, 255, 255),
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
 				pngalignment: 'center:bottom',
-				style: 'text',
-				text: `$(${instance.label}:voice_user_${i}_nick)`,
+				text: `$(label:voice_user_${i}_nick)`,
 				size: '18',
 			},
-			actions: [{ action: 'selectUser', options: { user: `${i}` } }],
-			feedbacks: [
-				{ type: 'voiceStyling', options: { user: `${i}` } },
+			steps: [
 				{
-					type: 'selectedUser',
+					down: [{ actionId: 'selectUser', options: { user: `${i}` } }],
+					up: []
+				}
+			],
+			feedbacks: [
+				{ feedbackId: 'voiceStyling', options: { user: `${i}` } },
+				{
+					feedbackId: 'selectedUser',
 					options: { user: `${i}` },
-					style: { color: instance.rgb(255, 255, 255), bgcolor: instance.rgb(0, 100, 0) },
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(0, 100, 0) },
 				},
 			],
 		})
 	}
 
-	return presets
+	return presets as unknown as CompanionPresetDefinitions
 }

@@ -1,4 +1,4 @@
-import { CompanionActionEventInfo, CompanionActionEvent, SomeCompanionInputField } from '../../../instance_skel_types'
+import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
 import DiscordInstance from './index'
 
 export interface DiscordActions {
@@ -17,21 +17,21 @@ export interface DiscordActions {
 }
 
 interface SelfMuteCallback {
-	action: 'selfMute'
+	actionId: 'selfMute'
 	options: Readonly<{
 		type: 'Toggle' | 'Mute' | 'Unmute'
 	}>
 }
 
 interface SelfDeafenCallback {
-	action: 'selfDeafen'
+	actionId: 'selfDeafen'
 	options: Readonly<{
 		type: 'Toggle' | 'Deafen' | 'Undeafen'
 	}>
 }
 
 interface SelfInputVolumeCallback {
-	action: 'selfInputVolume'
+	actionId: 'selfInputVolume'
 	options: Readonly<{
 		type: 'Set' | 'Increase' | 'Decrease'
 		volume: number
@@ -39,7 +39,7 @@ interface SelfInputVolumeCallback {
 }
 
 interface SelfOutputVolumeCallback {
-	action: 'selfOutputVolume'
+	actionId: 'selfOutputVolume'
 	options: Readonly<{
 		type: 'Set' | 'Increase' | 'Decrease'
 		volume: number
@@ -47,7 +47,7 @@ interface SelfOutputVolumeCallback {
 }
 
 interface OtherMuteCallback {
-	action: 'otherMute'
+	actionId: 'otherMute'
 	options: Readonly<{
 		type: 'Toggle' | 'Mute' | 'Unmute'
 		user: string
@@ -55,7 +55,7 @@ interface OtherMuteCallback {
 }
 
 interface OtherVolumeCallback {
-	action: 'otherVolume'
+	actionId: 'otherVolume'
 	options: Readonly<{
 		type: 'Set' | 'Increase' | 'Decrease'
 		volume: number
@@ -64,7 +64,7 @@ interface OtherVolumeCallback {
 }
 
 interface JoinVoiceChannelCallback {
-	action: 'joinVoiceChannel'
+	actionId: 'joinVoiceChannel'
 	options: Readonly<{
 		channel: string
 		force: boolean
@@ -73,14 +73,14 @@ interface JoinVoiceChannelCallback {
 }
 
 interface JoinTextChannelCallback {
-	action: 'joinTextChannel'
+	actionId: 'joinTextChannel'
 	options: Readonly<{
 		channel: string
 	}>
 }
 
 interface SelectUserCallback {
-	action: 'selectUser'
+	actionId: 'selectUser'
 	options: Readonly<{
 		user: string
 	}>
@@ -98,25 +98,22 @@ export type ActionCallbacks =
 	| SelectUserCallback
 
 // Force options to have a default to prevent sending undefined values
-type InputFieldWithDefault = Exclude<SomeCompanionInputField, 'default'> & { default: string | number | boolean | null }
+type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & { default: string | number | boolean | null }
 
 // Actions specific to Discord
 export interface DiscordAction<T> {
-	label: string
-	description?: string
-	options: InputFieldWithDefault[]
-	callback: (
-		action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>,
-		info: Readonly<CompanionActionEventInfo | null>
-	) => void
-	subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
-	unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+  name: string
+  description?: string
+  options: InputFieldWithDefault[]
+  callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+  subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+  unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 }
 
 export function getActions(instance: DiscordInstance): DiscordActions {
 	return {
 		selfMute: {
-			label: 'Self - Mute',
+			name: 'Self - Mute',
 			options: [
 				{
 					type: 'dropdown',
@@ -131,14 +128,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: (action) => {
-				if (instance.client.userVoiceSettings === null) return
+				if (instance.clientData.userVoiceSettings === null) return
 
-				if (instance.client.userVoiceSettings.deaf) {
+				if (instance.clientData.userVoiceSettings.deaf) {
 					if (action.options.type !== 'Mute') instance.client.setVoiceSettings({ mute: false, deaf: false })
 				} else {
 					let mute = action.options.type === 'Mute'
-					if (action.options.type === 'Toggle') mute = !instance.client.userVoiceSettings!.mute
-					if (mute === instance.client.userVoiceSettings!.mute) return
+					if (action.options.type === 'Toggle') mute = !instance.clientData.userVoiceSettings!.mute
+					if (mute === instance.clientData.userVoiceSettings!.mute) return
 
 					instance.client.setVoiceSettings({ mute })
 				}
@@ -146,7 +143,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		selfDeafen: {
-			label: 'Self - Deafen',
+			name: 'Self - Deafen',
 			options: [
 				{
 					type: 'dropdown',
@@ -162,15 +159,15 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			],
 			callback: (action) => {
 				let deaf = action.options.type === 'Deafen'
-				if (action.options.type === 'Toggle') deaf = !instance.client.userVoiceSettings!.deaf
-				if (instance.client.userVoiceSettings === null || deaf === instance.client.userVoiceSettings!.deaf) return
+				if (action.options.type === 'Toggle') deaf = !instance.clientData.userVoiceSettings!.deaf
+				if (instance.clientData.userVoiceSettings === null || deaf === instance.clientData.userVoiceSettings!.deaf) return
 
 				instance.client.setVoiceSettings({ deaf })
 			},
 		},
 
 		selfInputVolume: {
-			label: 'Self - Input Volume',
+			name: 'Self - Input Volume',
 			options: [
 				{
 					type: 'dropdown',
@@ -196,7 +193,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				if (action.options.type === 'Set') {
 					instance.client.setVoiceSettings({ input: { volume: action.options.volume } } as any)
 				} else {
-					const currentVolume = instance.client.userVoiceSettings?.input.volume
+					const currentVolume = instance.clientData.userVoiceSettings?.input.volume
 					if (currentVolume !== undefined) {
 						let newVolume =
 							currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
@@ -210,7 +207,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		selfOutputVolume: {
-			label: 'Self - Output Volume',
+			name: 'Self - Output Volume',
 			options: [
 				{
 					type: 'dropdown',
@@ -236,12 +233,12 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				if (action.options.type === 'Set') {
 					instance.client.setVoiceSettings({ output: { volume: action.options.volume } } as any)
 				} else {
-					const currentVolume = instance.client.userVoiceSettings?.output.volume
+					const currentVolume = instance.clientData.userVoiceSettings?.output.volume
 					if (currentVolume !== undefined) {
 						let newVolume =
 							currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
 						if (newVolume < 0) newVolume = 0
-						if (newVolume > 100) newVolume = 100
+						if (newVolume > 200) newVolume = 200
 
 						instance.client.setVoiceSettings({ output: { volume: newVolume } } as any)
 					}
@@ -250,7 +247,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		otherMute: {
-			label: 'Other - Mute',
+			name: 'Other - Mute',
 			options: [
 				{
 					type: 'dropdown',
@@ -272,8 +269,8 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: async (action) => {
-				const user = instance.client.getUser(action.options.user)
-				if (user === null) return
+				const user = await instance.clientData.getUser(action.options.user)
+				if (user === null || user.user.id === instance.client.user.id) return
 
 				let mute = user.mute
 
@@ -287,7 +284,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		otherVolume: {
-			label: 'Other - Volume',
+			name: 'Other - Volume',
 			options: [
 				{
 					type: 'dropdown',
@@ -317,8 +314,8 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: async (action) => {
-				const user = instance.client.getUser(action.options.user)
-				if (user === null) return
+				const user = await instance.clientData.getUser(action.options.user)
+				if (user === null || user.user.id === instance.client.user.id) return
 
 				let volume = action.options.volume
 
@@ -335,14 +332,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		joinVoiceChannel: {
-			label: 'Join Channel - Voice',
+			name: 'Join Channel - Voice',
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.client.sortedVoiceChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedVoiceChannelChoices()],
 				},
 				{
 					type: 'checkbox',
@@ -362,7 +359,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			callback: (action) => {
 				if (action.options.channel === '0') return
 
-				if (action.options.channel !== instance.client.voiceChannel?.id) {
+				if (action.options.channel !== instance.clientData.voiceChannel?.id) {
 					instance.client.selectVoiceChannel(action.options.channel, { force: action.options.force })
 				} else {
 					if (action.options.leave) instance.client.selectVoiceChannel(null, { force: action.options.force })
@@ -371,14 +368,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		joinTextChannel: {
-			label: 'Join Channel - Text',
+			name: 'Join Channel - Text',
 			options: [
 				{
 					type: 'dropdown',
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.client.sortedTextChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedTextChannelChoices()],
 				},
 			],
 			callback: (action) => {
@@ -389,7 +386,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		selectUser: {
-			label: 'Select User',
+			name: 'Select User',
 			options: [
 				{
 					type: 'textinput',
@@ -400,7 +397,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: async (action) => {
-				const selected = instance.client.sortedVoiceUsers().find((voiceState, index) => {
+				const selected = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: any) => {
 					const idCheck = voiceState.user.id === action.options.user
 					const usernameCheck =
 						`${voiceState.user.username.toLowerCase()}#${voiceState.user.discriminator}` ===
@@ -411,7 +408,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				})
 
 				if (selected)
-					instance.client.selectedUser = instance.client.selectedUser === selected.user.id ? '' : selected.user.id
+					instance.clientData.selectedUser = instance.clientData.selectedUser === selected.user.id ? '' : selected.user.id
 
 				instance.variables.updateVariables()
 				instance.checkFeedbacks('selectedUser', 'otherMute')

@@ -1,10 +1,5 @@
 import DiscordInstance from './'
-
-interface InstanceVariableDefinition {
-	label: string
-	name: string
-	type?: string
-}
+import { CompanionVariableDefinition } from '@companion-module/base'
 
 interface InstanceVariableValue {
 	[key: string]: string | number | undefined
@@ -30,32 +25,32 @@ export class Variables {
 		}
 
 		//this.currentVariables = variables
-		this.instance.setVariables(newVariables)
+		this.instance.setVariableValues(newVariables)
 	}
 
 	/**
 	 * @description Sets variable definitions
 	 */
 	public readonly updateDefinitions = (): void => {
-		const variables: Set<InstanceVariableDefinition> = new Set([])
+		const variables: Set<CompanionVariableDefinition> = new Set([])
 
-		variables.add({ label: 'Voice Connection Status', name: 'voice_connection_status' })
-		variables.add({ label: 'Voice Connection Hostname', name: 'voice_connection_hostname' })
-		variables.add({ label: 'Voice Connection Ping', name: 'voice_connection_ping' })
-		variables.add({ label: 'Voice Connection Ping Avg', name: 'voice_connection_ping_avg' })
-		variables.add({ label: 'Voice Connection Ping Min', name: 'voice_connection_ping_min' })
-		variables.add({ label: 'Voice Connection Ping Max', name: 'voice_connection_ping_max' })
+		variables.add({ name: 'Voice Connection Status', variableId: 'voice_connection_status' })
+		variables.add({ name: 'Voice Connection Hostname', variableId: 'voice_connection_hostname' })
+		variables.add({ name: 'Voice Connection Ping', variableId: 'voice_connection_ping' })
+		variables.add({ name: 'Voice Connection Ping Avg', variableId: 'voice_connection_ping_avg' })
+		variables.add({ name: 'Voice Connection Ping Min', variableId: 'voice_connection_ping_min' })
+		variables.add({ name: 'Voice Connection Ping Max', variableId: 'voice_connection_ping_max' })
 
-		variables.add({ label: 'Voice Self Input Volume', name: 'voice_self_input_volume' })
-		variables.add({ label: 'Voice Self Output Volume', name: 'voice_self_output_volume' })
+		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
+		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
 
-		for (let i = 0; i < this.instance.client.sortedVoiceUsers().length; i++) {
-			variables.add({ label: `Voice User ${i} Nick`, name: `voice_user_${i}_nick` })
+		for (let i = 0; i < this.instance.clientData.sortedVoiceUsers().length; i++) {
+			variables.add({ name: `Voice User ${i} Nick`, variableId: `voice_user_${i}_nick` })
 		}
 
-		variables.add({ label: 'Voice User Selected ID', name: 'voice_user_selected_id' })
-		variables.add({ label: 'Voice User Selected Nick', name: 'voice_user_selected_nick' })
-		variables.add({ label: 'Voice User Selected Volume', name: 'voice_user_selected_volume' })
+		variables.add({ name: 'Voice User Selected ID', variableId: 'voice_user_selected_id' })
+		variables.add({ name: 'Voice User Selected Nick', variableId: 'voice_user_selected_nick' })
+		variables.add({ name: 'Voice User Selected Volume', variableId: 'voice_user_selected_volume' })
 
 		this.instance.setVariableDefinitions([...variables])
 	}
@@ -66,32 +61,36 @@ export class Variables {
 	public readonly updateVariables = (): void => {
 		const newVariables: InstanceVariableValue = {}
 
-		newVariables.voice_connection_status = this.instance.client.voiceStatus.state
-		newVariables.voice_connection_hostname = this.instance.client.voiceStatus.hostname || ''
-		newVariables.voice_connection_ping = this.instance.client.voiceStatus.last_ping || ''
-		newVariables.voice_connection_ping_avg = this.instance.client.voiceStatus.last_ping || ''
-		newVariables.voice_connection_ping_min =
-			this.instance.client.voiceStatus.pings.length > 0
-				? Math.min(...this.instance.client.voiceStatus.pings.map((ping) => ping.value))
-				: ''
-		newVariables.voice_connection_ping_max =
-			this.instance.client.voiceStatus.pings.length > 0
-				? Math.max(...this.instance.client.voiceStatus.pings.map((ping) => ping.value))
-				: ''
+		if (this.instance.clientData) {
 
-		newVariables.voice_self_input_volume = this.instance.client.userVoiceSettings?.input.volume.toFixed(2)
-		newVariables.voice_self_output_volume = this.instance.client.userVoiceSettings?.output.volume.toFixed(2)
+			newVariables.voice_connection_status = this.instance.clientData.voiceStatus.state
+			newVariables.voice_connection_hostname = this.instance.clientData.voiceStatus.hostname || ''
+			newVariables.voice_connection_ping = this.instance.clientData.voiceStatus.last_ping || ''
+			newVariables.voice_connection_ping_avg = this.instance.clientData.voiceStatus.last_ping || ''
+			newVariables.voice_connection_ping_min =
+				this.instance.clientData.voiceStatus.pings.length > 0
+					? Math.min(...this.instance.clientData.voiceStatus.pings.map((ping: any) => ping.value))
+					: ''
+			newVariables.voice_connection_ping_max =
+				this.instance.clientData.voiceStatus.pings.length > 0
+					? Math.max(...this.instance.clientData.voiceStatus.pings.map((ping: any) => ping.value))
+					: ''
 
-		for (let i = 0; i < 200; i++) {
-			newVariables[`voice_user_${i}_nick`] = this.instance.client.sortedVoiceUsers()[i]?.nick || ''
+			newVariables.voice_self_input_volume = this.instance.clientData.userVoiceSettings?.input.volume.toFixed(2)
+			newVariables.voice_self_output_volume = this.instance.clientData.userVoiceSettings?.output.volume.toFixed(2)
+
+			for (let i = 0; i < 200; i++) {
+				newVariables[`voice_user_${i}_nick`] = this.instance.clientData.sortedVoiceUsers()[i]?.nick || ''
+			}
+
+			newVariables.voice_user_selected_id = this.instance.clientData.selectedUser
+			
+			const selectedUser = this.instance.clientData
+				.sortedVoiceUsers()
+				.find((voiceState: any) => voiceState.user.id === this.instance.clientData.selectedUser)
+			newVariables.voice_user_selected_nick = selectedUser?.nick || ''
+			newVariables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
 		}
-
-		newVariables.voice_user_selected_id = this.instance.client.selectedUser
-		const selectedUser = this.instance.client
-			.sortedVoiceUsers()
-			.find((voiceState) => voiceState.user.id === this.instance.client.selectedUser)
-		newVariables.voice_user_selected_nick = selectedUser?.nick || ''
-		newVariables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
 
 		this.set(newVariables)
 		this.updateDefinitions()
