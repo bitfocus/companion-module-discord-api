@@ -1,6 +1,6 @@
 {
 	"name": "discord-api",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "dist/index.js",
 	"scripts": {
 		"dev": "yarn build:watch",
@@ -38,7 +38,7 @@
 		"discord-rpc": "^4.0.1"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "~0.5.0",
+		"@companion-module/tools": "~0.5.2",
 		"@types/discord-rpc": "~4.0.3",
 		"@types/jest": "~29.2.3",
 		"@types/node": "~18.11.9",
