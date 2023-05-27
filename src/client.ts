@@ -561,6 +561,19 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
     instance.checkFeedbacks('voiceStyling')
   })
 
+  const newLogin = async () => {
+    await client.login({
+      clientId: instance.config.clientID,
+      clientSecret: instance.config.clientSecret,
+      redirectUri: 'http://localhost',
+      scopes: instance.clientData.scopes
+    })
+      .catch(err => {
+        instance.log('warn', `Login err: ${JSON.stringify(err)}`)
+        instance.updateStatus(InstanceStatus.ConnectionFailure)
+      })
+  }
+
   await client.login({
     accessToken: instance.config.accessToken,
     clientId: instance.config.clientID,
@@ -569,8 +582,12 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
     scopes: instance.clientData.scopes
   })
     .catch(err => {
-      instance.log('warn', `Login err: ${JSON.stringify(err)}`)
-      instance.updateStatus(InstanceStatus.ConnectionFailure)
+      if (err?.code === 4009) {
+        newLogin()
+      } else {
+        instance.log('warn', `Login err: ${JSON.stringify(err)}`)
+        instance.updateStatus(InstanceStatus.ConnectionFailure)
+      }
     })
 
 }
