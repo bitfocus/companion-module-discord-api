@@ -1,5 +1,6 @@
 import DiscordInstance from './index'
-import { voicePNG64 } from './png64'
+//import { voicePNG64 } from './png64'
+import { graphics } from 'companion-module-utils' 
 import {
   combineRgb,
   CompanionAdvancedFeedbackResult,
@@ -250,12 +251,13 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			callback: async (feedback, context) => {
+				if (!feedback.image) return {}
 				let userOption = await context.parseVariablesInString(feedback.options.user)
 				if (!userOption) userOption === feedback.options.user
 
 				const self = userOption.toLowerCase() === 'self'
-				let mute = '0'
-				let deaf = '0'
+				let mute: 'mic1' | 'mic2' | 'mic3' | 'mic4' | 'mic5' = 'mic1'
+				let deaf: 'headset1' | 'headset2' | 'headset3' | 'headset4' = 'headset1'
 
 				// 0 = unmuted, 1 = muted other, 2 = server mute, 3 = self mute/suppressed
 
@@ -271,15 +273,32 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				})
 
 				if (voiceUser) {
-					if (voiceUser.voice_state.self_mute || voiceUser.voice_state.suppress) mute = '3'
-					if (voiceUser.mute) mute = '1'
-					if (instance.clientData.speaking.has(voiceUser.user.id)) mute = 's'
-					if (voiceUser.voice_state.mute) mute = '2'
-					if (voiceUser.voice_state.self_deaf) deaf = '3'
-					if (voiceUser.voice_state.deaf) deaf = '2'
+					if (voiceUser.voice_state.self_mute || voiceUser.voice_state.suppress) mute = 'mic2'
+					if (voiceUser.mute) mute = 'mic3'
+					if (instance.clientData.speaking.has(voiceUser.user.id)) mute = 'mic5'
+					if (voiceUser.voice_state.mute) mute = 'mic4'
+					if (voiceUser.voice_state.self_deaf) deaf = 'headset2'
+					if (voiceUser.voice_state.deaf) deaf = 'headset4'
 
-					const status = `m${mute}d${deaf}`
-					if (voicePNG64[status]) return { pngalignment: 'center:bottom', png64: voicePNG64[status] }
+					const micIcon = graphics.icon({
+						width: feedback.image.width,
+						height: feedback.image.height,
+						type: mute,
+						offsetX: 13,
+						offsetY: feedback.image.height === 72 ? 38 : 24
+					})
+
+					const headsetIcon = graphics.icon({
+						width: feedback.image.width,
+						height: feedback.image.height,
+						type: deaf,
+						offsetX: 35,
+						offsetY: feedback.image.height === 72 ? 38 : 24
+					})
+
+					return {
+						imageBuffer: graphics.stackImage([micIcon, headsetIcon])
+					}
 				}
 
 				return {}
