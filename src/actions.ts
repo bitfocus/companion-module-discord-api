@@ -98,16 +98,18 @@ export type ActionCallbacks =
 	| SelectUserCallback
 
 // Force options to have a default to prevent sending undefined values
-type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & { default: string | number | boolean | null }
+type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
+	default: string | number | boolean | null
+}
 
 // Actions specific to Discord
 export interface DiscordAction<T> {
-  name: string
-  description?: string
-  options: InputFieldWithDefault[]
-  callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
-  subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
-  unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+	name: string
+	description?: string
+	options: InputFieldWithDefault[]
+	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+	subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+	unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 }
 
 export function getActions(instance: DiscordInstance): DiscordActions {
@@ -160,7 +162,8 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			callback: (action) => {
 				let deaf = action.options.type === 'Deafen'
 				if (action.options.type === 'Toggle') deaf = !instance.clientData.userVoiceSettings!.deaf
-				if (instance.clientData.userVoiceSettings === null || deaf === instance.clientData.userVoiceSettings!.deaf) return
+				if (instance.clientData.userVoiceSettings === null || deaf === instance.clientData.userVoiceSettings!.deaf)
+					return
 
 				instance.client.setVoiceSettings({ deaf })
 			},
@@ -408,7 +411,8 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				})
 
 				if (selected)
-					instance.clientData.selectedUser = instance.clientData.selectedUser === selected.user.id ? '' : selected.user.id
+					instance.clientData.selectedUser =
+						instance.clientData.selectedUser === selected.user.id ? '' : selected.user.id
 
 				instance.variables.updateVariables()
 				instance.checkFeedbacks('selectedUser', 'otherMute')

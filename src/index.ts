@@ -28,11 +28,10 @@ class DiscordInstance extends InstanceBase<Config> {
 	public config: Config = {
 		clientID: '',
 		clientSecret: '',
-		refreshToken: ''
+		refreshToken: '',
 	}
 
 	public readonly variables = new Variables(this)
-
 
 	/**
 	 * @description triggered on instance being enabled

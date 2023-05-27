@@ -5,15 +5,16 @@ import { combineRgb, CompanionButtonPresetDefinition, CompanionPresetDefinitions
 type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Discord Status'
 
 interface DiscordPresetAdditions {
-  category: PresetCategory
-  steps: {
-    down: ActionCallbacks[],
-    up: ActionCallbacks[]
-  }[]
-  feedbacks: FeedbackCallbacks[]
+	category: PresetCategory
+	steps: {
+		down: ActionCallbacks[]
+		up: ActionCallbacks[]
+	}[]
+	feedbacks: FeedbackCallbacks[]
 }
 
-export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> & DiscordPresetAdditions
+export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> &
+	DiscordPresetAdditions
 
 export function getPresets(): CompanionPresetDefinitions {
 	const presets: DiscordPreset[] = [
@@ -30,8 +31,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfMute', options: { type: 'Toggle' } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [
 				{
@@ -54,8 +55,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfDeafen', options: { type: 'Toggle' } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [
 				{
@@ -78,8 +79,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfInputVolume', options: { type: 'Increase', volume: 10 } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -96,8 +97,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfInputVolume', options: { type: 'Decrease', volume: 10 } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -114,8 +115,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfOutputVolume', options: { type: 'Increase', volume: 10 } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -132,8 +133,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selfOutputVolume', options: { type: 'Decrease', volume: 10 } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -150,8 +151,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'otherMute', options: { type: 'Toggle', user: `$(label}:voice_user_selected_id)` } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [
 				{
@@ -173,12 +174,14 @@ export function getPresets(): CompanionPresetDefinitions {
 			},
 			steps: [
 				{
-					down: [{
-						actionId: 'otherVolume',
-						options: { type: 'Increase', volume: 10, user: `$(label}:voice_user_selected_id)` },
-					}],
-					up: []
-				}
+					down: [
+						{
+							actionId: 'otherVolume',
+							options: { type: 'Increase', volume: 10, user: `$(label}:voice_user_selected_id)` },
+						},
+					],
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -194,12 +197,14 @@ export function getPresets(): CompanionPresetDefinitions {
 			},
 			steps: [
 				{
-					down: [{
-						actionId: 'otherVolume',
-						options: { type: 'Decrease', volume: 10, user: `$(label}:voice_user_selected_id)` },
-					},],
-					up: []
-				}
+					down: [
+						{
+							actionId: 'otherVolume',
+							options: { type: 'Decrease', volume: 10, user: `$(label}:voice_user_selected_id)` },
+						},
+					],
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -216,8 +221,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -234,8 +239,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -252,8 +257,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -270,8 +275,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -288,8 +293,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -306,8 +311,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -324,8 +329,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [],
 		},
@@ -347,8 +352,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			steps: [
 				{
 					down: [{ actionId: 'selectUser', options: { user: `${i}` } }],
-					up: []
-				}
+					up: [],
+				},
 			],
 			feedbacks: [
 				{ feedbackId: 'voiceStyling', options: { user: `${i}` } },

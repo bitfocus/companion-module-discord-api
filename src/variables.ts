@@ -62,7 +62,6 @@ export class Variables {
 		const newVariables: InstanceVariableValue = {}
 
 		if (this.instance.clientData) {
-
 			newVariables.voice_connection_status = this.instance.clientData.voiceStatus.state
 			newVariables.voice_connection_hostname = this.instance.clientData.voiceStatus.hostname || ''
 			newVariables.voice_connection_ping = this.instance.clientData.voiceStatus.last_ping || ''
@@ -84,7 +83,7 @@ export class Variables {
 			}
 
 			newVariables.voice_user_selected_id = this.instance.clientData.selectedUser
-			
+
 			const selectedUser = this.instance.clientData
 				.sortedVoiceUsers()
 				.find((voiceState: any) => voiceState.user.id === this.instance.clientData.selectedUser)

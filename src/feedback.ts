@@ -1,14 +1,14 @@
 import DiscordInstance from './index'
 //import { voicePNG64 } from './png64'
-import { graphics } from 'companion-module-utils' 
+import { graphics } from 'companion-module-utils'
 import {
-  combineRgb,
-  CompanionAdvancedFeedbackResult,
-  CompanionFeedbackButtonStyleResult,
-  CompanionFeedbackAdvancedEvent,
-  CompanionFeedbackBooleanEvent,
-  //CompanionFeedbackContext,
-  SomeCompanionFeedbackInputField,
+	combineRgb,
+	CompanionAdvancedFeedbackResult,
+	CompanionFeedbackButtonStyleResult,
+	CompanionFeedbackAdvancedEvent,
+	CompanionFeedbackBooleanEvent,
+	//CompanionFeedbackContext,
+	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 
 export interface DiscordFeedbacks {
@@ -91,28 +91,40 @@ export type FeedbackCallbacks =
 	| SelectedUserCallback
 
 // Force options to have a default to prevent sending undefined values
-type InputFieldWithDefault = Exclude<SomeCompanionFeedbackInputField, 'default'> & { default: string | number | boolean | null }
+type InputFieldWithDefault = Exclude<SomeCompanionFeedbackInputField, 'default'> & {
+	default: string | number | boolean | null
+}
 
 // Discord Boolean and Advanced feedback types
 interface DiscordFeedbackBoolean<T> {
-  type: 'boolean'
-  name: string
-  description: string
-  defaultStyle: Partial<CompanionFeedbackButtonStyleResult>
-  options: InputFieldWithDefault[]
-  callback: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>, context: any) => boolean | Promise<boolean>
-  subscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
-  unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
+	type: 'boolean'
+	name: string
+	description: string
+	defaultStyle: Partial<CompanionFeedbackButtonStyleResult>
+	options: InputFieldWithDefault[]
+	callback: (
+		feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>,
+		context: any
+	) => boolean | Promise<boolean>
+	subscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
+	unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackBooleanEvent, 'options' | 'type'> & T>) => boolean
 }
 
 interface DiscordFeedbackAdvanced<T> {
-  type: 'advanced'
-  name: string
-  description: string
-  options: InputFieldWithDefault[]
-  callback: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>, context: any) => CompanionAdvancedFeedbackResult | Promise<CompanionAdvancedFeedbackResult>
-  subscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
-  unsubscribe?: (feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>) => CompanionAdvancedFeedbackResult
+	type: 'advanced'
+	name: string
+	description: string
+	options: InputFieldWithDefault[]
+	callback: (
+		feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>,
+		context: any
+	) => CompanionAdvancedFeedbackResult | Promise<CompanionAdvancedFeedbackResult>
+	subscribe?: (
+		feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>
+	) => CompanionAdvancedFeedbackResult
+	unsubscribe?: (
+		feedback: Readonly<Omit<CompanionFeedbackAdvancedEvent, 'options' | 'type'> & T>
+	) => CompanionAdvancedFeedbackResult
 }
 
 export type DiscordFeedback<T> = DiscordFeedbackBoolean<T> | DiscordFeedbackAdvanced<T>
@@ -165,7 +177,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				bgcolor: combineRgb(255, 0, 0),
 			},
 			callback: async (feedback, context) => {
-				let userOption = await context.parseVariablesInString(feedback.options.user)
+				const userOption = await context.parseVariablesInString(feedback.options.user)
 				if (!userOption) userOption === feedback.options.user
 
 				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
@@ -199,7 +211,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				bgcolor: combineRgb(255, 0, 0),
 			},
 			callback: async (feedback, context) => {
-				let userOption = await context.parseVariablesInString(feedback.options.user)
+				const userOption = await context.parseVariablesInString(feedback.options.user)
 				if (!userOption) userOption === feedback.options.user
 
 				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
@@ -252,7 +264,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			],
 			callback: async (feedback, context) => {
 				if (!feedback.image) return {}
-				let userOption = await context.parseVariablesInString(feedback.options.user)
+				const userOption = await context.parseVariablesInString(feedback.options.user)
 				if (!userOption) userOption === feedback.options.user
 
 				const self = userOption.toLowerCase() === 'self'
@@ -285,7 +297,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 						height: feedback.image.height,
 						type: mute,
 						offsetX: 13,
-						offsetY: feedback.image.height === 72 ? 38 : 24
+						offsetY: feedback.image.height === 72 ? 38 : 24,
 					})
 
 					const headsetIcon = graphics.icon({
@@ -293,11 +305,11 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 						height: feedback.image.height,
 						type: deaf,
 						offsetX: 35,
-						offsetY: feedback.image.height === 72 ? 38 : 24
+						offsetY: feedback.image.height === 72 ? 38 : 24,
 					})
 
 					return {
-						imageBuffer: graphics.stackImage([micIcon, headsetIcon])
+						imageBuffer: graphics.stackImage([micIcon, headsetIcon]),
 					}
 				}
 
@@ -323,7 +335,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				bgcolor: combineRgb(0, 100, 0),
 			},
 			callback: async (feedback, context) => {
-				let userOption = await context.parseVariablesInString(feedback.options.user)
+				const userOption = await context.parseVariablesInString(feedback.options.user)
 				if (!userOption) userOption === feedback.options.user
 
 				const voiceUser = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: number) => {
