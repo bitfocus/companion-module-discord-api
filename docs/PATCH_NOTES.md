@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.1.2**
+- Fixed an issue creating a new Instance without existing config
+
 **V1.1.0**
 - Switched to `comapnion-module-utils` to handle the generation of voice channel user states
 - Fixed an issue with login error handling

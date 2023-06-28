@@ -5,7 +5,7 @@ This module is in a BETA state, there is still work to be done on reconnection l
 Tthe full release version of this module will use a dedicated Companion app associated with Discord and not require every user to create their own individual apps in the Discord Developer Console. This is still waiting on Discord Developer Relations staff to respend to approving of the Companion app.
 
 # Changelog
-**V1.1.1**
+**V1.1.2**
 - Fixed an issue creating a new Instance without existing config
 
 **V1.1.0**
