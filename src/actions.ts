@@ -342,7 +342,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedVoiceChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.clientData?.sortedVoiceChannelChoices() || [])],
 				},
 				{
 					type: 'checkbox',
@@ -378,7 +378,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedTextChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.clientData?.sortedTextChannelChoices() || [])],
 				},
 			],
 			callback: (action) => {

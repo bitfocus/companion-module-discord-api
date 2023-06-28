@@ -237,7 +237,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...instance.clientData.sortedVoiceChannelChoices()],
+					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.clientData?.sortedVoiceChannelChoices() || [])],
 				},
 			],
 			defaultStyle: {

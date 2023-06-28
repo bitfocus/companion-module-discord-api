@@ -44,7 +44,7 @@ export class Variables {
 		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
 		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
 
-		for (let i = 0; i < this.instance.clientData.sortedVoiceUsers().length; i++) {
+		for (let i = 0; i < this.instance.clientData?.sortedVoiceUsers().length || 0; i++) {
 			variables.add({ name: `Voice User ${i} Nick`, variableId: `voice_user_${i}_nick` })
 		}
 
@@ -79,7 +79,7 @@ export class Variables {
 			newVariables.voice_self_output_volume = this.instance.clientData.userVoiceSettings?.output.volume.toFixed(2)
 
 			for (let i = 0; i < 200; i++) {
-				newVariables[`voice_user_${i}_nick`] = this.instance.clientData.sortedVoiceUsers()[i]?.nick || ''
+				newVariables[`voice_user_${i}_nick`] = this.instance.clientData?.sortedVoiceUsers()[i]?.nick || ''
 			}
 
 			newVariables.voice_user_selected_id = this.instance.clientData.selectedUser
