@@ -433,7 +433,7 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 	})
 
 	client.on('error', (err) => {
-		instance.log('error', err)
+		instance.log('error', JSON.stringify(err))
 	})
 
 	client.on('CHANNEL_CREATE', (_args: any) => {
@@ -597,6 +597,7 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 			scopes: instance.clientData.scopes,
 		})
 		.catch((err) => {
+			console.log('test', err)
 			if (err?.code === 4009) {
 				newLogin()
 			} else {
