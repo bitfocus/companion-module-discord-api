@@ -1,4 +1,8 @@
 # Patch Notes
+**V1.1.3**
+- Fixed an issue with errors not correctly logging
+- Fixed an issue with packaging by switching to a forked discord-rpc module
+
 **V1.1.2**
 - Fixed an issue creating a new Instance without existing config
 
