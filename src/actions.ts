@@ -9,6 +9,7 @@ export interface DiscordActions {
 	otherMute: DiscordAction<OtherMuteCallback>
 	otherVolume: DiscordAction<OtherVolumeCallback>
 	joinVoiceChannel: DiscordAction<JoinVoiceChannelCallback>
+	leaveCurrentVoiceChannel: DiscordAction<LeaveCurrentVoiceChannelCallback>
 	joinTextChannel: DiscordAction<JoinTextChannelCallback>
 	selectUser: DiscordAction<SelectUserCallback>
 
@@ -72,6 +73,10 @@ interface JoinVoiceChannelCallback {
 	}>
 }
 
+interface LeaveCurrentVoiceChannelCallback {
+	actionId: 'leaveCurrentVoiceChannel'
+}
+
 interface JoinTextChannelCallback {
 	actionId: 'joinTextChannel'
 	options: Readonly<{
@@ -94,6 +99,7 @@ export type ActionCallbacks =
 	| OtherMuteCallback
 	| OtherVolumeCallback
 	| JoinVoiceChannelCallback
+	| LeaveCurrentVoiceChannelCallback
 	| JoinTextChannelCallback
 	| SelectUserCallback
 
@@ -367,6 +373,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				} else {
 					if (action.options.leave) instance.client.selectVoiceChannel(null, { force: action.options.force })
 				}
+			},
+		},
+
+		leaveCurrentVoiceChannel: {
+			name: 'Leave Current Channel',
+			options: [],
+			callback: () => {
+				if (instance.clientData.voiceChannel) instance.client.selectVoiceChannel(null)
 			},
 		},
 
