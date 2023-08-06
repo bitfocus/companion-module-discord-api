@@ -68,6 +68,24 @@ export function getPresets(): CompanionPresetDefinitions {
 		},
 		{
 			category: 'Voice Control',
+			name: 'Leave Current Voice Channel',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'Leave\\nVoice\\nChannel',
+				size: '18',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'leaveCurrentVoiceChannel', options: {} }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+		{
+			category: 'Voice Control',
 			name: 'Self Increase Input Volume',
 			type: 'button',
 			style: {
