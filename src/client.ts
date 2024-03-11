@@ -45,6 +45,10 @@ export interface ClientData {
 	scopes: string[]
 	selectedUser: string
 	speaking: Set<string>
+	delayedSpeaking: Set<string>
+	delayedSpeakingTimers: {
+		[key: string]: NodeJS.Timeout
+	}
 	subscriptions: Subscriptions
 	user: any
 	userVoiceSettings: null | VoiceSettings
@@ -153,7 +157,7 @@ interface VoiceSpeaking {
 	user_id: string
 }
 
-interface VoiceState {
+export interface VoiceState {
 	nick: string
 	mute: boolean
 	volume: number
@@ -200,6 +204,8 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 		scopes: ['identify', 'rpc', 'rpc.voice.read', 'rpc.voice.write', 'guilds'],
 		selectedUser: '',
 		speaking: new Set(),
+		delayedSpeaking: new Set(),
+		delayedSpeakingTimers: {},
 		subscriptions: {
 			SPEAKING_START: null,
 			SPEAKING_STOP: null,
@@ -386,7 +392,6 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 
 		const newConfig = { ...instance.config, accessToken: instance.clientData.access_token }
 		instance.saveConfig(newConfig)
-
 		await updateChannelList()
 		instance.clientData.userVoiceSettings = await getVoiceSettings()
 		//@ts-ignore
@@ -416,7 +421,6 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 				channel_id: voiceChannel.id,
 			})
 		}
-
 		await client.subscribe('CHANNEL_CREATE', {})
 		await client.subscribe('GUILD_CREATE', {})
 		await client.subscribe('VOICE_CHANNEL_SELECT', {})
@@ -448,21 +452,13 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 		if (data.channel_id !== null) {
 			instance.clientData.voiceChannel = await getSelectedVoiceChannel()
 
-			instance.clientData.subscriptions.SPEAKING_START = await client.subscribe('SPEAKING_START', {
-				channel_id: data.channel_id,
-			})
-			instance.clientData.subscriptions.SPEAKING_STOP = await client.subscribe('SPEAKING_STOP', {
-				channel_id: data.channel_id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_CREATE = await client.subscribe('VOICE_STATE_CREATE', {
-				channel_id: data.channel_id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_DELETE = await client.subscribe('VOICE_STATE_DELETE', {
-				channel_id: data.channel_id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_UPDATE = await client.subscribe('VOICE_STATE_UPDATE', {
-				channel_id: data.channel_id,
-			})
+			const options = { channel_id: data.channel_id }
+
+			instance.clientData.subscriptions.SPEAKING_START = await client.subscribe('SPEAKING_START', options)
+			instance.clientData.subscriptions.SPEAKING_STOP = await client.subscribe('SPEAKING_STOP', options)
+			instance.clientData.subscriptions.VOICE_STATE_CREATE = await client.subscribe('VOICE_STATE_CREATE', options)
+			instance.clientData.subscriptions.VOICE_STATE_DELETE = await client.subscribe('VOICE_STATE_DELETE', options)
+			instance.clientData.subscriptions.VOICE_STATE_UPDATE = await client.subscribe('VOICE_STATE_UPDATE', options)
 		} else {
 			instance.clientData.voiceChannel = null
 			instance.clientData.speaking.clear()
@@ -565,13 +561,20 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 		instance.clientData.speaking.add(args.user_id)
 		instance.variables.updateVariables()
 		instance.checkFeedbacks('voiceStyling')
+		instance.clientData.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
+			instance.clientData.delayedSpeaking.add(args.user_id)
+			instance.variables.updateVariables()
+		}, instance.config.speakerDelay || 0)
 	})
 
 	// Triggers when a user stops transmitting in the current channel
 	client.on('SPEAKING_STOP', (args: VoiceSpeaking) => {
 		instance.clientData.speaking.delete(args.user_id)
+		instance.clientData.delayedSpeaking.delete(args.user_id)
 		instance.variables.updateVariables()
 		instance.checkFeedbacks('voiceStyling')
+		if (instance.clientData.delayedSpeakingTimers[args.user_id])
+			clearTimeout(instance.clientData.delayedSpeakingTimers[args.user_id])
 	})
 
 	const newLogin = async () => {
@@ -597,11 +600,10 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 			scopes: instance.clientData.scopes,
 		})
 		.catch((err) => {
-			console.log('test', err)
+			instance.log('debug', `Login err: ${JSON.stringify(err)}`)
 			if (err?.code === 4009) {
 				newLogin()
 			} else {
-				instance.log('warn', `Login err: ${JSON.stringify(err)}`)
 				instance.updateStatus(InstanceStatus.ConnectionFailure)
 			}
 		})

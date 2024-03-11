@@ -29,6 +29,7 @@ class DiscordInstance extends InstanceBase<Config> {
 		clientID: '',
 		clientSecret: '',
 		refreshToken: '',
+		speakerDelay: 100,
 	}
 
 	public readonly variables = new Variables(this)
@@ -59,7 +60,11 @@ class DiscordInstance extends InstanceBase<Config> {
 	 * @description close connections and stop timers/intervals
 	 */
 	public async destroy(): Promise<void> {
-		//this.client.destroy()
+		if (this.clientData?.delayedSpeakingTimers) {
+			Object.values(this.clientData.delayedSpeakingTimers).forEach((timer: any) => {
+				clearTimeout(timer)
+			})
+		}
 		this.log('debug', `Instance destroyed: ${this.id}`)
 	}
 

@@ -6,6 +6,7 @@ export interface Config {
 	clientID: string
 	clientSecret: string
 	refreshToken?: string
+	speakerDelay: number
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
@@ -38,6 +39,15 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
 			id: 'clientSecret',
 			width: 6,
 			default: '',
+		},
+		{
+			type: 'number',
+			label: 'Speaker Delay (ms a user has to speak before indicating updating speaking variables)',
+			id: 'speakerDelay',
+			width: 12,
+			default: 0,
+			min: 0,
+			max: 10000,
 		},
 	]
 }

@@ -75,6 +75,7 @@ interface JoinVoiceChannelCallback {
 
 interface LeaveCurrentVoiceChannelCallback {
 	actionId: 'leaveCurrentVoiceChannel'
+	options: Record<string, never>
 }
 
 interface JoinTextChannelCallback {
