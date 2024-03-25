@@ -38,6 +38,7 @@ class DiscordInstance extends InstanceBase<Config> {
 	 * @description triggered on instance being enabled
 	 */
 	public async init(config: Config): Promise<void> {
+    this.log('debug', `Process ID: ${process.pid}`)
 		await this.configUpdated(config)
 		this.updateInstance()
 		this.setPresetDefinitions(getPresets())

@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.2.1**
+- Fixed variables bug blocking feedback updating
+
 **V1.2.0**
 - Added new variables `voice_user_X_volume`, `voice_user_X_mute`, `voice_user_X_self_mute`, `voice_user_X_self_deaf`, `voice_user_X_speaking`, where X is the users index, nick, or ID
 - Added new variables for the current speaker `voice_current_speaker_id`, `voice_current_speaker_nick`, `voice_current_speaker_number`

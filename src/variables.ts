@@ -53,12 +53,15 @@ export class Variables {
 				variableId: `voice_user_${voiceState.user.id}_nick`,
 			})
 			;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
-				variables.add({ name: `Voice User ${id} Volume`, variableId: `voice_user_${id}_volume` })
-				variables.add({ name: `Voice User ${id} Mute`, variableId: `voice_user_${id}_mute` })
-				variables.add({ name: `Voice User ${id} Deaf`, variableId: `voice_user_${id}_deaf` })
-				variables.add({ name: `Voice User ${id} Self Mute`, variableId: `voice_user_${id}_self_mute` })
-				variables.add({ name: `Voice User ${id} Self Deaf`, variableId: `voice_user_${id}_self_deaf` })
-				variables.add({ name: `Voice User ${id} Speaking`, variableId: `voice_user_${id}_speaking` })
+				id = id + ''
+				let safeID = id.replaceAll('(', '').replaceAll(')', '')
+
+				variables.add({ name: `Voice User ${id} Volume`, variableId: `voice_user_${safeID}_volume` })
+				variables.add({ name: `Voice User ${id} Mute`, variableId: `voice_user_${safeID}_mute` })
+				variables.add({ name: `Voice User ${id} Deaf`, variableId: `voice_user_${safeID}_deaf` })
+				variables.add({ name: `Voice User ${id} Self Mute`, variableId: `voice_user_${safeID}_self_mute` })
+				variables.add({ name: `Voice User ${id} Self Deaf`, variableId: `voice_user_${safeID}_self_deaf` })
+				variables.add({ name: `Voice User ${id} Speaking`, variableId: `voice_user_${safeID}_speaking` })
 			})
 		})
 
