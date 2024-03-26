@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.2.2**
+- Fixed variables bug crashing new Discord instances
+
 **V1.2.1**
 - Fixed variables bug blocking feedback updating
 

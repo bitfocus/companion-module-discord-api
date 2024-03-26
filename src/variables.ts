@@ -45,7 +45,7 @@ export class Variables {
 		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
 		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
 
-		const voiceUsers: any[] = this.instance.clientData?.sortedVoiceUsers()
+		const voiceUsers: any[] = this.instance.clientData?.sortedVoiceUsers() || []
 		voiceUsers.forEach((voiceState, index) => {
 			variables.add({ name: `Voice User ${index} Nick`, variableId: `voice_user_${index}_nick` })
 			variables.add({
@@ -102,7 +102,7 @@ export class Variables {
 			for (let i = 0; i < 200; i++) {
 				newVariables[`voice_user_${i}_nick`] = this.instance.clientData?.sortedVoiceUsers()[i]?.nick || ''
 			}
-			const voiceUsers: VoiceState[] = this.instance.clientData?.sortedVoiceUsers()
+			const voiceUsers: VoiceState[] = this.instance.clientData?.sortedVoiceUsers() || []
 			voiceUsers.forEach((voiceState, index) => {
 				newVariables[`voice_user_${index}_nick`] = voiceState.nick
 				newVariables[`voice_user_${voiceState.user.id}_nick`] = voiceState.nick
