@@ -54,7 +54,7 @@ export class Variables {
 			})
 			;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
 				id = id + ''
-				let safeID = id.replaceAll('(', '').replaceAll(')', '')
+				let safeID = id.replace(/[^a-z0-9-_.]+/gi, '')
 
 				variables.add({ name: `Voice User ${id} Volume`, variableId: `voice_user_${safeID}_volume` })
 				variables.add({ name: `Voice User ${id} Mute`, variableId: `voice_user_${safeID}_mute` })
@@ -107,12 +107,13 @@ export class Variables {
 				newVariables[`voice_user_${index}_nick`] = voiceState.nick
 				newVariables[`voice_user_${voiceState.user.id}_nick`] = voiceState.nick
 				;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
-					newVariables[`voice_user_${id}_volume`] = voiceState.volume || ''
-					newVariables[`voice_user_${id}_mute`] = voiceState.mute.toString() || 'false'
-					newVariables[`voice_user_${id}_deaf`] = voiceState.voice_state.deaf.toString() || 'false'
-					newVariables[`voice_user_${id}_self_mute`] = voiceState.voice_state.self_mute.toString() || 'false'
-					newVariables[`voice_user_${id}_self_deaf`] = voiceState.voice_state.self_deaf.toString() || 'false'
-					newVariables[`voice_user_${id}_speaking`] = this.instance?.clientData?.delayedSpeaking
+					let safeId = (id + '').replace(/[^a-z0-9-_.]+/gi, '')
+					newVariables[`voice_user_${safeId}_volume`] = voiceState.volume || ''
+					newVariables[`voice_user_${safeId}_mute`] = voiceState.mute.toString() || 'false'
+					newVariables[`voice_user_${safeId}_deaf`] = voiceState.voice_state.deaf.toString() || 'false'
+					newVariables[`voice_user_${safeId}_self_mute`] = voiceState.voice_state.self_mute.toString() || 'false'
+					newVariables[`voice_user_${safeId}_self_deaf`] = voiceState.voice_state.self_deaf.toString() || 'false'
+					newVariables[`voice_user_${safeId}_speaking`] = this.instance?.clientData?.delayedSpeaking
 						.has(voiceState.user.id)
 						.toString()
 				})
@@ -131,9 +132,9 @@ export class Variables {
 					.sortedVoiceUsers()
 					.findIndex((voiceState: any) => voiceState.user.id === currentSpeaker)
 
-				newVariables.voice_current_speaker_id = currentSpeaker
-				newVariables.voice_current_speaker_nick = user.nick
-				newVariables.voice_current_speaker_number = userIndex
+				newVariables.voice_current_speaker_id = currentSpeaker || ''
+				newVariables.voice_current_speaker_nick = user?.nick || ''
+				newVariables.voice_current_speaker_number = userIndex || ''
 			}
 
 			newVariables.voice_user_selected_nick = ''

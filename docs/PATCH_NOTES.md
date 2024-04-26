@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.2.3**
+- Fixed crash when disconnecting from a chat channel while users are speaking
+
 **V1.2.2**
 - Fixed variables bug crashing new Discord instances
 
