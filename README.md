@@ -5,6 +5,9 @@ This module is in a BETA state, there is still work to be done on reconnection l
 Tthe full release version of this module will use a dedicated Companion app associated with Discord and not require every user to create their own individual apps in the Discord Developer Console. This is still waiting on Discord Developer Relations staff to respond to approving of the Companion app.
 
 # Changelog
+**V1.3.0**
+- Added Rich Presence action. When used it will show the user as playing whatever the name of the app is, as well as optionally show image assets that have been uploaded to the Discord Developer console.
+
 **V1.2.3**
 - Fixed crash when disconnecting from a chat channel while users are speaking
 

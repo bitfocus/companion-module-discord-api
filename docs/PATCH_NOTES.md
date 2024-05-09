@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.3.0**
+- Added Rich Presence action. When used it will show the user as playing whatever the name of the app is, as well as optionally show image assets that have been uploaded to the Discord Developer console.
+
 **V1.2.3**
 - Fixed crash when disconnecting from a chat channel while users are speaking
 

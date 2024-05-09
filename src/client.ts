@@ -66,6 +66,17 @@ interface Guild {
 	icon_url?: null | string
 }
 
+export interface RichPresence {
+	state: string
+	details: string
+	largeImageKey?: string
+	largeImageText?: string
+	smallImageKey?: string
+	smallImageText?: string
+	startTimestamp?: Date
+	endTimpestamp?: Date
+}
+
 interface Subscription {
 	unsubscribe: () => Promise<any>
 }

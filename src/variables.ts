@@ -54,7 +54,7 @@ export class Variables {
 			})
 			;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
 				id = id + ''
-				let safeID = id.replace(/[^a-z0-9-_.]+/gi, '')
+				const safeID = id.replace(/[^a-z0-9-_.]+/gi, '')
 
 				variables.add({ name: `Voice User ${id} Volume`, variableId: `voice_user_${safeID}_volume` })
 				variables.add({ name: `Voice User ${id} Mute`, variableId: `voice_user_${safeID}_mute` })
@@ -107,7 +107,7 @@ export class Variables {
 				newVariables[`voice_user_${index}_nick`] = voiceState.nick
 				newVariables[`voice_user_${voiceState.user.id}_nick`] = voiceState.nick
 				;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
-					let safeId = (id + '').replace(/[^a-z0-9-_.]+/gi, '')
+					const safeId = (id + '').replace(/[^a-z0-9-_.]+/gi, '')
 					newVariables[`voice_user_${safeId}_volume`] = voiceState.volume || ''
 					newVariables[`voice_user_${safeId}_mute`] = voiceState.mute.toString() || 'false'
 					newVariables[`voice_user_${safeId}_deaf`] = voiceState.voice_state.deaf.toString() || 'false'

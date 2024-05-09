@@ -1,4 +1,5 @@
 import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { RichPresence } from './client'
 import DiscordInstance from './index'
 
 export interface DiscordActions {
@@ -12,6 +13,7 @@ export interface DiscordActions {
 	leaveCurrentVoiceChannel: DiscordAction<LeaveCurrentVoiceChannelCallback>
 	joinTextChannel: DiscordAction<JoinTextChannelCallback>
 	selectUser: DiscordAction<SelectUserCallback>
+	richPresence: DiscordAction<RichPresenceCallback>
 
 	// Index signature
 	[key: string]: DiscordAction<any>
@@ -92,6 +94,19 @@ interface SelectUserCallback {
 	}>
 }
 
+interface RichPresenceCallback {
+	actionId: 'richPresence'
+	options: Readonly<{
+		details: string
+		state: string
+		imgLarge: string
+		imgLargeText: string
+		imgSmall: string
+		imgSmallText: string
+		startTime: boolean
+	}>
+}
+
 export type ActionCallbacks =
 	| SelfMuteCallback
 	| SelfDeafenCallback
@@ -103,6 +118,7 @@ export type ActionCallbacks =
 	| LeaveCurrentVoiceChannelCallback
 	| JoinTextChannelCallback
 	| SelectUserCallback
+	| RichPresenceCallback
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
@@ -431,6 +447,101 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 
 				instance.variables.updateVariables()
 				instance.checkFeedbacks('selectedUser', 'otherMute')
+			},
+		},
+
+		richPresence: {
+			name: 'Rich Presence',
+			description: 'Sets Rich Presence to show playing your App Name',
+			options: [
+				{
+					type: 'textinput',
+					label: 'Details',
+					tooltip: 'Line 1 of text',
+					id: 'details',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'State',
+					tooltip: 'Line 2 of text',
+					id: 'state',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'Large Image',
+					tooltip: 'Must match an art asset uploaded to your Discord Developer console',
+					id: 'imgLarge',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'Large Image Text',
+					id: 'imgLargeText',
+					default: '',
+					isVisible: (options) => {
+						return options.imgLarge !== ''
+					},
+				},
+				{
+					type: 'textinput',
+					label: 'Small Image',
+					tooltip: 'Must match an art asset uploaded to your Discord Developer console',
+					id: 'imgSmall',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'Small Image Text',
+					id: 'imgSmallText',
+					default: '',
+					isVisible: (options) => {
+						return options.imgSmall !== ''
+					},
+				},
+				{
+					type: 'checkbox',
+					label: 'Show Start Time',
+					id: 'startTime',
+					default: true,
+				},
+			],
+			callback: async (action) => {
+				const all = [
+					instance.parseVariablesInString(action.options.state),
+					instance.parseVariablesInString(action.options.details),
+					instance.parseVariablesInString(action.options.imgLarge),
+					instance.parseVariablesInString(action.options.imgLargeText),
+					instance.parseVariablesInString(action.options.imgSmall),
+					instance.parseVariablesInString(action.options.imgSmallText),
+				]
+
+				const [state, details, imgLarge, imgLargeText, imgSmall, imgSmallText] = await Promise.all(all)
+
+				const activity: RichPresence = {
+					state,
+					details,
+				}
+
+				if (!state || !details) {
+					instance.log('warn', 'Discord Rich Pressence must have a State and Details')
+					return
+				}
+
+				if (imgLarge) {
+					;(activity.largeImageKey = imgLarge), (activity.largeImageText = imgLargeText)
+				}
+
+				if (imgSmall) {
+					;(activity.smallImageKey = imgSmall), (activity.smallImageText = imgSmallText)
+				}
+
+				if (action.options.startTime) activity.startTimestamp = new Date()
+
+				instance.log('debug', `Setting activity: ${JSON.stringify(activity)}`)
+
+				instance.client.setActivity(activity)
 			},
 		},
 	}
