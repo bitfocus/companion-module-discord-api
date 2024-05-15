@@ -73,6 +73,7 @@ export interface RichPresence {
 	largeImageText?: string
 	smallImageKey?: string
 	smallImageText?: string
+	buttons?: { label: string; url: string }[]
 	startTimestamp?: Date
 	endTimpestamp?: Date
 }

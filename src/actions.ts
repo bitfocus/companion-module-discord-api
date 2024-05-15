@@ -103,6 +103,10 @@ interface RichPresenceCallback {
 		imgLargeText: string
 		imgSmall: string
 		imgSmallText: string
+		button1Label: string
+		button1URL: string
+		button2Label: string
+		button2URL: string
 		startTime: boolean
 	}>
 }
@@ -501,6 +505,36 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					},
 				},
 				{
+					type: 'textinput',
+					label: 'Button 1 Text',
+					id: 'button1Label',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'Button 1 URL',
+					id: 'button1URL',
+					default: '',
+				},
+				{
+					type: 'textinput',
+					label: 'Button 2 Text',
+					id: 'button2Label',
+					default: '',
+					isVisible: (options) => {
+						return options.button1Label !== '' && options.button1URL !== ''
+					},
+				},
+				{
+					type: 'textinput',
+					label: 'Button 2 URL',
+					id: 'button2URL',
+					default: '',
+					isVisible: (options) => {
+						return options.button1Label !== '' && options.button1URL !== ''
+					},
+				},
+				{
 					type: 'checkbox',
 					label: 'Show Start Time',
 					id: 'startTime',
@@ -515,9 +549,24 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					instance.parseVariablesInString(action.options.imgLargeText),
 					instance.parseVariablesInString(action.options.imgSmall),
 					instance.parseVariablesInString(action.options.imgSmallText),
+					instance.parseVariablesInString(action.options.button1Label),
+					instance.parseVariablesInString(action.options.button1URL),
+					instance.parseVariablesInString(action.options.button2Label),
+					instance.parseVariablesInString(action.options.button2URL),
 				]
 
-				const [state, details, imgLarge, imgLargeText, imgSmall, imgSmallText] = await Promise.all(all)
+				const [
+					state,
+					details,
+					imgLarge,
+					imgLargeText,
+					imgSmall,
+					imgSmallText,
+					button1Label,
+					button1URL,
+					button2Label,
+					button2URL,
+				] = await Promise.all(all)
 
 				const activity: RichPresence = {
 					state,
@@ -530,11 +579,21 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				}
 
 				if (imgLarge) {
-					;(activity.largeImageKey = imgLarge), (activity.largeImageText = imgLargeText)
+					activity.largeImageKey = imgLarge
+					activity.largeImageText = imgLargeText
 				}
 
 				if (imgSmall) {
-					;(activity.smallImageKey = imgSmall), (activity.smallImageText = imgSmallText)
+					activity.smallImageKey = imgSmall
+					activity.smallImageText = imgSmallText
+				}
+
+				if (button1Label && button1URL) {
+					activity.buttons = [{ label: button1Label, url: button1URL }]
+
+					if (button2Label && button2URL) {
+						activity.buttons.push({ label: button2Label, url: button2URL })
+					}
 				}
 
 				if (action.options.startTime) activity.startTimestamp = new Date()

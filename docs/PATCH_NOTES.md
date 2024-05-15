@@ -1,4 +1,7 @@
 # Patch Notes
+**V1.3.1**
+- Added button options for Rich Presence action
+
 **V1.3.0**
 - Added Rich Presence action. When used it will show the user as playing whatever the name of the app is, as well as optionally show image assets that have been uploaded to the Discord Developer console.
 
