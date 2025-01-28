@@ -13,8 +13,7 @@ interface DiscordPresetAdditions {
 	feedbacks: FeedbackCallbacks[]
 }
 
-export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> &
-	DiscordPresetAdditions
+export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> & DiscordPresetAdditions
 
 export function getPresets(): CompanionPresetDefinitions {
 	const presets: DiscordPreset[] = [

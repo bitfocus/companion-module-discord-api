@@ -111,6 +111,11 @@ interface RichPresenceCallback {
 	}>
 }
 
+interface ClearRichPresence {
+	actionId: 'clearRichPresence'
+	options: Record<string, never>
+}
+
 export type ActionCallbacks =
 	| SelfMuteCallback
 	| SelfDeafenCallback
@@ -123,6 +128,7 @@ export type ActionCallbacks =
 	| JoinTextChannelCallback
 	| SelectUserCallback
 	| RichPresenceCallback
+	| ClearRichPresence
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
@@ -134,7 +140,7 @@ export interface DiscordAction<T> {
 	name: string
 	description?: string
 	options: InputFieldWithDefault[]
-	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
+	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void | Promise<void>
 	subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 	unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 }
@@ -157,16 +163,16 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: (action) => {
-				if (instance.clientData.userVoiceSettings === null) return
+				if (instance.discord.data.userVoiceSettings === null) return
 
-				if (instance.clientData.userVoiceSettings.deaf) {
-					if (action.options.type !== 'Mute') instance.client.setVoiceSettings({ mute: false, deaf: false })
+				if (instance.discord.data.userVoiceSettings.deaf) {
+					if (action.options.type !== 'Mute') instance.discord.client.setVoiceSettings({ mute: false, deaf: false })
 				} else {
 					let mute = action.options.type === 'Mute'
-					if (action.options.type === 'Toggle') mute = !instance.clientData.userVoiceSettings!.mute
-					if (mute === instance.clientData.userVoiceSettings!.mute) return
+					if (action.options.type === 'Toggle') mute = !instance.discord.data.userVoiceSettings.mute
+					if (mute === instance.discord.data.userVoiceSettings.mute) return
 
-					instance.client.setVoiceSettings({ mute })
+					instance.discord.client.setVoiceSettings({ mute })
 				}
 			},
 		},
@@ -188,11 +194,10 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			],
 			callback: (action) => {
 				let deaf = action.options.type === 'Deafen'
-				if (action.options.type === 'Toggle') deaf = !instance.clientData.userVoiceSettings!.deaf
-				if (instance.clientData.userVoiceSettings === null || deaf === instance.clientData.userVoiceSettings!.deaf)
-					return
+				if (action.options.type === 'Toggle') deaf = !instance.discord.data.userVoiceSettings!.deaf
+				if (instance.discord.data.userVoiceSettings === null || deaf === instance.discord.data.userVoiceSettings.deaf) return
 
-				instance.client.setVoiceSettings({ deaf })
+				instance.discord.client.setVoiceSettings({ deaf })
 			},
 		},
 
@@ -221,16 +226,15 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			],
 			callback: (action) => {
 				if (action.options.type === 'Set') {
-					instance.client.setVoiceSettings({ input: { volume: action.options.volume } } as any)
+					instance.discord.client.setVoiceSettings({ input: { volume: action.options.volume } } as any)
 				} else {
-					const currentVolume = instance.clientData.userVoiceSettings?.input.volume
+					const currentVolume = instance.discord.data.userVoiceSettings?.input.volume
 					if (currentVolume !== undefined) {
-						let newVolume =
-							currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
+						let newVolume = currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
 						if (newVolume < 0) newVolume = 0
 						if (newVolume > 100) newVolume = 100
 
-						instance.client.setVoiceSettings({ input: { volume: newVolume } } as any)
+						instance.discord.client.setVoiceSettings({ input: { volume: newVolume } } as any)
 					}
 				}
 			},
@@ -261,16 +265,15 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			],
 			callback: (action) => {
 				if (action.options.type === 'Set') {
-					instance.client.setVoiceSettings({ output: { volume: action.options.volume } } as any)
+					instance.discord.client.setVoiceSettings({ output: { volume: action.options.volume } } as any)
 				} else {
-					const currentVolume = instance.clientData.userVoiceSettings?.output.volume
+					const currentVolume = instance.discord.data.userVoiceSettings?.output.volume
 					if (currentVolume !== undefined) {
-						let newVolume =
-							currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
+						let newVolume = currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
 						if (newVolume < 0) newVolume = 0
 						if (newVolume > 200) newVolume = 200
 
-						instance.client.setVoiceSettings({ output: { volume: newVolume } } as any)
+						instance.discord.client.setVoiceSettings({ output: { volume: newVolume } } as any)
 					}
 				}
 			},
@@ -293,14 +296,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
-					tooltip: 'User ID, name#discriminator, nick',
+					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
 			callback: async (action) => {
-				const user = await instance.clientData.getUser(action.options.user)
-				if (user === null || user.user.id === instance.client.user.id) return
+				const user = await instance.discord.getUser(action.options.user)
+				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let mute = user.mute
 
@@ -308,13 +311,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				if (action.options.type === 'Mute') mute = true
 				if (action.options.type === 'Unmute') mute = false
 
-				await instance.client.setUserVoiceSettings(user.user.id, { mute })
+				await instance.discord.client.setUserVoiceSettings(user.user.id, { mute })
 				instance.variables.updateVariables()
 			},
 		},
 
 		otherVolume: {
 			name: 'Other - Volume',
+			description: 'Note: For some reason Discord treats volumes between 94.4 and 100 as 100, so increase/decrease outside of that range',
 			options: [
 				{
 					type: 'dropdown',
@@ -338,14 +342,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
-					tooltip: 'User ID, name#discriminator, nick',
+					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
 			callback: async (action) => {
-				const user = await instance.clientData.getUser(action.options.user)
-				if (user === null || user.user.id === instance.client.user.id) return
+				const user = await instance.discord.getUser(action.options.user)
+				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let volume = action.options.volume
 
@@ -356,7 +360,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					if (volume > 200) volume = 200
 				}
 
-				await instance.client.setUserVoiceSettings(user.user.id, { volume })
+				await instance.discord.client.setUserVoiceSettings(user.user.id, { volume })
 				instance.variables.updateVariables()
 			},
 		},
@@ -369,7 +373,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.clientData?.sortedVoiceChannelChoices() || [])],
+					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedVoiceChannelChoices() || [])],
 				},
 				{
 					type: 'checkbox',
@@ -389,10 +393,10 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			callback: (action) => {
 				if (action.options.channel === '0') return
 
-				if (action.options.channel !== instance.clientData.voiceChannel?.id) {
-					instance.client.selectVoiceChannel(action.options.channel, { force: action.options.force })
+				if (action.options.channel !== instance.discord.data.voiceChannel?.id) {
+					instance.discord.client.selectVoiceChannel(action.options.channel, { force: action.options.force })
 				} else {
-					if (action.options.leave) instance.client.selectVoiceChannel(null, { force: action.options.force })
+					if (action.options.leave) instance.discord.client.selectVoiceChannel(null, { force: action.options.force })
 				}
 			},
 		},
@@ -401,7 +405,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			name: 'Leave Current Channel',
 			options: [],
 			callback: () => {
-				if (instance.clientData.voiceChannel) instance.client.selectVoiceChannel(null)
+				if (instance.discord.data.voiceChannel) instance.discord.client.selectVoiceChannel(null)
 			},
 		},
 
@@ -413,13 +417,13 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Channel',
 					id: 'channel',
 					default: '0',
-					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.clientData?.sortedTextChannelChoices() || [])],
+					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedTextChannelChoices() || [])],
 				},
 			],
 			callback: (action) => {
 				if (action.options.channel === '0') return
 
-				instance.client.selectTextChannel(action.options.channel)
+				instance.discord.client.selectTextChannel(action.options.channel)
 			},
 		},
 
@@ -429,25 +433,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'User',
-					tooltip: 'User ID, name#discriminator, nick, or index',
+					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
 			callback: async (action) => {
-				const selected = instance.clientData.sortedVoiceUsers().find((voiceState: any, index: any) => {
-					const idCheck = voiceState.user.id === action.options.user
-					const usernameCheck =
-						`${voiceState.user.username.toLowerCase()}#${voiceState.user.discriminator}` ===
-						action.options.user.toLowerCase()
-					const nickCheck = voiceState.nick.toLowerCase() === action.options.user.toLowerCase()
-					const indexCheck = !isNaN(parseInt(action.options.user, 10)) && parseInt(action.options.user, 10) === index
-					return idCheck || usernameCheck || nickCheck || indexCheck
-				})
-
-				if (selected)
-					instance.clientData.selectedUser =
-						instance.clientData.selectedUser === selected.user.id ? '' : selected.user.id
+				const user = await instance.discord.getUser(action.options.user)
+				if (user) instance.discord.data.selectedUser = instance.discord.data.selectedUser === user.user.id ? '' : user.user.id
 
 				instance.variables.updateVariables()
 				instance.checkFeedbacks('selectedUser', 'otherMute')
@@ -455,8 +448,8 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		richPresence: {
-			name: 'Rich Presence',
-			description: 'Sets Rich Presence to show playing your App Name',
+			name: 'Activity',
+			description: 'Sets the Activity to show playing your App Name',
 			options: [
 				{
 					type: 'textinput',
@@ -555,18 +548,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					instance.parseVariablesInString(action.options.button2URL),
 				]
 
-				const [
-					state,
-					details,
-					imgLarge,
-					imgLargeText,
-					imgSmall,
-					imgSmallText,
-					button1Label,
-					button1URL,
-					button2Label,
-					button2URL,
-				] = await Promise.all(all)
+				const [state, details, imgLarge, imgLargeText, imgSmall, imgSmallText, button1Label, button1URL, button2Label, button2URL] = await Promise.all(all)
 
 				const activity: RichPresence = {
 					state,
@@ -600,7 +582,17 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 
 				instance.log('debug', `Setting activity: ${JSON.stringify(activity)}`)
 
-				instance.client.setActivity(activity)
+				await instance.discord.client.setActivity(activity)
+			},
+		},
+
+		clearRichPresnce: {
+			name: 'Activity Clear',
+			description: 'Clears the Activity set by this connection',
+			options: [],
+			callback: async () => {
+				instance.log('debug', 'Clearing activity')
+				await instance.discord.client.clearActivity()
 			},
 		},
 	}

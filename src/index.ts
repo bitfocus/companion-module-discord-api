@@ -1,17 +1,12 @@
-import {
-	InstanceBase,
-	runEntrypoint,
-	CompanionFeedbackDefinitions,
-	SomeCompanionConfigField,
-} from '@companion-module/base'
+import { InstanceBase, runEntrypoint, CompanionFeedbackDefinitions, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
 import { getActions } from './actions'
-import { discordInit } from './client'
+import { Discord } from './client'
 import { Config, getConfigFields } from './config'
 import { getFeedbacks } from './feedback'
+import { httpHandler } from './http'
 import { getPresets } from './presets'
 import { getUpgrades } from './upgrade'
 import { Variables } from './variables'
-//import RPCClient from './client'
 
 /**
  * Companion instance class for Discord's API
@@ -22,8 +17,7 @@ class DiscordInstance extends InstanceBase<Config> {
 		this.instanceOptions.disableVariableValidation = true
 	}
 
-	public client: any
-	public clientData: any
+	public discord: Discord = new Discord(this)
 
 	public config: Config = {
 		clientID: '',
@@ -54,18 +48,20 @@ class DiscordInstance extends InstanceBase<Config> {
 			return
 		}
 
-		discordInit(this)
+		this.discord.init()
 	}
 
 	/**
 	 * @description close connections and stop timers/intervals
 	 */
 	public async destroy(): Promise<void> {
-		if (this.clientData?.delayedSpeakingTimers) {
-			Object.values(this.clientData.delayedSpeakingTimers).forEach((timer: any) => {
+		if (this.discord.data.delayedSpeakingTimers) {
+			Object.values(this.discord.data.delayedSpeakingTimers).forEach((timer: any) => {
 				clearTimeout(timer)
 			})
 		}
+
+		this.discord.client.destroy()
 		this.log('debug', `Instance destroyed: ${this.id}`)
 	}
 
@@ -102,7 +98,16 @@ class DiscordInstance extends InstanceBase<Config> {
 
 		this.setActionDefinitions(actions)
 		this.setFeedbackDefinitions(feedbacks)
+		this.checkFeedbacks()
 		this.variables.updateVariables()
+	}
+
+	/**
+	 * @param request HTTP request from Companion
+	 * @returns HTTP response
+	 */
+	public async handleHttpRequest(request: CompanionHTTPRequest): Promise<CompanionHTTPResponse> {
+		return httpHandler(this, request)
 	}
 }
 

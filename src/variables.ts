@@ -1,6 +1,6 @@
+import { type VoiceState } from '@distdev/discord-ipc'
 import DiscordInstance from './'
 import { CompanionVariableDefinition } from '@companion-module/base'
-import { VoiceState } from './client'
 
 interface InstanceVariableValue {
 	[key: string]: string | number | undefined
@@ -45,7 +45,7 @@ export class Variables {
 		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
 		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
 
-		const voiceUsers: any[] = this.instance.clientData?.sortedVoiceUsers() || []
+		const voiceUsers: any[] = this.instance.discord.sortedVoiceUsers() || []
 		voiceUsers.forEach((voiceState, index) => {
 			variables.add({ name: `Voice User ${index} Nick`, variableId: `voice_user_${index}_nick` })
 			variables.add({
@@ -82,27 +82,23 @@ export class Variables {
 	public readonly updateVariables = (): void => {
 		const newVariables: InstanceVariableValue = {}
 
-		if (this.instance.clientData) {
-			newVariables.voice_connection_status = this.instance.clientData.voiceStatus.state
-			newVariables.voice_connection_hostname = this.instance.clientData.voiceStatus.hostname || ''
-			newVariables.voice_connection_ping = this.instance.clientData.voiceStatus.last_ping || ''
-			newVariables.voice_connection_ping_avg = this.instance.clientData.voiceStatus.last_ping || ''
+		if (this.instance.discord.data) {
+			newVariables.voice_connection_status = this.instance.discord.data.voiceStatus.state
+			newVariables.voice_connection_hostname = this.instance.discord.data.voiceStatus.hostname || ''
+			newVariables.voice_connection_ping = this.instance.discord.data.voiceStatus.last_ping || ''
+			newVariables.voice_connection_ping_avg = this.instance.discord.data.voiceStatus.last_ping || ''
 			newVariables.voice_connection_ping_min =
-				this.instance.clientData.voiceStatus.pings.length > 0
-					? Math.min(...this.instance.clientData.voiceStatus.pings.map((ping: any) => ping.value))
-					: ''
+				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.min(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
 			newVariables.voice_connection_ping_max =
-				this.instance.clientData.voiceStatus.pings.length > 0
-					? Math.max(...this.instance.clientData.voiceStatus.pings.map((ping: any) => ping.value))
-					: ''
+				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
 
-			newVariables.voice_self_input_volume = this.instance.clientData.userVoiceSettings?.input.volume.toFixed(2)
-			newVariables.voice_self_output_volume = this.instance.clientData.userVoiceSettings?.output.volume.toFixed(2)
+			newVariables.voice_self_input_volume = this.instance.discord.data.userVoiceSettings?.input.volume.toFixed(2)
+			newVariables.voice_self_output_volume = this.instance.discord.data.userVoiceSettings?.output.volume.toFixed(2)
 
 			for (let i = 0; i < 200; i++) {
-				newVariables[`voice_user_${i}_nick`] = this.instance.clientData?.sortedVoiceUsers()[i]?.nick || ''
+				newVariables[`voice_user_${i}_nick`] = this.instance.discord.sortedVoiceUsers()[i]?.nick || ''
 			}
-			const voiceUsers: VoiceState[] = this.instance.clientData?.sortedVoiceUsers() || []
+			const voiceUsers: VoiceState[] = this.instance.discord.sortedVoiceUsers() || []
 			voiceUsers.forEach((voiceState, index) => {
 				newVariables[`voice_user_${index}_nick`] = voiceState.nick
 				newVariables[`voice_user_${voiceState.user.id}_nick`] = voiceState.nick
@@ -113,9 +109,7 @@ export class Variables {
 					newVariables[`voice_user_${safeId}_deaf`] = voiceState.voice_state.deaf.toString() || 'false'
 					newVariables[`voice_user_${safeId}_self_mute`] = voiceState.voice_state.self_mute.toString() || 'false'
 					newVariables[`voice_user_${safeId}_self_deaf`] = voiceState.voice_state.self_deaf.toString() || 'false'
-					newVariables[`voice_user_${safeId}_speaking`] = this.instance?.clientData?.delayedSpeaking
-						.has(voiceState.user.id)
-						.toString()
+					newVariables[`voice_user_${safeId}_speaking`] = this.instance?.discord.data?.delayedSpeaking.has(voiceState.user.id).toString()
 				})
 			})
 
@@ -123,14 +117,10 @@ export class Variables {
 			newVariables.voice_current_speaker_nick = ''
 			newVariables.voice_current_speaker_number = ''
 
-			const currentSpeaker = Array.from(this.instance?.clientData?.delayedSpeaking || []).pop()
+			const currentSpeaker = Array.from(this.instance?.discord.data?.delayedSpeaking || []).pop()
 			if (typeof currentSpeaker === 'string') {
-				const user = this.instance.clientData
-					.sortedVoiceUsers()
-					.find((voiceState: any) => voiceState.user.id === currentSpeaker)
-				const userIndex = this.instance.clientData
-					.sortedVoiceUsers()
-					.findIndex((voiceState: any) => voiceState.user.id === currentSpeaker)
+				const user = this.instance.discord.sortedVoiceUsers().find((voiceState: any) => voiceState.user.id === currentSpeaker)
+				const userIndex = this.instance.discord.sortedVoiceUsers().findIndex((voiceState: any) => voiceState.user.id === currentSpeaker)
 
 				newVariables.voice_current_speaker_id = currentSpeaker || ''
 				newVariables.voice_current_speaker_nick = user?.nick || ''
@@ -139,11 +129,9 @@ export class Variables {
 
 			newVariables.voice_user_selected_nick = ''
 			newVariables.voice_user_selected_volume = ''
-			newVariables.voice_user_selected_id = this.instance.clientData.selectedUser || ''
+			newVariables.voice_user_selected_id = this.instance.discord.data.selectedUser || ''
 
-			const selectedUser = this.instance.clientData
-				.sortedVoiceUsers()
-				.find((voiceState: any) => voiceState.user.id === this.instance.clientData.selectedUser)
+			const selectedUser = this.instance.discord.sortedVoiceUsers().find((voiceState: any) => voiceState.user.id === this.instance.discord.data.selectedUser)
 			newVariables.voice_user_selected_nick = selectedUser?.nick || ''
 			newVariables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
 		}

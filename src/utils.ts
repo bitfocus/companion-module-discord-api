@@ -1,4 +1,4 @@
-export const createUUID = () => {
+export const createUUID = (): string => {
 	let uuid = ''
 
 	for (let i = 0; i < 32; i += 1) {

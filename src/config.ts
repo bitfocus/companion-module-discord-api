@@ -1,11 +1,10 @@
 import { SomeCompanionConfigField } from '@companion-module/base'
 
 export interface Config {
-	//
 	accessToken?: string
+	refreshToken?: string
 	clientID: string
 	clientSecret: string
-	refreshToken?: string
 	speakerDelay: number
 }
 

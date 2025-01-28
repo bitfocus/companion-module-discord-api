@@ -3,7 +3,7 @@
 	"name": "discord-api",
 	"shortname": "discord",
 	"description": "Discord",
-	"version": "1.3.1",
+	"version": "0.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-discord-api.git",
 	"bugs": "https://github.com/thedist/companion-module-discord-api/issues",
@@ -16,7 +16,7 @@
 	],
 	"legacyIds": [],
 	"runtime": {
-		"type": "node18",
+		"type": "node22",
 		"api": "nodejs-ipc",
 		"apiVersion": "0.0.0",
 		"entrypoint": "..\\dist\\index.js"

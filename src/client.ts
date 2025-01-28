@@ -1,45 +1,14 @@
-import RPC from 'discord-rpc'
-import DiscordInstance from './index'
-import { DropdownChoice, InstanceStatus } from '@companion-module/base'
-
-interface Application {
-	id: string
-	name: string
-	icon: string
-	description: string
-	summary: string
-	type: any
-	hook: boolean
-	terms_of_service_url: string
-	privacy_policy_url: string
-	verify_key: string
-	tags: string[]
-}
-
-interface AudioDevice {
-	id: string
-	name: string
-}
-
-interface Channel {
-	id: string
-	guild_id: string
-	name: string
-	type: number
-	topic?: string
-	bitrate?: number
-	user_imit?: number
-	position: number
-	voice_states?: VoiceState[]
-	messages?: any[]
-}
+import { Client, type Application, type Channel, type Guild, type VoiceSettings, type VoiceState } from '@distdev/discord-ipc'
+import type DiscordInstance from './index'
+import { type DropdownChoice, InstanceStatus } from '@companion-module/base'
 
 export interface ClientData {
 	accessToken: null | string
+	refreshToken: null | string
 	application: Partial<Application> | null
 	baseURL: 'https://discord.com/api'
-	channels: Channel[]
-	guilds: Guild[]
+	channels: Partial<Channel>[]
+	guilds: Partial<Guild>[]
 	guildNames: Map<string, string>
 	reconnectTimer: NodeJS.Timeout | null
 	scopes: string[]
@@ -52,18 +21,12 @@ export interface ClientData {
 	subscriptions: Subscriptions
 	user: any
 	userVoiceSettings: null | VoiceSettings
-	voiceChannel: null | VoiceChannel
+	voiceChannel: null | Channel
 	voiceStatus: VoiceConnectionStatus
 
 	_destroying: boolean
 	_expecting: Map<string, any>
 	_connectPromise: Promise<any> | undefined
-}
-
-interface Guild {
-	id: string
-	name: string
-	icon_url?: null | string
 }
 
 export interface RichPresence {
@@ -88,17 +51,6 @@ interface Subscriptions {
 	VOICE_STATE_CREATE: null | Subscription
 	VOICE_STATE_DELETE: null | Subscription
 	VOICE_STATE_UPDATE: null | Subscription
-}
-
-interface VoiceChannel {
-	id: string
-	guild_id: string
-	name: string
-	type: number
-	bitrate: number
-	user_imit: number
-	position: number
-	voice_states: VoiceState[]
 }
 
 interface VoiceChannelSelectArgs {
@@ -126,87 +78,16 @@ interface VoiceConnectionStatus {
 	last_ping?: number
 }
 
-interface VoiceSettings {
-	input: {
-		available_devices: AudioDevice[]
-		device_id: string
-		volume: number
-	}
-	output: {
-		available_devices: AudioDevice[]
-		device_id: string
-		volume: number
-	}
-	mode: {
-		type: 'PUSH_TO_TALK' | 'VOICE_ACTIVITY'
-		auto_threshold: boolean
-		threshold: number
-		shortcut: [
-			{
-				type: number
-				code: number
-				name: string
-			}
-		]
-		delay: number
-	}
-	automatic_gain_control: boolean
-	echo_cancellation: boolean
-	noise_suppression: boolean
-	qos: boolean
-	silence_warning: boolean
-	deaf: boolean
-	mute: boolean
-}
-
-interface VoiceSettingsOther {
-	mute?: boolean
-	volume?: number
-}
-
 interface VoiceSpeaking {
 	channel_id: string
 	user_id: string
 }
 
-export interface VoiceState {
-	nick: string
-	mute: boolean
-	volume: number
-	pan: {
-		left: number
-		right: number
-	}
-	voice_state: {
-		mute: boolean
-		deaf: boolean
-		self_mute: boolean
-		self_deaf: boolean
-		suppress: boolean
-	}
-	user: {
-		id: string
-		username: string
-		discriminator: string
-		avatar: string
-		bot: boolean
-		flags: number
-		premium_type: number
-	}
-}
-
-export const discordInit = async (instance: DiscordInstance): Promise<void> => {
-	if (!instance.config.clientID || !instance.config.clientSecret) return
-
-	// Client already exists
-	if (instance.client) return
-
-	instance.log('debug', 'Initializing Discord client')
-
-	const client = new RPC.Client({ transport: 'ipc' })
-	instance.client = client
-	instance.clientData = {
+export class Discord {
+	client = new Client()
+	data: ClientData = {
 		accessToken: null,
+		refreshToken: null,
 		application: null,
 		baseURL: 'https://discord.com/api',
 		channels: [],
@@ -233,114 +114,343 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 		_expecting: new Map(),
 		_connectPromise: undefined,
 	}
+	instance: DiscordInstance
+	initialized = false
+
+	constructor(instance: DiscordInstance) {
+		this.instance = instance
+	}
+
+	init = async (): Promise<void> => {
+		if (this.initialized) return
+		this.initialized = true
+		this.instance.log('debug', 'Initializing Discord client')
+		this.initListeners()
+
+		// New login attempt without OAuth tokens
+		const newLogin = async () => {
+			await this.client
+				.login({
+					clientId: this.instance.config.clientID,
+					clientSecret: this.instance.config.clientSecret,
+					redirectUri: 'http://localhost',
+					scopes: this.data.scopes,
+				})
+				.catch((err) => {
+					this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
+					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+				})
+		}
+
+		await this.client
+			.login({
+				accessToken: this.instance.config.accessToken,
+				refreshToken: this.instance.config.refreshToken,
+				clientId: this.instance.config.clientID,
+				clientSecret: this.instance.config.clientSecret,
+				redirectUri: 'http://localhost',
+				scopes: this.data.scopes,
+			})
+			.catch((err) => {
+				this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
+				if (err?.code === 4009) {
+					newLogin()
+				} else {
+					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+				}
+			})
+	}
+
+	initListeners = (): void => {
+		const readyEvent = async () => {
+			this.instance.log('debug', 'discord client ready')
+			this.instance.updateStatus(InstanceStatus.Ok)
+
+			this.data.accessToken = this.client.accessToken
+			this.data.refreshToken = this.client.refreshToken
+
+			const newConfig = { ...this.instance.config, accessToken: this.client.accessToken as string, refreshToken: this.client.refreshToken as string }
+			this.instance.saveConfig(newConfig)
+
+			await this.updateChannelList()
+			this.data.userVoiceSettings = await this.client.getVoiceSettings()
+
+			await this.createVoiceSusbcriptions()
+			await this.client.subscribe('CHANNEL_CREATE', {})
+			await this.client.subscribe('GUILD_CREATE', {})
+			await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
+			await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
+			await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
+
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks()
+		}
+
+		const voiceChannelSelectEvent = async (data: VoiceChannelSelectArgs) => {
+			if (data.channel_id !== null) {
+				await this.clearVoiceSubscriptions()
+				await this.createVoiceSusbcriptions()
+			} else {
+				await this.clearVoiceSubscriptions()
+			}
+
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks()
+		}
+
+		const voiceStateDeleteEvent = async (voiceState: VoiceState) => {
+			if (this.data.voiceChannel === null) return
+
+			if (voiceState.user.id === this.client?.user.id) {
+				const currentChannel = await this.client.getSelectedVoiceChannel()
+				if (currentChannel!.id !== this.data.voiceChannel.id) {
+					await this.clearVoiceSubscriptions()
+					await this.createVoiceSusbcriptions()
+				}
+			}
+
+			this.data.voiceChannel.voice_states = this.data.voiceChannel?.voice_states?.filter((voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id)
+
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks()
+		}
+
+		const voiceStateUpdateEvent = async (voiceState: VoiceState) => {
+			if (this.data.voiceChannel === null) return
+
+			const index = this.data.voiceChannel.voice_states?.findIndex((voiceUser: VoiceState) => voiceUser.user.id === voiceState.user.id)
+			if (index === undefined || this.data.voiceChannel.voice_states === undefined) return
+
+			if (index !== -1) {
+				this.data.voiceChannel.voice_states[index] = voiceState
+			} else {
+				this.data.voiceChannel.voice_states.push(voiceState)
+				this.data.voiceChannel.voice_states.sort((a: VoiceState, b: VoiceState) => {
+					if (a.nick < b.nick) return -1
+					if (b.nick > a.nick) return 1
+					return a.user.id < b.user.id ? -1 : 1
+				})
+			}
+
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks()
+		}
+
+		this.client.on('ready', () => {
+			readyEvent()
+		})
+
+		this.client.on('disconnected', () => {
+			this.instance.log('warn', 'discord client disconnected')
+			this.instance.updateStatus(InstanceStatus.Disconnected)
+		})
+
+		this.client.on('error', (err) => {
+			this.instance.log('error', JSON.stringify(err))
+		})
+
+		this.client.on('CHANNEL_CREATE', (args: any) => {
+			this.instance.log('debug', `Event: CHANNEL_CREATE - ${JSON.stringify(args)}`)
+		})
+
+		this.client.on('GUILD_CREATE', (args: any) => {
+			this.instance.log('debug', `Event: GUILD_CREATE - ${JSON.stringify(args)}`)
+			this.updateChannelList()
+		})
+
+		this.client.on('VOICE_CHANNEL_SELECT', (data: VoiceChannelSelectArgs) => {
+			this.instance.log('debug', `Event: VOICE_CHANNEL_SELECT - ${JSON.stringify(data)}`)
+			voiceChannelSelectEvent(data)
+		})
+
+		this.client.on('VOICE_CONNECTION_STATUS', (args: VoiceConnectionStatus) => {
+			this.instance.log('debug', `Event: VOICE_CONNECTION_STATUS - ${JSON.stringify(args)}`)
+			this.data.voiceStatus = args
+			this.instance.variables.updateVariables()
+		})
+
+		// Triggers on changes to audio devices, volume, audio settings, etc...
+		this.client.on('VOICE_SETTINGS_UPDATE', (voiceUserUpdate: VoiceSettings) => {
+			this.instance.log('debug', `Event: VOICE_SETTINGS_UPDATE - ${JSON.stringify(voiceUserUpdate)}`)
+			this.data.userVoiceSettings = voiceUserUpdate
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceStyling')
+		})
+
+		// Triggers when a user joins the voice channel
+		this.client.on('VOICE_STATE_CREATE', (voiceState: VoiceState) => {
+			this.instance.log('debug', `Event: VOICE_STATE_CREATE - ${JSON.stringify(voiceState)}`)
+			if (this.data.voiceChannel === null) return
+
+			this.data.voiceChannel.voice_states?.push(voiceState)
+			this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
+				if (a.nick < b.nick) return -1
+				if (b.nick > a.nick) return 1
+				return a.user.id < b.user.id ? -1 : 1
+			})
+
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('voiceStyling')
+		})
+
+		// Triggers when a user leaves the voice channelTriggers
+		this.client.on('VOICE_STATE_DELETE', (voiceState: VoiceState) => {
+			this.instance.log('debug', `Event: VOICE_STATE_DELETE - ${JSON.stringify(voiceState)}`)
+			voiceStateDeleteEvent(voiceState)
+		})
+
+		//  when a user on the voice channel changes voice state
+		this.client.on('VOICE_STATE_UPDATE', (voiceState: VoiceState) => {
+			this.instance.log('debug', `Event: VOICE_STATE_UPDATE - ${JSON.stringify(voiceState)}`)
+			voiceStateUpdateEvent(voiceState)
+		})
+
+		// Triggers when a user starts transmitting in the current channel
+		this.client.on('SPEAKING_START', (args: VoiceSpeaking) => {
+			this.data.speaking.add(args.user_id)
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('voiceStyling')
+
+			this.data.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
+				this.data.delayedSpeaking.add(args.user_id)
+				this.instance.variables.updateVariables()
+			}, this.instance.config.speakerDelay || 0)
+		})
+
+		// Triggers when a user stops transmitting in the current channel
+		this.client.on('SPEAKING_STOP', (args: VoiceSpeaking) => {
+			this.data.speaking.delete(args.user_id)
+			this.data.delayedSpeaking.delete(args.user_id)
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('voiceStyling')
+
+			if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
+		})
+	}
 
 	// Get channels for a specific guild
-	const getChannels = async (id: string): Promise<Channel[]> => {
-		//@ts-ignore
-		const { channels } = await client.request('GET_CHANNELS', { guild_id: id })
+	getChannels = async (id: string): Promise<Partial<Channel>[]> => {
+		const channels = await this.client.getChannels(id)
 
-		return channels.map((channel: Channel) => {
+		return channels.map((channel) => {
 			return { ...channel, guild_id: id }
 		})
 	}
 
-	// Loop through all guilds and get channel list
-	const getChannelsAll = async (): Promise<Channel[]> => {
-		let channels: Channel[] = []
+	// Get all channels for all guilds
+	getChannelsAll = async (): Promise<Partial<Channel>[]> => {
+		const channels: Partial<Channel>[] = []
 
-		const getChannelsLoop = async (index: number): Promise<Channel[]> => {
-			if (!instance.clientData.guilds[index]) return Promise.resolve(channels)
-
-			channels = [...channels, ...(await getChannels(instance.clientData.guilds[index].id))]
-			return await getChannelsLoop(index + 1)
+		for (const guild of this.data.guilds) {
+			const guildChannels = await this.getChannels(guild.id as string)
+			channels.push(...guildChannels)
 		}
 
-		return await getChannelsLoop(0)
+		return channels
 	}
 
-	// Get all joined guilds
-	const getGuilds = async (): Promise<Guild[]> => {
-		//@ts-ignore
-		const { guilds } = await client.request('GET_GUILDS')
+	// Gets full list of guilds and channels
+	updateChannelList = async (): Promise<void> => {
+		this.data.guilds = await this.client.getGuilds()
+		this.data.channels = await this.getChannelsAll()
 
-		return guilds
+		this.data.guilds.forEach((guild) => {
+			this.data.guildNames.set(guild.id as string, guild.name as string)
+		})
+
+		this.instance.updateInstance()
+		return
 	}
 
-	// Get channel details for current voice channel
-	const getSelectedVoiceChannel = (): Promise<VoiceChannel | null> => {
-		//@ts-ignore
-		return client.request('GET_SELECTED_VOICE_CHANNEL')
+	// Create subscriptions to Voice Channel topics
+	createVoiceSusbcriptions = async (): Promise<void> => {
+		const voiceChannel = await this.client.getSelectedVoiceChannel()
+
+		if (voiceChannel !== null) {
+			this.instance.log('debug', 'Creating voice subscriptions')
+
+			this.data.voiceChannel = voiceChannel
+			this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
+				if (a.nick < b.nick) return -1
+				if (b.nick > a.nick) return 1
+				return a.user.id < b.user.id ? -1 : 1
+			})
+
+			this.data.subscriptions.SPEAKING_START = await this.client.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
+			this.data.subscriptions.SPEAKING_STOP = await this.client.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
+			this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id })
+			this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id })
+			this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id })
+		}
 	}
 
-	// Get a user on the current voice channel
-	const getUser = async (value: string): Promise<VoiceState | null> => {
-		const userValue = await instance.parseVariablesInString(value)
+	// Clear subscriptions to Voice Channel topics
+	clearVoiceSubscriptions = async (): Promise<void> => {
+		this.instance.log('debug', 'Clearing voice subscriptions')
+		this.data.voiceChannel = null
+		this.data.speaking.clear()
 
-		const user = instance.clientData.voiceChannel?.voice_states.find((user: VoiceState) => {
+		if (this.data.subscriptions.SPEAKING_START !== null) {
+			await this.data.subscriptions.SPEAKING_START.unsubscribe()
+			this.data.subscriptions.SPEAKING_START = null
+		}
+
+		if (this.data.subscriptions.SPEAKING_STOP !== null) {
+			await this.data.subscriptions.SPEAKING_STOP.unsubscribe()
+			this.data.subscriptions.SPEAKING_STOP = null
+		}
+
+		if (this.data.subscriptions.VOICE_STATE_CREATE !== null) {
+			await this.data.subscriptions.VOICE_STATE_CREATE.unsubscribe()
+			this.data.subscriptions.VOICE_STATE_CREATE = null
+		}
+
+		if (this.data.subscriptions.VOICE_STATE_DELETE !== null) {
+			await this.data.subscriptions.VOICE_STATE_DELETE.unsubscribe()
+			this.data.subscriptions.VOICE_STATE_DELETE = null
+		}
+
+		if (this.data.subscriptions.VOICE_STATE_UPDATE !== null) {
+			await this.data.subscriptions.VOICE_STATE_UPDATE.unsubscribe()
+			this.data.subscriptions.VOICE_STATE_UPDATE = null
+		}
+	}
+
+	// Gets a specific user
+	getUser = async (value: string): Promise<VoiceState | null> => {
+		const userValue = await this.instance.parseVariablesInString(value)
+
+		const user = this.sortedVoiceUsers().find((user: VoiceState, index: number) => {
 			const id = userValue.toLowerCase() === user.user.id
-			const tag = userValue.toLowerCase() === `${user.user.username.toLowerCase()}#${user.user.discriminator}`
-			const nick = userValue.toLowerCase() === user.nick.toLowerCase()
 			const name = userValue.toLowerCase() === user.user.username.toLowerCase()
+			const nick = user.user.global_name ? userValue.toLowerCase() === user.user.global_name.toLowerCase() : false
+			const indexCheck = !isNaN(parseInt(userValue, 10)) && parseInt(userValue, 10) === index
 
-			return id || tag || nick || name
+			return id || name || nick || indexCheck
 		})
 
 		return user || null
 	}
-	instance.clientData.getUser = getUser
 
-	// Get self voice settings
-	const getVoiceSettings = (): Promise<VoiceSettings> => {
-		//@ts-ignore
-		return client.request('GET_VOICE_SETTINGS')
-	}
-
-	// Focuses Discord client on the specified Text Channel
-	const selectTextChannel = (id: string): Promise<any> => {
-		//@ts-ignore
-		return client.request('SELECT_TEXT_CHANNEL', { channel_id: id })
-	}
-	instance.clientData.selectTextChannel = selectTextChannel
-
-	// Joines or Parts a Voice Channel
-	const selectVoiceChannel = (id: string | null, { timeout, force = false }: any = {}) => {
-		//@ts-ignore
-		return client.request('SELECT_VOICE_CHANNEL', { channel_id: id, timeout, force })
-	}
-	instance.clientData.selectVoiceChannel = selectVoiceChannel
-
-	// Sets other users Voice Settings
-	const setUserVoiceSettings = (id: string, settings: VoiceSettingsOther): Promise<any> => {
-		//@ts-ignore
-		return client.request('SET_USER_VOICE_SETTINGS', {
-			user_id: id,
-			mute: settings.mute,
-			volume: settings.volume,
+	// Updates Self Voice Settings
+	setVoiceSettings = async (selfVoiceSettings: Partial<VoiceSettings>): Promise<any> => {
+		return this.client.setVoiceSettings(selfVoiceSettings).then((newVoiceSettings: VoiceSettings) => {
+			this.data.userVoiceSettings = newVoiceSettings
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('selfMute', 'selfDeaf')
 		})
 	}
-	instance.clientData.setUserVoiceSettings = setUserVoiceSettings
 
-	// Sets self Voice Settings
-	const setVoiceSettings = (selfVoiceSettings: Partial<VoiceSettings>): Promise<any> => {
-		//@ts-ignore
-		return client.request('SET_VOICE_SETTINGS', selfVoiceSettings).then((newVoiceSettings: VoiceSettings) => {
-			instance.clientData.userVoiceSettings = newVoiceSettings
-			instance.variables.updateVariables()
-			instance.checkFeedbacks('selfMute', 'selfDeaf')
-		})
-	}
-	instance.clientData.setVoiceSettings = setVoiceSettings
-
-	// Returns alphabetically sorted list of Text Channels
-	const sortedTextChannelChoices = (): DropdownChoice[] => {
+	// Sort text channels by guild name
+	sortedTextChannelChoices = (): DropdownChoice[] => {
 		const choices: DropdownChoice[] = []
 
-		instance.clientData.channels
-			.filter((channel: Channel) => channel.type === 0)
-			.forEach((channel: Channel) => {
+		this.data.channels
+			.filter((channel) => channel.type === 0)
+			.forEach((channel) => {
 				choices.push({
-					id: channel.id,
-					label: `${instance.clientData.guildNames.get(channel.guild_id)} - ${channel.name}`,
+					id: channel.id as string,
+					label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
 				})
 			})
 
@@ -348,18 +458,17 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 
 		return choices
 	}
-	instance.clientData.sortedTextChannelChoices = sortedTextChannelChoices
 
-	// Returns alphabetically sorted list of Voice Channels
-	const sortedVoiceChannelChoices = (): DropdownChoice[] => {
+	// Sort voice channels by guild name
+	sortedVoiceChannelChoices = (): DropdownChoice[] => {
 		const choices: DropdownChoice[] = []
 
-		instance.clientData.channels
-			.filter((channel: Channel) => channel.type === 2)
-			.forEach((channel: Channel) => {
+		this.data.channels
+			.filter((channel) => channel.type === 2)
+			.forEach((channel) => {
 				choices.push({
-					id: channel.id,
-					label: `${instance.clientData.guildNames.get(channel.guild_id)} - ${channel.name}`,
+					id: channel.id as string,
+					label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
 				})
 			})
 
@@ -367,12 +476,11 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 
 		return choices
 	}
-	instance.clientData.sortedVoiceChannelChoices = sortedVoiceChannelChoices
 
-	// Returns all users (and self) of current voice channel
-	const sortedVoiceUsers = (): VoiceState[] => {
-		if (!instance.clientData.voiceChannel?.voice_states) return []
-		const voiceUsers = [...instance.clientData.voiceChannel.voice_states]
+	// Sort voice users in current channel by nickname
+	sortedVoiceUsers = (): VoiceState[] => {
+		if (!this.data.voiceChannel?.voice_states) return []
+		const voiceUsers = [...this.data.voiceChannel.voice_states]
 
 		voiceUsers.sort((a, b) => {
 			return a.nick.localeCompare(b.nick) !== 0 ? a.nick.localeCompare(b.nick) : 0
@@ -380,243 +488,4 @@ export const discordInit = async (instance: DiscordInstance): Promise<void> => {
 
 		return voiceUsers
 	}
-	instance.clientData.sortedVoiceUsers = sortedVoiceUsers
-
-	// Gets full list of guilds and channels
-	const updateChannelList = async (): Promise<void> => {
-		instance.clientData.guilds = await getGuilds()
-		instance.clientData.channels = await getChannelsAll()
-
-		instance.clientData.guilds.forEach((guild: Guild) => {
-			instance.clientData.guildNames.set(guild.id, guild.name)
-		})
-
-		instance.updateInstance()
-		return
-	}
-
-	client.on('ready', async () => {
-		instance.log('debug', 'discord client ready')
-		instance.updateStatus(InstanceStatus.Ok)
-
-		//@ts-ignore
-		instance.clientData.access_token = client.accessToken
-
-		const newConfig = { ...instance.config, accessToken: instance.clientData.access_token }
-		instance.saveConfig(newConfig)
-		await updateChannelList()
-		instance.clientData.userVoiceSettings = await getVoiceSettings()
-		//@ts-ignore
-		const voiceChannel = await client.request('GET_SELECTED_VOICE_CHANNEL')
-
-		if (voiceChannel !== null) {
-			instance.clientData.voiceChannel = voiceChannel
-			instance.clientData.voiceChannel!.voice_states.sort((a: VoiceState, b: VoiceState) => {
-				if (a.nick < b.nick) return -1
-				if (b.nick > a.nick) return 1
-				return a.user.id < b.user.id ? -1 : 1
-			})
-
-			instance.clientData.subscriptions.SPEAKING_START = await client.subscribe('SPEAKING_START', {
-				channel_id: voiceChannel.id,
-			})
-			instance.clientData.subscriptions.SPEAKING_STOP = await client.subscribe('SPEAKING_STOP', {
-				channel_id: voiceChannel.id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_CREATE = await client.subscribe('VOICE_STATE_CREATE', {
-				channel_id: voiceChannel.id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_DELETE = await client.subscribe('VOICE_STATE_DELETE', {
-				channel_id: voiceChannel.id,
-			})
-			instance.clientData.subscriptions.VOICE_STATE_UPDATE = await client.subscribe('VOICE_STATE_UPDATE', {
-				channel_id: voiceChannel.id,
-			})
-		}
-		await client.subscribe('CHANNEL_CREATE', {})
-		await client.subscribe('GUILD_CREATE', {})
-		await client.subscribe('VOICE_CHANNEL_SELECT', {})
-		await client.subscribe('VOICE_CONNECTION_STATUS', {})
-		await client.subscribe('VOICE_SETTINGS_UPDATE', {})
-
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceChannel', 'voiceStyling')
-	})
-
-	client.on('disconnected', () => {
-		instance.log('warn', 'discord client disconnected')
-		instance.updateStatus(InstanceStatus.Disconnected)
-	})
-
-	client.on('error', (err) => {
-		instance.log('error', JSON.stringify(err))
-	})
-
-	client.on('CHANNEL_CREATE', (_args: any) => {
-		updateChannelList()
-	})
-
-	client.on('GUILD_CREATE', (_args: any) => {
-		updateChannelList()
-	})
-
-	client.on('VOICE_CHANNEL_SELECT', async (data: VoiceChannelSelectArgs) => {
-		if (data.channel_id !== null) {
-			instance.clientData.voiceChannel = await getSelectedVoiceChannel()
-
-			const options = { channel_id: data.channel_id }
-
-			instance.clientData.subscriptions.SPEAKING_START = await client.subscribe('SPEAKING_START', options)
-			instance.clientData.subscriptions.SPEAKING_STOP = await client.subscribe('SPEAKING_STOP', options)
-			instance.clientData.subscriptions.VOICE_STATE_CREATE = await client.subscribe('VOICE_STATE_CREATE', options)
-			instance.clientData.subscriptions.VOICE_STATE_DELETE = await client.subscribe('VOICE_STATE_DELETE', options)
-			instance.clientData.subscriptions.VOICE_STATE_UPDATE = await client.subscribe('VOICE_STATE_UPDATE', options)
-		} else {
-			instance.clientData.voiceChannel = null
-			instance.clientData.speaking.clear()
-
-			// Unsubscribe to events after leaving the channel
-			if (instance.clientData.subscriptions.SPEAKING_START !== null) {
-				instance.clientData.subscriptions.SPEAKING_START.unsubscribe()
-				instance.clientData.subscriptions.SPEAKING_START = null
-			}
-
-			if (instance.clientData.subscriptions.SPEAKING_STOP !== null) {
-				instance.clientData.subscriptions.SPEAKING_STOP.unsubscribe()
-				instance.clientData.subscriptions.SPEAKING_STOP = null
-			}
-
-			if (instance.clientData.subscriptions.VOICE_STATE_CREATE !== null) {
-				instance.clientData.subscriptions.VOICE_STATE_CREATE.unsubscribe()
-				instance.clientData.subscriptions.VOICE_STATE_CREATE = null
-			}
-
-			if (instance.clientData.subscriptions.VOICE_STATE_DELETE !== null) {
-				instance.clientData.subscriptions.VOICE_STATE_DELETE.unsubscribe()
-				instance.clientData.subscriptions.VOICE_STATE_DELETE = null
-			}
-
-			if (instance.clientData.subscriptions.VOICE_STATE_UPDATE !== null) {
-				instance.clientData.subscriptions.VOICE_STATE_UPDATE.unsubscribe()
-				instance.clientData.subscriptions.VOICE_STATE_UPDATE = null
-			}
-		}
-
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('voiceChannel', 'voiceStyling')
-	})
-
-	client.on('VOICE_CONNECTION_STATUS', (args: VoiceConnectionStatus) => {
-		instance.clientData.voiceStatus = args
-		instance.variables.updateVariables()
-	})
-
-	// Triggers on changes to audio devices, volume, audio settings, etc...
-	client.on('VOICE_SETTINGS_UPDATE', (voiceUserUpdate: VoiceSettings) => {
-		instance.clientData.userVoiceSettings = voiceUserUpdate
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceStyling')
-	})
-
-	// Triggers when a user joins the voice channel
-	client.on('VOICE_STATE_CREATE', (voiceState: VoiceState) => {
-		if (instance.clientData.voiceChannel === null) return
-
-		instance.clientData.voiceChannel.voice_states?.push(voiceState)
-		instance.clientData.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
-			if (a.nick < b.nick) return -1
-			if (b.nick > a.nick) return 1
-			return a.user.id < b.user.id ? -1 : 1
-		})
-
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('voiceStyling')
-	})
-
-	// Triggers when a user leaves the voice channelTriggers
-	client.on('VOICE_STATE_DELETE', (voiceState: VoiceState) => {
-		if (instance.clientData.voiceChannel === null) return
-
-		instance.clientData.voiceChannel!.voice_states = instance.clientData.voiceChannel?.voice_states?.filter(
-			(voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id
-		)
-
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('voiceStyling')
-	})
-
-	//  when a user on the voice channel changes voice state
-	client.on('VOICE_STATE_UPDATE', (voiceState: VoiceState) => {
-		if (instance.clientData.voiceChannel === null) return
-
-		const index = instance.clientData.voiceChannel.voice_states.findIndex(
-			(voiceUser: VoiceState) => voiceUser.user.id === voiceState.user.id
-		)
-
-		if (index !== -1) {
-			instance.clientData.voiceChannel.voice_states[index] = voiceState
-		} else {
-			instance.clientData.voiceChannel.voice_states.push(voiceState)
-			instance.clientData.voiceChannel.voice_states.sort((a: VoiceState, b: VoiceState) => {
-				if (a.nick < b.nick) return -1
-				if (b.nick > a.nick) return 1
-				return a.user.id < b.user.id ? -1 : 1
-			})
-		}
-
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('otherMute', 'otherDeaf', 'voiceStyling')
-	})
-
-	// Triggers when a user starts transmitting in the current channel
-	client.on('SPEAKING_START', (args: VoiceSpeaking) => {
-		instance.clientData.speaking.add(args.user_id)
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('voiceStyling')
-		instance.clientData.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
-			instance.clientData.delayedSpeaking.add(args.user_id)
-			instance.variables.updateVariables()
-		}, instance.config.speakerDelay || 0)
-	})
-
-	// Triggers when a user stops transmitting in the current channel
-	client.on('SPEAKING_STOP', (args: VoiceSpeaking) => {
-		instance.clientData.speaking.delete(args.user_id)
-		instance.clientData.delayedSpeaking.delete(args.user_id)
-		instance.variables.updateVariables()
-		instance.checkFeedbacks('voiceStyling')
-		if (instance.clientData.delayedSpeakingTimers[args.user_id])
-			clearTimeout(instance.clientData.delayedSpeakingTimers[args.user_id])
-	})
-
-	const newLogin = async () => {
-		await client
-			.login({
-				clientId: instance.config.clientID,
-				clientSecret: instance.config.clientSecret,
-				redirectUri: 'http://localhost',
-				scopes: instance.clientData.scopes,
-			})
-			.catch((err) => {
-				instance.log('warn', `Login err: ${JSON.stringify(err)}`)
-				instance.updateStatus(InstanceStatus.ConnectionFailure)
-			})
-	}
-
-	await client
-		.login({
-			accessToken: instance.config.accessToken,
-			clientId: instance.config.clientID,
-			clientSecret: instance.config.clientSecret,
-			redirectUri: 'http://localhost',
-			scopes: instance.clientData.scopes,
-		})
-		.catch((err) => {
-			instance.log('debug', `Login err: ${JSON.stringify(err)}`)
-			if (err?.code === 4009) {
-				newLogin()
-			} else {
-				instance.updateStatus(InstanceStatus.ConnectionFailure)
-			}
-		})
 }
