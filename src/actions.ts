@@ -14,6 +14,7 @@ export interface DiscordActions {
 	joinTextChannel: DiscordAction<JoinTextChannelCallback>
 	selectUser: DiscordAction<SelectUserCallback>
 	richPresence: DiscordAction<RichPresenceCallback>
+	clearRichPresence: DiscordAction<ClearRichPresenceCallback>
 
 	// Index signature
 	[key: string]: DiscordAction<any>
@@ -111,7 +112,7 @@ interface RichPresenceCallback {
 	}>
 }
 
-interface ClearRichPresence {
+interface ClearRichPresenceCallback {
 	actionId: 'clearRichPresence'
 	options: Record<string, never>
 }
@@ -128,7 +129,7 @@ export type ActionCallbacks =
 	| JoinTextChannelCallback
 	| SelectUserCallback
 	| RichPresenceCallback
-	| ClearRichPresence
+	| ClearRichPresenceCallback
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
@@ -556,7 +557,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				}
 
 				if (!state || !details) {
-					instance.log('warn', 'Discord Rich Pressence must have a State and Details')
+					instance.log('warn', 'Discord Rich Presence must have a State and Details')
 					return
 				}
 
@@ -586,7 +587,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			},
 		},
 
-		clearRichPresnce: {
+		clearRichPresence: {
 			name: 'Activity Clear',
 			description: 'Clears the Activity set by this connection',
 			options: [],

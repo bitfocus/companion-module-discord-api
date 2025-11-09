@@ -38,7 +38,7 @@ export interface RichPresence {
 	smallImageText?: string
 	buttons?: { label: string; url: string }[]
 	startTimestamp?: Date
-	endTimpestamp?: Date
+	endTimestamp?: Date
 }
 
 interface Subscription {
@@ -175,7 +175,7 @@ export class Discord {
 			await this.updateChannelList()
 			this.data.userVoiceSettings = await this.client.getVoiceSettings()
 
-			await this.createVoiceSusbcriptions()
+			await this.createVoiceSubscriptions()
 			await this.client.subscribe('CHANNEL_CREATE', {})
 			await this.client.subscribe('GUILD_CREATE', {})
 			await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
@@ -189,7 +189,7 @@ export class Discord {
 		const voiceChannelSelectEvent = async (data: VoiceChannelSelectArgs) => {
 			if (data.channel_id !== null) {
 				await this.clearVoiceSubscriptions()
-				await this.createVoiceSusbcriptions()
+				await this.createVoiceSubscriptions()
 			} else {
 				await this.clearVoiceSubscriptions()
 			}
@@ -205,7 +205,7 @@ export class Discord {
 				const currentChannel = await this.client.getSelectedVoiceChannel()
 				if (currentChannel!.id !== this.data.voiceChannel.id) {
 					await this.clearVoiceSubscriptions()
-					await this.createVoiceSusbcriptions()
+					await this.createVoiceSubscriptions()
 				}
 			}
 
@@ -363,7 +363,7 @@ export class Discord {
 	}
 
 	// Create subscriptions to Voice Channel topics
-	createVoiceSusbcriptions = async (): Promise<void> => {
+	createVoiceSubscriptions = async (): Promise<void> => {
 		const voiceChannel = await this.client.getSelectedVoiceChannel()
 
 		if (voiceChannel !== null) {

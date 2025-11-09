@@ -1,7 +1,10 @@
 node_modules/
-package-lock.json
+.vscode/
 dist/
+package-lock.json
 /pkg
 /pkg.tgz
-companion.log
+*.tgz
+DEBUG-INSPECT
 DEBUG-PACKAGED
+.yarn/*

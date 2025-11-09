@@ -41,7 +41,7 @@ export const httpHandler = async (instance: DiscordInstance, request: CompanionH
 
 		if (type === 'resetVoice') {
 			await instance.discord.clearVoiceSubscriptions()
-			await instance.discord.createVoiceSusbcriptions()
+			await instance.discord.createVoiceSubscriptions()
 
 			instance.variables.updateVariables()
 			instance.checkFeedbacks()
