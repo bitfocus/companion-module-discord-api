@@ -2,9 +2,12 @@
 
 This module is in a BETA state, there is still work to be done on reconnection logic to prevent duplicate connections or listeners.
 
-Tthe full release version of this module will use a dedicated Companion app associated with Discord and not require every user to create their own individual apps in the Discord Developer Console. This is still waiting on Discord Developer Relations staff to respond to approving of the Companion app.
+The full release version of this module will use a dedicated Companion app associated with Discord and not require every user to create their own individual apps in the Discord Developer Console. This is still waiting on Discord Developer Relations staff to respond to approving of the Companion app.
 
 # Changelog
+**v1.5.0**
+- Added a `Send Webhook Message` action, to assist in creating a Webhook message
+
 **v1.4.0**
 - Updated to Node 22, and a new Discord library
 - Added OAuth Refresh Token handling

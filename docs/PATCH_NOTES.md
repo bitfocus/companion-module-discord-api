@@ -1,4 +1,7 @@
 # Patch Notes
+**v1.5.0**
+- Added a `Send Webhook Message` action, to assist in creating a Webhook message
+
 **v1.4.0**
 - Updated to Node 22, and a new Discord library
 - Added OAuth Refresh Token handling
@@ -33,7 +36,7 @@
 - Fixed an issue creating a new Instance without existing config
 
 **v1.1.0**
-- Switched to `comapnion-module-utils` to handle the generation of voice channel user states
+- Switched to `companion-module-utils` to handle the generation of voice channel user states
 - Fixed an issue with login error handling
 
 **v0.1.2**

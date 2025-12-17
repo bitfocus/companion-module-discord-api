@@ -1,6 +1,7 @@
-import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { CompanionActionContext, CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
 import { RichPresence } from './client'
 import DiscordInstance from './index'
+import { generateWebhookOptions, webhookAction } from './webhook'
 
 export interface DiscordActions {
 	selfMute: DiscordAction<SelfMuteCallback>
@@ -15,6 +16,7 @@ export interface DiscordActions {
 	selectUser: DiscordAction<SelectUserCallback>
 	richPresence: DiscordAction<RichPresenceCallback>
 	clearRichPresence: DiscordAction<ClearRichPresenceCallback>
+	sendWebhookMessage: DiscordAction<SendWebhookMessageCallback>
 
 	// Index signature
 	[key: string]: DiscordAction<any>
@@ -117,6 +119,11 @@ interface ClearRichPresenceCallback {
 	options: Record<string, never>
 }
 
+export interface SendWebhookMessageCallback {
+	actionId: 'sendWebhookMessage'
+	options: Record<string, string | number | boolean>
+}
+
 export type ActionCallbacks =
 	| SelfMuteCallback
 	| SelfDeafenCallback
@@ -130,9 +137,10 @@ export type ActionCallbacks =
 	| SelectUserCallback
 	| RichPresenceCallback
 	| ClearRichPresenceCallback
+	| SendWebhookMessageCallback
 
 // Force options to have a default to prevent sending undefined values
-type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
+export type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
 	default: string | number | boolean | null
 }
 
@@ -141,7 +149,7 @@ export interface DiscordAction<T> {
 	name: string
 	description?: string
 	options: InputFieldWithDefault[]
-	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void | Promise<void>
+	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>, context: CompanionActionContext) => void | Promise<void>
 	subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 	unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
 }
@@ -595,6 +603,13 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				instance.log('debug', 'Clearing activity')
 				await instance.discord.client.clearActivity()
 			},
+		},
+
+		sendWebhookMessage: {
+			name: 'Send Webhook Message',
+			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
+			options: generateWebhookOptions(),
+			callback: (action, context) => webhookAction(instance, action, context),
 		},
 	}
 }
