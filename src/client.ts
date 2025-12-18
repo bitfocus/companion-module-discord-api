@@ -23,6 +23,9 @@ export interface ClientData {
 	userVoiceSettings: null | VoiceSettings
 	voiceChannel: null | Channel
 	voiceStatus: VoiceConnectionStatus
+	soundboard: SoundboardSound[]
+	videoActive: boolean
+	screenShareActive: boolean
 
 	_destroying: boolean
 	_expecting: Map<string, any>
@@ -83,6 +86,27 @@ interface VoiceSpeaking {
 	user_id: string
 }
 
+interface SoundboardSound {
+	// Better implemented in @distdev/discord-ipc
+	name: string
+	volume: number
+	available: boolean
+	sound_id: string
+	guild_id: string
+	emoji_id: string | null
+	emoji_name: string | null
+}
+
+interface VideoSharing {
+	active: boolean
+}
+
+interface ScreenSharing {
+	active: boolean
+	pid: any // In testing both pid and application are always null. Flatpak issue?
+	application: any
+}
+
 export class Discord {
 	client = new Client()
 	data: ClientData = {
@@ -94,7 +118,7 @@ export class Discord {
 		guilds: [],
 		guildNames: new Map(),
 		reconnectTimer: null,
-		scopes: ['identify', 'rpc', 'rpc.voice.read', 'rpc.voice.write', 'guilds'],
+		scopes: ['identify', 'guilds', 'rpc', 'rpc.voice.read', 'rpc.voice.write', 'rpc.video.read', 'rpc.video.write', 'rpc.screenshare.read', 'rpc.screenshare.write'],
 		selectedUser: '',
 		speaking: new Set(),
 		delayedSpeaking: new Set(),
@@ -110,6 +134,9 @@ export class Discord {
 		userVoiceSettings: null,
 		voiceChannel: null,
 		voiceStatus: { state: 'DISCONNECTED', hostname: '', pings: [], average_ping: 0 },
+		soundboard: [],
+		videoActive: false,
+		screenShareActive: false,
 		_destroying: false,
 		_expecting: new Map(),
 		_connectPromise: undefined,
@@ -174,6 +201,7 @@ export class Discord {
 
 			await this.updateChannelList()
 			this.data.userVoiceSettings = await this.client.getVoiceSettings()
+			this.data.soundboard = await this.getSoundboardSounds()
 
 			await this.createVoiceSubscriptions()
 			await this.client.subscribe('CHANNEL_CREATE', {})
@@ -181,9 +209,10 @@ export class Discord {
 			await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
 			await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
 			await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
+			await this.client.subscribe('VIDEO_STATE_UPDATE', {})
+			await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {})
 
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks()
+			this.instance.updateInstance()
 		}
 
 		const voiceChannelSelectEvent = async (data: VoiceChannelSelectArgs) => {
@@ -325,6 +354,22 @@ export class Discord {
 			this.instance.checkFeedbacks('voiceStyling')
 
 			if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
+		})
+
+		// Triggers on changes to video (webcam) sharing
+		this.client.on('VIDEO_STATE_UPDATE', (args: VideoSharing) => {
+			this.instance.log('debug', `Event: VIDEO_STATE_UPDATE - ${JSON.stringify(args)}`)
+			this.data.videoActive = args.active
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('videoState')
+		})
+
+		// Triggers on changes to screen sharing
+		this.client.on('SCREENSHARE_STATE_UPDATE', (args: ScreenSharing) => {
+			this.instance.log('debug', `Event: SCREENSHARE_STATE_UPDATE - ${JSON.stringify(args)}`)
+			this.data.screenShareActive = args.active
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('screenShareState')
 		})
 	}
 
@@ -477,6 +522,22 @@ export class Discord {
 		return choices
 	}
 
+	// Sort soundboard sounds by guild name and sound name
+	sortedSoundboardChioces = (): DropdownChoice[] => {
+		const choices: DropdownChoice[] = []
+
+		this.data.soundboard.forEach((sound) => {
+			choices.push({
+				id: `${sound.guild_id}:${sound.sound_id}`,
+				label: `${this.data.guildNames.get(sound.guild_id)} - ${sound.name}`,
+			})
+		})
+
+		choices.sort((a, b) => a.label.localeCompare(b.label))
+
+		return choices
+	}
+
 	// Sort voice users in current channel by nickname
 	sortedVoiceUsers = (): VoiceState[] => {
 		if (!this.data.voiceChannel?.voice_states) return []
@@ -488,4 +549,33 @@ export class Discord {
 
 		return voiceUsers
 	}
+
+	// SECTION: Better implemented in @distdev/discord-ipc
+
+	// Get all soundboard sounds
+	getSoundboardSounds = async (): Promise<SoundboardSound[]> => {
+		return (await this.client.request('GET_SOUNDBOARD_SOUNDS')) as SoundboardSound[]
+	}
+
+	// Update push to talk state
+	setPushToTalk = (active: boolean): void => {
+		this.client.request('PUSH_TO_TALK', { active })
+	}
+
+	// Plays a sound from a soundboard
+	playSoundboardSound = (guild_id: string, sound_id: string): void => {
+		this.client.request('PLAY_SOUNDBOARD_SOUND', { guild_id, sound_id })
+	}
+
+	// Toggle video sharing
+	toggleVideo = (): void => {
+		this.client.request('TOGGLE_VIDEO')
+	}
+
+	// Toggle screen sharing
+	toggleScreenshare = (): void => {
+		this.client.request('TOGGLE_SCREENSHARE')
+	}
+
+	// ENDSECTION
 }

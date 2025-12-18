@@ -42,8 +42,12 @@ export class Variables {
 		variables.add({ name: 'Voice Connection Ping Min', variableId: 'voice_connection_ping_min' })
 		variables.add({ name: 'Voice Connection Ping Max', variableId: 'voice_connection_ping_max' })
 
+		variables.add({ name: 'Voice Input Mode', variableId: 'voice_input_mode' })
 		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
 		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
+
+		variables.add({ name: 'Video Active', variableId: 'video_active' })
+		variables.add({ name: 'Screen Share Active', variableId: 'screen_share_active' })
 
 		const voiceUsers: any[] = this.instance.discord.sortedVoiceUsers() || []
 		voiceUsers.forEach((voiceState, index) => {
@@ -92,8 +96,12 @@ export class Variables {
 			newVariables.voice_connection_ping_max =
 				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
 
+			newVariables.voice_input_mode = this.instance.discord.data.userVoiceSettings?.mode.type
 			newVariables.voice_self_input_volume = this.instance.discord.data.userVoiceSettings?.input.volume.toFixed(2)
 			newVariables.voice_self_output_volume = this.instance.discord.data.userVoiceSettings?.output.volume.toFixed(2)
+
+			newVariables.video_active = this.instance.discord.data.videoActive.toString()
+			newVariables.screen_share_active = this.instance.discord.data.screenShareActive.toString()
 
 			for (let i = 0; i < 200; i++) {
 				newVariables[`voice_user_${i}_nick`] = this.instance.discord.sortedVoiceUsers()[i]?.nick || ''

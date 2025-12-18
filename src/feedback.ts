@@ -18,6 +18,8 @@ export interface DiscordFeedbacks {
 	voiceChannel: DiscordFeedback<VoiceChannelCallback>
 	voiceStyling: DiscordFeedback<VoiceStylingCallback>
 	selectedUser: DiscordFeedback<SelectedUserCallback>
+	videoState: DiscordFeedback<VideoStateCallback>
+	screenShareState: DiscordFeedback<ScreenShareStateCallback>
 
 	// Index signature
 	[key: string]: DiscordFeedback<any>
@@ -80,8 +82,31 @@ interface SelectedUserCallback {
 	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
+interface VideoStateCallback {
+	feedbackId: 'videoState'
+	options: Record<string, never>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
+interface ScreenShareStateCallback {
+	feedbackId: 'screenShareState'
+	options: Record<string, never>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
 // Callback type for Presets
-export type FeedbackCallbacks = SelfMuteCallback | SelfDeafCallback | OtherMuteCallback | OtherDeafCallback | VoiceChannelCallback | VoiceStylingCallback | SelectedUserCallback
+export type FeedbackCallbacks =
+	| SelfMuteCallback
+	| SelfDeafCallback
+	| OtherMuteCallback
+	| OtherDeafCallback
+	| VoiceChannelCallback
+	| VoiceStylingCallback
+	| SelectedUserCallback
+	| VideoStateCallback
+	| ScreenShareStateCallback
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionFeedbackInputField, 'default'> & {
@@ -318,6 +343,34 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				})
 
 				return voiceUser?.user.id === instance.discord.data.selectedUser || false
+			},
+		},
+
+		videoState: {
+			type: 'boolean',
+			name: 'Video - Active',
+			description: 'Indicates if video sharing is active',
+			options: [],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
+			},
+			callback: () => {
+				return instance.discord.data.videoActive
+			},
+		},
+
+		screenShareState: {
+			type: 'boolean',
+			name: 'Screen Share - Active',
+			description: 'Indicates if screen sharing is active',
+			options: [],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
+			},
+			callback: () => {
+				return instance.discord.data.screenShareActive
 			},
 		},
 	}

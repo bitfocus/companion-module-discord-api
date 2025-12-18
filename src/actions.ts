@@ -6,6 +6,7 @@ import { generateWebhookOptions, webhookAction } from './webhook'
 export interface DiscordActions {
 	selfMute: DiscordAction<SelfMuteCallback>
 	selfDeafen: DiscordAction<SelfDeafenCallback>
+	selfInputMode: DiscordAction<SelfInputModeCallback>
 	selfInputVolume: DiscordAction<SelfInputVolumeCallback>
 	selfOutputVolume: DiscordAction<SelfOutputVolumeCallback>
 	otherMute: DiscordAction<OtherMuteCallback>
@@ -17,6 +18,10 @@ export interface DiscordActions {
 	richPresence: DiscordAction<RichPresenceCallback>
 	clearRichPresence: DiscordAction<ClearRichPresenceCallback>
 	sendWebhookMessage: DiscordAction<SendWebhookMessageCallback>
+	ptt: DiscordAction<PTTCallback>
+	playSoundboard: DiscordAction<PlaySoundboardCallback>
+	toggleVideo: DiscordAction<ToggleVideoCallback>
+	toggleScreenshare: DiscordAction<ToggleScreenshareCallback>
 
 	// Index signature
 	[key: string]: DiscordAction<any>
@@ -33,6 +38,13 @@ interface SelfDeafenCallback {
 	actionId: 'selfDeafen'
 	options: Readonly<{
 		type: 'Toggle' | 'Deafen' | 'Undeafen'
+	}>
+}
+
+interface SelfInputModeCallback {
+	actionId: 'selfInputMode'
+	options: Readonly<{
+		mode: 'Toggle' | 'PUSH_TO_TALK' | 'VOICE_ACTIVITY'
 	}>
 }
 
@@ -124,9 +136,34 @@ export interface SendWebhookMessageCallback {
 	options: Record<string, string | number | boolean>
 }
 
+interface PTTCallback {
+	actionId: 'ptt'
+	options: Readonly<{
+		active: boolean
+	}>
+}
+
+interface PlaySoundboardCallback {
+	actionId: 'playSoundboard'
+	options: Readonly<{
+		sound: string
+	}>
+}
+
+interface ToggleVideoCallback {
+	actionId: 'toggleVideo'
+	options: Record<string, never>
+}
+
+interface ToggleScreenshareCallback {
+	actionId: 'toggleScreenshare'
+	options: Record<string, never>
+}
+
 export type ActionCallbacks =
 	| SelfMuteCallback
 	| SelfDeafenCallback
+	| SelfInputModeCallback
 	| SelfInputVolumeCallback
 	| SelfOutputVolumeCallback
 	| OtherMuteCallback
@@ -138,6 +175,10 @@ export type ActionCallbacks =
 	| RichPresenceCallback
 	| ClearRichPresenceCallback
 	| SendWebhookMessageCallback
+	| PTTCallback
+	| PlaySoundboardCallback
+	| ToggleVideoCallback
+	| ToggleScreenshareCallback
 
 // Force options to have a default to prevent sending undefined values
 export type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
@@ -207,6 +248,28 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				if (instance.discord.data.userVoiceSettings === null || deaf === instance.discord.data.userVoiceSettings.deaf) return
 
 				instance.discord.client.setVoiceSettings({ deaf })
+			},
+		},
+
+		selfInputMode: {
+			name: 'Set Input Mode',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Mode',
+					id: 'mode',
+					default: 'Toggle',
+					choices: [
+						{ id: 'Toggle', label: 'Toggle' },
+						{ id: 'PUSH_TO_TALK', label: 'Push to Talk' },
+						{ id: 'VOICE_ACTIVITY', label: 'Voice Activity' },
+					],
+				},
+			],
+			callback: (action) => {
+				let voiceMode = action.options.mode
+				if (voiceMode === 'Toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
+				instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as any)
 			},
 		},
 
@@ -610,6 +673,56 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
 			callback: (action, context) => webhookAction(instance, action, context),
+		},
+
+		ptt: {
+			name: 'Push to Talk',
+			options: [
+				{
+					type: 'checkbox',
+					label: 'Active',
+					id: 'active',
+					default: true,
+				},
+			],
+			callback: (action) => {
+				instance.discord.setPushToTalk(action.options.active)
+			},
+		},
+
+		playSoundboard: {
+			name: 'Play Soundboard Sound',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Sound',
+					id: 'sound',
+					default: '0',
+					choices: [{ id: '0', label: 'Select Sound' }, ...(instance.discord.sortedSoundboardChioces() || [])],
+				},
+			],
+			callback: (action) => {
+				if (action.options.sound === '0') return
+
+				const [guild_id, sound_id] = action.options.sound.split(':')
+				if (instance.discord.data.voiceChannel) instance.discord.playSoundboardSound(guild_id, sound_id)
+			},
+		},
+
+		toggleVideo: {
+			name: 'Toggle Video',
+			options: [],
+			callback: () => {
+				if (instance.discord.data.voiceChannel) instance.discord.toggleVideo()
+			},
+		},
+
+		toggleScreenshare: {
+			name: 'Toggle Screenshare',
+			options: [],
+			callback: () => {
+				if (instance.discord.data.voiceChannel) instance.discord.toggleScreenshare()
+			},
 		},
 	}
 }
