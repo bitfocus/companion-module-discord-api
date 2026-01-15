@@ -290,7 +290,10 @@ export class Discord {
 		})
 
 		this.client.on('VOICE_CONNECTION_STATUS', (args: VoiceConnectionStatus) => {
-			this.instance.log('debug', `Event: VOICE_CONNECTION_STATUS - ${JSON.stringify(args)}`)
+			const data: Partial<VoiceConnectionStatus> = { ...args }
+			delete data.pings
+
+			this.instance.log('debug', `Event: VOICE_CONNECTION_STATUS - ${JSON.stringify(data)}`)
 			this.data.voiceStatus = args
 			this.instance.variables.updateVariables()
 		})
