@@ -39,7 +39,7 @@
 	},
 	"dependencies": {
 		"@companion-module/base": "~1.12.0",
-		"@distdev/discord-ipc": "^1.0.1",
+		"@distdev/discord-ipc": "^1.1.0",
 		"companion-module-utils": "^0.4.0"
 	},
 	"devDependencies": {

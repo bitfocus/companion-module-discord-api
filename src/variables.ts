@@ -42,8 +42,13 @@ export class Variables {
 		variables.add({ name: 'Voice Connection Ping Min', variableId: 'voice_connection_ping_min' })
 		variables.add({ name: 'Voice Connection Ping Max', variableId: 'voice_connection_ping_max' })
 
+		variables.add({ name: 'Voice Self Input Mode', variableId: 'voice_self_input_mode' })
 		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
+		variables.add({ name: 'Voice Self Mic Active', variableId: 'voice_self_mic_active' })
 		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
+
+		variables.add({ name: 'Video Camera Active', variableId: 'video_camera_active' })
+		variables.add({ name: 'Video Screen Share Active', variableId: 'video_screen_share_active' })
 
 		const voiceUsers: any[] = this.instance.discord.sortedVoiceUsers() || []
 		voiceUsers.forEach((voiceState, index) => {
@@ -92,7 +97,9 @@ export class Variables {
 			newVariables.voice_connection_ping_max =
 				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
 
+			newVariables.voice_self_input_mode = this.instance.discord.data.userVoiceSettings?.mode.type || ''
 			newVariables.voice_self_input_volume = this.instance.discord.data.userVoiceSettings?.input.volume.toFixed(2)
+			newVariables.voice_self_mic_active = this.instance.discord.data.speaking.has(this.instance.discord.client.user?.id).toString()
 			newVariables.voice_self_output_volume = this.instance.discord.data.userVoiceSettings?.output.volume.toFixed(2)
 
 			for (let i = 0; i < 200; i++) {
@@ -135,6 +142,9 @@ export class Variables {
 			newVariables.voice_user_selected_nick = selectedUser?.nick || ''
 			newVariables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
 		}
+
+		newVariables.video_camera_active = this.instance.discord.data.videoActive.toString()
+		newVariables.video_screen_share_active = this.instance.discord.data.screenShareActive.toString()
 
 		this.set(newVariables)
 		this.updateDefinitions()

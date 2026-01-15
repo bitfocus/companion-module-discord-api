@@ -1,4 +1,4 @@
-import { Client, type Application, type Channel, type Guild, type VoiceSettings, type VoiceState } from '@distdev/discord-ipc'
+import { Client, type Application, type Channel, type Guild, type VoiceSettings, type VoiceState, type SoundboardSound } from '@distdev/discord-ipc'
 import type DiscordInstance from './index'
 import { type DropdownChoice, InstanceStatus } from '@companion-module/base'
 
@@ -18,9 +18,12 @@ export interface ClientData {
 	delayedSpeakingTimers: {
 		[key: string]: NodeJS.Timeout
 	}
+	screenShareActive: boolean
+	soundboard: SoundboardSound[]
 	subscriptions: Subscriptions
 	user: any
 	userVoiceSettings: null | VoiceSettings
+	videoActive: boolean
 	voiceChannel: null | Channel
 	voiceStatus: VoiceConnectionStatus
 
@@ -41,6 +44,12 @@ export interface RichPresence {
 	endTimestamp?: Date
 }
 
+interface ScreenSharing {
+	active: boolean
+	pid: null
+	application: null
+}
+
 interface Subscription {
 	unsubscribe: () => Promise<any>
 }
@@ -51,6 +60,13 @@ interface Subscriptions {
 	VOICE_STATE_CREATE: null | Subscription
 	VOICE_STATE_DELETE: null | Subscription
 	VOICE_STATE_UPDATE: null | Subscription
+	VOICE_SETTINGS_UPDATE: null | Subscription
+	VIDEO_STATE_UPDATE: null | Subscription
+	SCREENSHARE_STATE_UPDATE: null | Subscription
+}
+
+interface VideoSharing {
+	active: boolean
 }
 
 interface VoiceChannelSelectArgs {
@@ -94,22 +110,29 @@ export class Discord {
 		guilds: [],
 		guildNames: new Map(),
 		reconnectTimer: null,
-		scopes: ['identify', 'rpc', 'rpc.voice.read', 'rpc.voice.write', 'guilds'],
+		scopes: ['identify', 'guilds', 'rpc', 'rpc.voice.read', 'rpc.voice.write', 'rpc.video.read', 'rpc.video.write', 'rpc.screenshare.read', 'rpc.screenshare.write'],
 		selectedUser: '',
 		speaking: new Set(),
 		delayedSpeaking: new Set(),
 		delayedSpeakingTimers: {},
+		screenShareActive: false,
+		soundboard: [],
 		subscriptions: {
 			SPEAKING_START: null,
 			SPEAKING_STOP: null,
 			VOICE_STATE_CREATE: null,
 			VOICE_STATE_DELETE: null,
 			VOICE_STATE_UPDATE: null,
+			VOICE_SETTINGS_UPDATE: null,
+			VIDEO_STATE_UPDATE: null,
+			SCREENSHARE_STATE_UPDATE: null,
 		},
 		user: null,
 		userVoiceSettings: null,
+		videoActive: false,
 		voiceChannel: null,
 		voiceStatus: { state: 'DISCONNECTED', hostname: '', pings: [], average_ping: 0 },
+
 		_destroying: false,
 		_expecting: new Map(),
 		_connectPromise: undefined,
@@ -174,16 +197,15 @@ export class Discord {
 
 			await this.updateChannelList()
 			this.data.userVoiceSettings = await this.client.getVoiceSettings()
+			this.data.soundboard = await this.client.getSoundboardSounds()
 
 			await this.createVoiceSubscriptions()
 			await this.client.subscribe('CHANNEL_CREATE', {})
 			await this.client.subscribe('GUILD_CREATE', {})
 			await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
 			await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
-			await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
 
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks()
+			this.instance.updateInstance()
 		}
 
 		const voiceChannelSelectEvent = async (data: VoiceChannelSelectArgs) => {
@@ -203,7 +225,7 @@ export class Discord {
 
 			if (voiceState.user.id === this.client?.user.id) {
 				const currentChannel = await this.client.getSelectedVoiceChannel()
-				if (currentChannel!.id !== this.data.voiceChannel.id) {
+				if (currentChannel?.id !== this.data.voiceChannel.id) {
 					await this.clearVoiceSubscriptions()
 					await this.createVoiceSubscriptions()
 				}
@@ -309,7 +331,7 @@ export class Discord {
 		this.client.on('SPEAKING_START', (args: VoiceSpeaking) => {
 			this.data.speaking.add(args.user_id)
 			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('voiceStyling')
+			this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
 
 			this.data.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
 				this.data.delayedSpeaking.add(args.user_id)
@@ -322,9 +344,25 @@ export class Discord {
 			this.data.speaking.delete(args.user_id)
 			this.data.delayedSpeaking.delete(args.user_id)
 			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('voiceStyling')
+			this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
 
 			if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
+		})
+
+		// Triggers on changes to video (webcam) sharing
+		this.client.on('VIDEO_STATE_UPDATE', (args: VideoSharing) => {
+			this.instance.log('debug', `Event: VIDEO_STATE_UPDATE - ${JSON.stringify(args)}`)
+			this.data.videoActive = args.active
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('videoCamera')
+		})
+
+		// Triggers on changes to screen sharing
+		this.client.on('SCREENSHARE_STATE_UPDATE', (args: ScreenSharing) => {
+			this.instance.log('debug', `Event: SCREENSHARE_STATE_UPDATE - ${JSON.stringify(args)}`)
+			this.data.screenShareActive = args.active
+			this.instance.variables.updateVariables()
+			this.instance.checkFeedbacks('videoScreenShare')
 		})
 	}
 
@@ -381,6 +419,9 @@ export class Discord {
 			this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id })
 			this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id })
 			this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id })
+			this.data.subscriptions.VOICE_SETTINGS_UPDATE = await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
+			this.data.subscriptions.VIDEO_STATE_UPDATE = await this.client.subscribe('VIDEO_STATE_UPDATE', {})
+			this.data.subscriptions.SCREENSHARE_STATE_UPDATE = await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {})
 		}
 	}
 
@@ -487,5 +528,27 @@ export class Discord {
 		})
 
 		return voiceUsers
+	}
+
+	// Sort soundboard sounds by guild name and sound name
+	sortedSoundboardChioces = (): DropdownChoice[] => {
+		const choices: DropdownChoice[] = []
+
+		this.data.soundboard.forEach((sound) => {
+			const guild = sound.guild_id === '0' ? 'DISCORD' : this.data.guildNames.get(sound.guild_id)
+			choices.push({
+				id: `${sound.guild_id}:${sound.sound_id}`,
+				label: `${guild} - ${sound.name}`,
+			})
+		})
+
+		choices.sort((a, b) => {
+			if (a.label.startsWith('DISCORD -') && !b.label.startsWith('DISCORD -')) return -1
+			if (!a.label.startsWith('DISCORD -') && b.label.startsWith('DISCORD -')) return 1
+
+			return a.label.localeCompare(b.label)
+		})
+
+		return choices
 	}
 }

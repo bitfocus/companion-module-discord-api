@@ -2,7 +2,7 @@ import { ActionCallbacks } from './actions'
 import { FeedbackCallbacks } from './feedback'
 import { combineRgb, CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
 
-type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Discord Status'
+type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Video Control' | 'Discord Status'
 
 interface DiscordPresetAdditions {
 	category: PresetCategory
@@ -226,6 +226,75 @@ export function getPresets(): CompanionPresetDefinitions {
 			feedbacks: [],
 		},
 		{
+			category: 'Voice Control',
+			name: 'Voice Input Mode',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'Voice Input Toggle',
+				size: '18',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'selfInputMode', options: { mode: 'Toggle' } }],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'selfInputMode',
+					options: {
+						state: 'PUSH_TO_TALK',
+					},
+					style: { color: combineRgb(0, 0, 0), bgcolor: combineRgb(255, 0, 0) },
+				},
+			],
+		},
+		{
+			category: 'Voice Control',
+			name: 'Push to Talk',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'PTT',
+				size: '18',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'ptt', options: { active: true } }],
+					up: [{ actionId: 'ptt', options: { active: false } }],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'selfMicActive',
+					options: {},
+					style: { color: combineRgb(0, 0, 0), bgcolor: combineRgb(0, 255, 0) },
+				},
+			],
+		},
+		{
+			category: 'Voice Control',
+			name: 'Play Soundboard Sound',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'Soundboard',
+				size: '18',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'playSoundboard', options: { sound: '0' } }],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		},
+
+		{
 			category: 'Voice Status & User Selection',
 			name: 'Mic Volume',
 			type: 'button',
@@ -296,6 +365,54 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 			feedbacks: [],
+		},
+		{
+			category: 'Video Control',
+			name: 'Toggle Video',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'Toggle Video',
+				size: '18',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'videoToggleCamera', options: {} }],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'videoCamera',
+					options: {},
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+				},
+			],
+		},
+		{
+			category: 'Video Control',
+			name: 'Toggle Screen Share',
+			type: 'button',
+			style: {
+				bgcolor: combineRgb(0, 0, 0),
+				color: combineRgb(255, 255, 255),
+				text: 'Toggle Screen Share',
+				size: '14',
+			},
+			steps: [
+				{
+					down: [{ actionId: 'videoToggleScreenshare', options: {} }],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'videoScreenShare',
+					options: {},
+					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+				},
+			],
 		},
 		{
 			category: 'Discord Status',

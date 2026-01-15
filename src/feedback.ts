@@ -14,10 +14,14 @@ import {
 export interface DiscordFeedbacks {
 	selfMute: DiscordFeedback<SelfMuteCallback>
 	selfDeaf: DiscordFeedback<SelfDeafCallback>
+	selfInputMode: DiscordFeedback<SelfInputModeCallback>
+	selfMicActive: DiscordFeedback<SelfMicActiveCallback>
 	otherMute: DiscordFeedback<OtherMuteCallback>
 	voiceChannel: DiscordFeedback<VoiceChannelCallback>
 	voiceStyling: DiscordFeedback<VoiceStylingCallback>
 	selectedUser: DiscordFeedback<SelectedUserCallback>
+	videoCamera: DiscordFeedback<VideoCameraCallback>
+	videoScreenShare: DiscordFeedback<VideoScreenShareCallback>
 
 	// Index signature
 	[key: string]: DiscordFeedback<any>
@@ -32,6 +36,22 @@ interface SelfMuteCallback {
 
 interface SelfDeafCallback {
 	feedbackId: 'selfDeaf'
+	options: Record<string, never>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
+interface SelfInputModeCallback {
+	feedbackId: 'selfInputMode'
+	options: {
+		state: 'PUSH_TO_TALK' | 'VOICE_ACTIVITY'
+	}
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
+interface SelfMicActiveCallback {
+	feedbackId: 'selfMicActive'
 	options: Record<string, never>
 	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
@@ -80,8 +100,33 @@ interface SelectedUserCallback {
 	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
 }
 
+interface VideoCameraCallback {
+	feedbackId: 'videoCamera'
+	options: Record<string, never>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
+interface VideoScreenShareCallback {
+	feedbackId: 'videoScreenShare'
+	options: Record<string, never>
+	defaultStyle?: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+	style: Readonly<Partial<CompanionFeedbackButtonStyleResult>>
+}
+
 // Callback type for Presets
-export type FeedbackCallbacks = SelfMuteCallback | SelfDeafCallback | OtherMuteCallback | OtherDeafCallback | VoiceChannelCallback | VoiceStylingCallback | SelectedUserCallback
+export type FeedbackCallbacks =
+	| SelfMuteCallback
+	| SelfDeafCallback
+	| SelfInputModeCallback
+	| SelfMicActiveCallback
+	| OtherMuteCallback
+	| OtherDeafCallback
+	| VoiceChannelCallback
+	| VoiceStylingCallback
+	| SelectedUserCallback
+	| VideoCameraCallback
+	| VideoScreenShareCallback
 
 // Force options to have a default to prevent sending undefined values
 type InputFieldWithDefault = Exclude<SomeCompanionFeedbackInputField, 'default'> & {
@@ -142,6 +187,76 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			},
 			callback: () => {
 				return instance.discord.data.userVoiceSettings?.deaf || false
+			},
+		},
+
+		selfInputMode: {
+			type: 'boolean',
+			name: 'Voice - Self Input Mode',
+			description: `Indicates if you've deafened yourself`,
+			options: [
+				{
+					type: 'dropdown',
+					label: 'State',
+					id: 'state',
+					default: 'PUSH_TO_TALK',
+					choices: [
+						{ id: 'PUSH_TO_TALK', label: 'Push To Talk' },
+						{ id: 'VOICE_ACTIVITY', label: 'Voice Activity' },
+					],
+				},
+			],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
+			},
+			callback: (feedback) => {
+				return instance.discord.data.userVoiceSettings?.mode.type === feedback.options.state
+			},
+		},
+
+		selfMicActive: {
+			type: 'boolean',
+			name: 'Voice - Self Mic Active',
+			description: 'Indicate if your mic is active such as PTT being pressed, or Voice Activity level being reached',
+			options: [],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(0, 255, 0),
+			},
+			callback: () => {
+				return instance.discord.data.speaking.has(instance.discord.client.user?.id)
+			},
+		},
+
+		otherMicActive: {
+			type: 'boolean',
+			name: 'Voice - Other Mic Active',
+			description: 'Indicate if a users mic is active such as PTT being pressed, or Voice Activity level being reached',
+			options: [
+				{
+					type: 'textinput',
+					label: 'user',
+					tooltip: 'User ID, name#discriminator, nick, or index',
+					id: 'user',
+					default: '',
+				},
+			],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(0, 255, 0),
+			},
+			callback: async (feedback, context) => {
+				const userOption = await context.parseVariablesInString(feedback.options.user)
+				if (!userOption) userOption === feedback.options.user
+
+				const voiceUser = instance.discord.sortedVoiceUsers().find((voiceState: any, index: number) => {
+					if (!isNaN(parseInt(userOption, 10)) && parseInt(userOption, 10) === index) return true
+					return userOption === voiceState.user.id || userOption === `${voiceState.user.username}#${voiceState.user.discriminator}` || userOption === voiceState.nick
+				})
+
+				if (!voiceUser) return false
+				return instance.discord.data.speaking.has(voiceUser.user.id)
 			},
 		},
 
@@ -318,6 +433,34 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				})
 
 				return voiceUser?.user.id === instance.discord.data.selectedUser || false
+			},
+		},
+
+		videoCamera: {
+			type: 'boolean',
+			name: 'Video - Camera Active',
+			description: 'Indicates if video sharing is active',
+			options: [],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
+			},
+			callback: () => {
+				return instance.discord.data.videoActive
+			},
+		},
+
+		videoScreenShare: {
+			type: 'boolean',
+			name: 'Video - Screen Share Active',
+			description: 'Indicates if screen sharing is active',
+			options: [],
+			defaultStyle: {
+				color: combineRgb(0, 0, 0),
+				bgcolor: combineRgb(255, 0, 0),
+			},
+			callback: () => {
+				return instance.discord.data.screenShareActive
 			},
 		},
 	}

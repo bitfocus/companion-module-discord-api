@@ -1,6 +1,19 @@
 # Patch Notes
 **v1.5.0**
 - Added a `Send Webhook Message` action, to assist in creating a Webhook message
+- Based on the work by @Khepricus in #47 the following has been added:
+- New Actions:
+  - `Set Input Mode` to change between PTT and Voice Activation
+  - `Push to Talk` to activate/deactivate mic when using PTT mode
+  - `Play Soundboard Sound` to send a Soundboard Sound to the current Voice Channel (note: You still need Discord Nitro to use sounds from other servers)
+  - `Video - Toggle Camera` and `Video - Toggle Screen Share` Toggle sending Video/Sharing a screen when in a Voice Channel
+- New Feedbacks:
+  - `Voice - Self Input Mode` Indicating if PTT or Voice Activation is set to control mic activation
+  - `Voice - Self Mic Active` and `Voice - Other Mic Active` a simple feedback alternative to indicate if a users mic is active
+  - `Video - Camera Active` and `Video - Screen Share Active` indicate if you're currently sending a camera feed or screen share in a Voice Channel
+- New Variables:
+  - `voice_self_input_mode`, `voice_self_mic_active`, `video_camera_active`, and `video_screen_share_active`
+- Several new Presets covering some of the new Actions and Feedbacks
 
 **v1.4.0**
 - Updated to Node 22, and a new Discord library
