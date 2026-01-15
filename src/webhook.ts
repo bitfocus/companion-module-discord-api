@@ -355,7 +355,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 	return options
 }
 
-export const webhookAction = async (instance: DiscordInstance, action: SendWebhookMessageCallback, context: CompanionActionContext) => {
+export const webhookAction = async (instance: DiscordInstance, action: SendWebhookMessageCallback, context: CompanionActionContext): Promise<void> => {
 	const url = await context.parseVariablesInString(action.options.url as string)
 	const webhookBody: WebhookBody = {
 		username: '',
@@ -455,7 +455,7 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 		},
 		body: JSON.stringify(webhookBody),
 	})
-		.then((res) => {
+		.then(async (res) => {
 			if (res.status != 204) return res.text()
 			return ''
 		})

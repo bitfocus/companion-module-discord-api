@@ -231,7 +231,11 @@ export class Discord {
 				}
 			}
 
-			this.data.voiceChannel.voice_states = this.data.voiceChannel?.voice_states?.filter((voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id)
+			try {
+				this.data.voiceChannel.voice_states = this.data.voiceChannel?.voice_states?.filter((voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id)
+			} catch (e) {
+				this.instance.log('debug', `voiceStateDeleteEvent err: ${JSON.stringify(e)}`)
+			}
 
 			this.instance.variables.updateVariables()
 			this.instance.checkFeedbacks()

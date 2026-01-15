@@ -213,7 +213,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					],
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				if (instance.discord.data.userVoiceSettings === null) return
 
 				if (instance.discord.data.userVoiceSettings.deaf) {
@@ -244,7 +244,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					],
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				let deaf = action.options.type === 'Deafen'
 				if (action.options.type === 'Toggle') deaf = !instance.discord.data.userVoiceSettings!.deaf
 				if (instance.discord.data.userVoiceSettings === null || deaf === instance.discord.data.userVoiceSettings.deaf) return
@@ -276,7 +276,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					max: 100,
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				if (action.options.type === 'Set') {
 					return instance.discord.client.setVoiceSettings({ input: { volume: action.options.volume } } as any).then()
 				} else {
@@ -352,7 +352,6 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				let voiceMode = action.options.mode
 				if (voiceMode === 'Toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
-				
 				instance.log('debug', `Setting Input Mode: ${voiceMode}`)
 				const newVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.discord.data.userVoiceSettings = newVoiceSettings
@@ -487,7 +486,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					default: true,
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				if (action.options.channel === '0') return
 
 				if (action.options.channel !== instance.discord.data.voiceChannel?.id) {
@@ -503,7 +502,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		leaveCurrentVoiceChannel: {
 			name: 'Leave Current Channel',
 			options: [],
-			callback: () => {
+			callback: async () => {
 				if (instance.discord.data.voiceChannel) return instance.discord.client.selectVoiceChannel(null).then()
 
 				return
@@ -521,7 +520,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedTextChannelChoices() || [])],
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				if (action.options.channel === '0') return
 
 				return instance.discord.client.selectTextChannel(action.options.channel).then()
@@ -691,7 +690,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			name: 'Activity - Clear Activity/Rich Presence',
 			description: 'Clears the Activity set by this connection',
 			options: [],
-			callback: () => {
+			callback: async () => {
 				instance.log('debug', 'Clearing activity')
 				return instance.discord.client.clearActivity().then()
 			},
@@ -701,7 +700,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			name: 'Webhooks - Send Webhook Message',
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
-			callback: (action, context) => webhookAction(instance, action, context),
+			callback: async (action, context) => webhookAction(instance, action, context),
 		},
 
 		playSoundboard: {
@@ -716,7 +715,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					choices: [{ id: '0', label: 'Select Sound' }, ...(instance.discord.sortedSoundboardChioces() || [])],
 				},
 			],
-			callback: (action) => {
+			callback: async (action) => {
 				if (action.options.sound === '0') return
 
 				if (instance.discord.data.voiceChannel) {
@@ -743,7 +742,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		videoToggleCamera: {
 			name: 'Video - Toggle Camera',
 			options: [],
-			callback: () => {
+			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
 					instance.log('debug', `Toggling Camera`)
 					return instance.discord.client.toggleVideo().then()
@@ -756,7 +755,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		videoToggleScreenshare: {
 			name: 'Video - Toggle Screen Share',
 			options: [],
-			callback: () => {
+			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
 					instance.log('debug', `Toggling Screen sharing`)
 					return instance.discord.client.toggleScreenshare().then()
