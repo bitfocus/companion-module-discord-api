@@ -25,7 +25,8 @@ If applicable, add screenshots to help explain your problem.
 
 **System (please complete the following information):**
 
-- Companion Version [e.g. 2.2.0 (70d5207-2717)]
+- Companion Version [e.g. 4.3.0 (v4.3.0+8835)]
+- Module Version [e.g. v1.5.0]
 
 **Additional context**
 Add any other context about the problem here.
