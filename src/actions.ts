@@ -352,9 +352,27 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				let voiceMode = action.options.mode
 				if (voiceMode === 'Toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
+				
+				instance.log('debug', `Setting Input Mode: ${voiceMode}`)
 				const newVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.discord.data.userVoiceSettings = newVoiceSettings
 				instance.checkFeedbacks('selfInputMode')
+			},
+		},
+
+		ptt: {
+			name: 'Self - Push to Talk',
+			options: [
+				{
+					type: 'checkbox',
+					label: 'Active',
+					id: 'active',
+					default: true,
+				},
+			],
+			callback: async (action) => {
+				instance.log('debug', `PTT: ${action.options.active}`)
+				await instance.discord.client.setPushToTalk(action.options.active).then()
 			},
 		},
 
@@ -531,7 +549,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		richPresence: {
-			name: 'Activity',
+			name: 'Activity - Set Activity/Rich Presence',
 			description: 'Sets the Activity to show playing your App Name',
 			options: [
 				{
@@ -670,7 +688,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		clearRichPresence: {
-			name: 'Activity Clear',
+			name: 'Activity - Clear Activity/Rich Presence',
 			description: 'Clears the Activity set by this connection',
 			options: [],
 			callback: () => {
@@ -680,25 +698,10 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 		},
 
 		sendWebhookMessage: {
-			name: 'Send Webhook Message',
+			name: 'Webhooks - Send Webhook Message',
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
 			callback: (action, context) => webhookAction(instance, action, context),
-		},
-
-		ptt: {
-			name: 'Push to Talk',
-			options: [
-				{
-					type: 'checkbox',
-					label: 'Active',
-					id: 'active',
-					default: true,
-				},
-			],
-			callback: async (action) => {
-				await instance.discord.client.setPushToTalk(action.options.active).then()
-			},
 		},
 
 		playSoundboard: {
@@ -742,7 +745,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			options: [],
 			callback: () => {
 				if (instance.discord.data.voiceChannel) {
-					instance.log('debug', `Toggling Video`)
+					instance.log('debug', `Toggling Camera`)
 					return instance.discord.client.toggleVideo().then()
 				}
 
