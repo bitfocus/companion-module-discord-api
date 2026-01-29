@@ -43,7 +43,7 @@
 		"companion-module-utils": "^0.4.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.3.0",
+		"@companion-module/tools": "^2.6.1",
 		"@types/discord-rpc": "~4.0.3",
 		"@types/jest": "~29.5.14",
 		"@types/node": "22.9.0",
