@@ -145,125 +145,149 @@ export class Discord {
 	}
 
 	init = async (): Promise<void> => {
-		if (this.initialized) return
-		this.initialized = true
-		this.instance.log('debug', 'Initializing Discord client')
-		this.initListeners()
+		try {
+			if (this.initialized) return
+			this.initialized = true
+			this.instance.log('debug', 'Initializing Discord client')
+			this.initListeners()
 
-		// New login attempt without OAuth tokens
-		const newLogin = async () => {
+			// New login attempt without OAuth tokens
+			const newLogin = async () => {
+				await this.client
+					.login({
+						clientId: this.instance.config.clientID,
+						clientSecret: this.instance.config.clientSecret,
+						redirectUri: 'http://localhost',
+						scopes: this.data.scopes,
+					})
+					.catch((err) => {
+						this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
+						this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+					})
+			}
+
 			await this.client
 				.login({
+					accessToken: this.instance.config.accessToken,
+					refreshToken: this.instance.config.refreshToken,
 					clientId: this.instance.config.clientID,
 					clientSecret: this.instance.config.clientSecret,
 					redirectUri: 'http://localhost',
 					scopes: this.data.scopes,
 				})
 				.catch((err) => {
-					this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
-					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+					this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
+					if (err?.code === 4009) {
+						newLogin()
+					} else {
+						this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+					}
 				})
+		} catch (e) {
+			this.instance.log('warn', `createVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 		}
-
-		await this.client
-			.login({
-				accessToken: this.instance.config.accessToken,
-				refreshToken: this.instance.config.refreshToken,
-				clientId: this.instance.config.clientID,
-				clientSecret: this.instance.config.clientSecret,
-				redirectUri: 'http://localhost',
-				scopes: this.data.scopes,
-			})
-			.catch((err) => {
-				this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
-				if (err?.code === 4009) {
-					newLogin()
-				} else {
-					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
-				}
-			})
 	}
 
 	initListeners = (): void => {
 		const readyEvent = async () => {
-			this.instance.log('debug', 'discord client ready')
-			this.instance.updateStatus(InstanceStatus.Ok)
+			try {
+				this.instance.log('debug', 'discord client ready')
+				this.instance.updateStatus(InstanceStatus.Ok)
 
-			this.data.accessToken = this.client.accessToken
-			this.data.refreshToken = this.client.refreshToken
+				this.data.accessToken = this.client.accessToken
+				this.data.refreshToken = this.client.refreshToken
 
-			const newConfig = { ...this.instance.config, accessToken: this.client.accessToken as string, refreshToken: this.client.refreshToken as string }
-			this.instance.saveConfig(newConfig)
+				const newConfig = { ...this.instance.config, accessToken: this.client.accessToken as string, refreshToken: this.client.refreshToken as string }
+				this.instance.saveConfig(newConfig)
 
-			await this.updateChannelList()
-			this.data.userVoiceSettings = await this.client.getVoiceSettings()
-			this.data.soundboard = await this.client.getSoundboardSounds()
+				await this.updateChannelList()
+				this.data.userVoiceSettings = await this.client.getVoiceSettings()
+				this.data.soundboard = await this.client.getSoundboardSounds()
 
-			await this.createVoiceSubscriptions()
-			await this.client.subscribe('CHANNEL_CREATE', {})
-			await this.client.subscribe('GUILD_CREATE', {})
-			await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
-			await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
+				await this.createVoiceSubscriptions()
+				await this.client.subscribe('CHANNEL_CREATE', {})
+				await this.client.subscribe('GUILD_CREATE', {})
+				await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
+				await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
 
-			this.instance.updateInstance()
+				this.instance.updateInstance()
+			} catch (e) {
+				this.instance.log('warn', `readyEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		}
 
 		const voiceChannelSelectEvent = async (data: VoiceChannelSelectArgs) => {
-			if (data.channel_id !== null) {
-				await this.clearVoiceSubscriptions()
-				await this.createVoiceSubscriptions()
-			} else {
-				await this.clearVoiceSubscriptions()
-			}
+			try {
+				if (data.channel_id !== null) {
+					await this.clearVoiceSubscriptions()
+					await this.createVoiceSubscriptions()
+				} else {
+					await this.clearVoiceSubscriptions()
+				}
 
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks()
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks()
+			} catch (e) {
+				this.instance.log('warn', `voiceStateUpdateEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		}
 
 		const voiceStateDeleteEvent = async (voiceState: VoiceState) => {
-			if (this.data.voiceChannel === null) return
-
-			if (voiceState.user.id === this.client?.user.id) {
-				const currentChannel = await this.client.getSelectedVoiceChannel()
-				if (currentChannel?.id !== this.data.voiceChannel.id) {
-					await this.clearVoiceSubscriptions()
-					await this.createVoiceSubscriptions()
-				}
-			}
-
 			try {
-				this.data.voiceChannel.voice_states = this.data.voiceChannel?.voice_states?.filter((voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id)
-			} catch (e) {
-				this.instance.log('debug', `voiceStateDeleteEvent err: ${JSON.stringify(e)}`)
-			}
+				if (this.data.voiceChannel === null) return
 
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks()
+				if (voiceState.user.id === this.client?.user.id) {
+					const currentChannel = await this.client.getSelectedVoiceChannel()
+					if (currentChannel?.id !== this.data.voiceChannel.id) {
+						await this.clearVoiceSubscriptions()
+						await this.createVoiceSubscriptions()
+					}
+				}
+
+				try {
+					this.data.voiceChannel.voice_states = this.data.voiceChannel?.voice_states?.filter((voiceUser: VoiceState) => voiceUser.user.id !== voiceState.user.id)
+				} catch (e) {
+					this.instance.log('debug', `voiceStateDeleteEvent err: ${JSON.stringify(e)}`)
+				}
+
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks()
+			} catch (e) {
+				this.instance.log('warn', `voiceStateDeleteEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		}
 
 		const voiceStateUpdateEvent = async (voiceState: VoiceState) => {
-			if (this.data.voiceChannel === null) return
+			try {
+				if (this.data.voiceChannel === null) return
 
-			const index = this.data.voiceChannel.voice_states?.findIndex((voiceUser: VoiceState) => voiceUser.user.id === voiceState.user.id)
-			if (index === undefined || this.data.voiceChannel.voice_states === undefined) return
+				const index = this.data.voiceChannel.voice_states?.findIndex((voiceUser: VoiceState) => voiceUser.user.id === voiceState.user.id)
+				if (index === undefined || this.data.voiceChannel.voice_states === undefined) return
 
-			if (index !== -1) {
-				this.data.voiceChannel.voice_states[index] = voiceState
-			} else {
-				this.data.voiceChannel.voice_states.push(voiceState)
-				this.data.voiceChannel.voice_states.sort((a: VoiceState, b: VoiceState) => {
-					if (a.nick < b.nick) return -1
-					if (b.nick > a.nick) return 1
-					return a.user.id < b.user.id ? -1 : 1
-				})
+				if (index !== -1) {
+					this.data.voiceChannel.voice_states[index] = voiceState
+				} else {
+					this.data.voiceChannel.voice_states.push(voiceState)
+					this.data.voiceChannel.voice_states.sort((a: VoiceState, b: VoiceState) => {
+						if (a.nick < b.nick) return -1
+						if (b.nick > a.nick) return 1
+						return a.user.id < b.user.id ? -1 : 1
+					})
+				}
+
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks()
+			} catch (e) {
+				this.instance.log('warn', `voiceStateUpdateEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
-
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks()
 		}
 
 		this.client.on('ready', () => {
-			readyEvent()
+			try {
+				readyEvent()
+			} catch (e) {
+				this.instance.log('warn', `ready err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		this.client.on('disconnected', () => {
@@ -280,282 +304,378 @@ export class Discord {
 		})
 
 		this.client.on('GUILD_CREATE', (args: any) => {
-			this.instance.log('debug', `Event: GUILD_CREATE - ${JSON.stringify(args)}`)
-			this.updateChannelList()
+			try {
+				this.instance.log('debug', `Event: GUILD_CREATE - ${JSON.stringify(args)}`)
+				this.updateChannelList()
+			} catch (e) {
+				this.instance.log('warn', `GUILD_CREATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		this.client.on('VOICE_CHANNEL_SELECT', (data: VoiceChannelSelectArgs) => {
-			this.instance.log('debug', `Event: VOICE_CHANNEL_SELECT - ${JSON.stringify(data)}`)
-			voiceChannelSelectEvent(data)
+			try {
+				this.instance.log('debug', `Event: VOICE_CHANNEL_SELECT - ${JSON.stringify(data)}`)
+				voiceChannelSelectEvent(data)
+			} catch (e) {
+				this.instance.log('warn', `VOICE_CHANNEL_SELECT err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		this.client.on('VOICE_CONNECTION_STATUS', (args: VoiceConnectionStatus) => {
-			const data: Partial<VoiceConnectionStatus> = { ...args }
-			delete data.pings
+			try {
+				const data: Partial<VoiceConnectionStatus> = { ...args }
+				delete data.pings
 
-			this.instance.log('debug', `Event: VOICE_CONNECTION_STATUS - ${JSON.stringify(data)}`)
-			this.data.voiceStatus = args
-			this.instance.variables.updateVariables()
+				this.instance.log('debug', `Event: VOICE_CONNECTION_STATUS - ${JSON.stringify(data)}`)
+				this.data.voiceStatus = args
+				this.instance.variables.updateVariables()
+			} catch (e) {
+				this.instance.log('warn', `VOICE_CONNECTION_STATUS err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers on changes to audio devices, volume, audio settings, etc...
 		this.client.on('VOICE_SETTINGS_UPDATE', (voiceUserUpdate: VoiceSettings) => {
-			this.instance.log('debug', `Event: VOICE_SETTINGS_UPDATE - ${JSON.stringify(voiceUserUpdate)}`)
-			this.data.userVoiceSettings = voiceUserUpdate
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceStyling')
+			try {
+				this.instance.log('debug', `Event: VOICE_SETTINGS_UPDATE - ${JSON.stringify(voiceUserUpdate)}`)
+				this.data.userVoiceSettings = voiceUserUpdate
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceStyling')
+			} catch (e) {
+				this.instance.log('warn', `VOICE_SETTINGS_UPDATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers when a user joins the voice channel
 		this.client.on('VOICE_STATE_CREATE', (voiceState: VoiceState) => {
-			this.instance.log('debug', `Event: VOICE_STATE_CREATE - ${JSON.stringify(voiceState)}`)
-			if (this.data.voiceChannel === null) return
+			try {
+				this.instance.log('debug', `Event: VOICE_STATE_CREATE - ${JSON.stringify(voiceState)}`)
+				if (this.data.voiceChannel === null) return
 
-			this.data.voiceChannel.voice_states?.push(voiceState)
-			this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
-				if (a.nick < b.nick) return -1
-				if (b.nick > a.nick) return 1
-				return a.user.id < b.user.id ? -1 : 1
-			})
+				this.data.voiceChannel.voice_states?.push(voiceState)
+				this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
+					if (a.nick < b.nick) return -1
+					if (b.nick > a.nick) return 1
+					return a.user.id < b.user.id ? -1 : 1
+				})
 
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('voiceStyling')
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('voiceStyling')
+			} catch (e) {
+				this.instance.log('warn', `VOICE_STATE_CREATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers when a user leaves the voice channelTriggers
 		this.client.on('VOICE_STATE_DELETE', (voiceState: VoiceState) => {
-			this.instance.log('debug', `Event: VOICE_STATE_DELETE - ${JSON.stringify(voiceState)}`)
-			voiceStateDeleteEvent(voiceState)
+			try {
+				this.instance.log('debug', `Event: VOICE_STATE_DELETE - ${JSON.stringify(voiceState)}`)
+				voiceStateDeleteEvent(voiceState)
+			} catch (e) {
+				this.instance.log('warn', `VOICE_STATE_DELETE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		//  when a user on the voice channel changes voice state
 		this.client.on('VOICE_STATE_UPDATE', (voiceState: VoiceState) => {
-			this.instance.log('debug', `Event: VOICE_STATE_UPDATE - ${JSON.stringify(voiceState)}`)
-			voiceStateUpdateEvent(voiceState)
+			try {
+				this.instance.log('debug', `Event: VOICE_STATE_UPDATE - ${JSON.stringify(voiceState)}`)
+				voiceStateUpdateEvent(voiceState)
+			} catch (e) {
+				this.instance.log('warn', `VOICE_STATE_UPDATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers when a user starts transmitting in the current channel
 		this.client.on('SPEAKING_START', (args: VoiceSpeaking) => {
-			this.data.speaking.add(args.user_id)
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
-
-			this.data.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
-				this.data.delayedSpeaking.add(args.user_id)
+			try {
+				this.data.speaking.add(args.user_id)
 				this.instance.variables.updateVariables()
-			}, this.instance.config.speakerDelay || 0)
+				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
+
+				this.data.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
+					this.data.delayedSpeaking.add(args.user_id)
+					this.instance.variables.updateVariables()
+				}, this.instance.config.speakerDelay || 0)
+			} catch (e) {
+				this.instance.log('warn', `SPEAKING_START err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers when a user stops transmitting in the current channel
 		this.client.on('SPEAKING_STOP', (args: VoiceSpeaking) => {
-			this.data.speaking.delete(args.user_id)
-			this.data.delayedSpeaking.delete(args.user_id)
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
+			try {
+				this.data.speaking.delete(args.user_id)
+				this.data.delayedSpeaking.delete(args.user_id)
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
 
-			if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
+				if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
+			} catch (e) {
+				this.instance.log('warn', `SPEAKING_STOP err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers on changes to video (webcam) sharing
 		this.client.on('VIDEO_STATE_UPDATE', (args: VideoSharing) => {
-			this.instance.log('debug', `Event: VIDEO_STATE_UPDATE - ${JSON.stringify(args)}`)
-			this.data.videoActive = args.active
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('videoCamera')
+			try {
+				this.instance.log('debug', `Event: VIDEO_STATE_UPDATE - ${JSON.stringify(args)}`)
+				this.data.videoActive = args.active
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('videoCamera')
+			} catch (e) {
+				this.instance.log('warn', `VIDEO_STATE_UPDATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 
 		// Triggers on changes to screen sharing
 		this.client.on('SCREENSHARE_STATE_UPDATE', (args: ScreenSharing) => {
-			this.instance.log('debug', `Event: SCREENSHARE_STATE_UPDATE - ${JSON.stringify(args)}`)
-			this.data.screenShareActive = args.active
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('videoScreenShare')
+			try {
+				this.instance.log('debug', `Event: SCREENSHARE_STATE_UPDATE - ${JSON.stringify(args)}`)
+				this.data.screenShareActive = args.active
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('videoScreenShare')
+			} catch (e) {
+				this.instance.log('warn', `SCREENSHARE_STATE_UPDATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			}
 		})
 	}
 
 	// Get channels for a specific guild
 	getChannels = async (id: string): Promise<Partial<Channel>[]> => {
-		const channels = await this.client.getChannels(id)
+		try {
+			const channels = await this.client.getChannels(id)
 
-		return channels.map((channel) => {
-			return { ...channel, guild_id: id }
-		})
+			return channels.map((channel) => {
+				return { ...channel, guild_id: id }
+			})
+		} catch (e) {
+			this.instance.log('warn', `getChannels err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
+		}
 	}
 
 	// Get all channels for all guilds
 	getChannelsAll = async (): Promise<Partial<Channel>[]> => {
-		const channels: Partial<Channel>[] = []
+		try {
+			const channels: Partial<Channel>[] = []
 
-		for (const guild of this.data.guilds) {
-			const guildChannels = await this.getChannels(guild.id as string)
-			channels.push(...guildChannels)
+			for (const guild of this.data.guilds) {
+				const guildChannels = await this.getChannels(guild.id as string)
+				channels.push(...guildChannels)
+			}
+
+			return channels
+		} catch (e) {
+			this.instance.log('warn', `getChannelsAll err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
 		}
-
-		return channels
 	}
 
 	// Gets full list of guilds and channels
 	updateChannelList = async (): Promise<void> => {
-		this.data.guilds = await this.client.getGuilds()
-		this.data.channels = await this.getChannelsAll()
+		try {
+			this.data.guilds = await this.client.getGuilds()
+			this.data.channels = await this.getChannelsAll()
 
-		this.data.guilds.forEach((guild) => {
-			this.data.guildNames.set(guild.id as string, guild.name as string)
-		})
+			this.data.guilds.forEach((guild) => {
+				this.data.guildNames.set(guild.id as string, guild.name as string)
+			})
 
-		this.instance.updateInstance()
-		return
+			this.instance.updateInstance()
+			return
+		} catch (e) {
+			this.instance.log('warn', `updateChannelList err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+		}
 	}
 
 	// Create subscriptions to Voice Channel topics
 	createVoiceSubscriptions = async (): Promise<void> => {
-		const voiceChannel = await this.client.getSelectedVoiceChannel()
+		try {
+			const voiceChannel = await this.client.getSelectedVoiceChannel()
 
-		if (voiceChannel !== null) {
-			this.instance.log('debug', 'Creating voice subscriptions')
+			if (voiceChannel !== null) {
+				this.instance.log('debug', 'Creating voice subscriptions')
 
-			this.data.voiceChannel = voiceChannel
-			this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
-				if (a.nick < b.nick) return -1
-				if (b.nick > a.nick) return 1
-				return a.user.id < b.user.id ? -1 : 1
-			})
+				this.data.voiceChannel = voiceChannel
+				this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
+					if (a.nick < b.nick) return -1
+					if (b.nick > a.nick) return 1
+					return a.user.id < b.user.id ? -1 : 1
+				})
 
-			this.data.subscriptions.SPEAKING_START = await this.client.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
-			this.data.subscriptions.SPEAKING_STOP = await this.client.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
-			this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id })
-			this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id })
-			this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id })
-			this.data.subscriptions.VOICE_SETTINGS_UPDATE = await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
-			this.data.subscriptions.VIDEO_STATE_UPDATE = await this.client.subscribe('VIDEO_STATE_UPDATE', {})
-			this.data.subscriptions.SCREENSHARE_STATE_UPDATE = await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {})
+				this.data.subscriptions.SPEAKING_START = await this.client.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
+				this.data.subscriptions.SPEAKING_STOP = await this.client.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
+				this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id })
+				this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id })
+				this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id })
+				this.data.subscriptions.VOICE_SETTINGS_UPDATE = await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
+				this.data.subscriptions.VIDEO_STATE_UPDATE = await this.client.subscribe('VIDEO_STATE_UPDATE', {})
+				this.data.subscriptions.SCREENSHARE_STATE_UPDATE = await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {})
+			}
+		} catch (e) {
+			this.instance.log('warn', `createVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 		}
 	}
 
 	// Clear subscriptions to Voice Channel topics
 	clearVoiceSubscriptions = async (): Promise<void> => {
-		this.instance.log('debug', 'Clearing voice subscriptions')
-		this.data.voiceChannel = null
-		this.data.speaking.clear()
+		try {
+			this.instance.log('debug', 'Clearing voice subscriptions')
+			this.data.voiceChannel = null
+			this.data.speaking.clear()
 
-		if (this.data.subscriptions.SPEAKING_START !== null) {
-			await this.data.subscriptions.SPEAKING_START.unsubscribe()
-			this.data.subscriptions.SPEAKING_START = null
-		}
+			if (this.data.subscriptions.SPEAKING_START !== null) {
+				await this.data.subscriptions.SPEAKING_START.unsubscribe()
+				this.data.subscriptions.SPEAKING_START = null
+			}
 
-		if (this.data.subscriptions.SPEAKING_STOP !== null) {
-			await this.data.subscriptions.SPEAKING_STOP.unsubscribe()
-			this.data.subscriptions.SPEAKING_STOP = null
-		}
+			if (this.data.subscriptions.SPEAKING_STOP !== null) {
+				await this.data.subscriptions.SPEAKING_STOP.unsubscribe()
+				this.data.subscriptions.SPEAKING_STOP = null
+			}
 
-		if (this.data.subscriptions.VOICE_STATE_CREATE !== null) {
-			await this.data.subscriptions.VOICE_STATE_CREATE.unsubscribe()
-			this.data.subscriptions.VOICE_STATE_CREATE = null
-		}
+			if (this.data.subscriptions.VOICE_STATE_CREATE !== null) {
+				await this.data.subscriptions.VOICE_STATE_CREATE.unsubscribe()
+				this.data.subscriptions.VOICE_STATE_CREATE = null
+			}
 
-		if (this.data.subscriptions.VOICE_STATE_DELETE !== null) {
-			await this.data.subscriptions.VOICE_STATE_DELETE.unsubscribe()
-			this.data.subscriptions.VOICE_STATE_DELETE = null
-		}
+			if (this.data.subscriptions.VOICE_STATE_DELETE !== null) {
+				await this.data.subscriptions.VOICE_STATE_DELETE.unsubscribe()
+				this.data.subscriptions.VOICE_STATE_DELETE = null
+			}
 
-		if (this.data.subscriptions.VOICE_STATE_UPDATE !== null) {
-			await this.data.subscriptions.VOICE_STATE_UPDATE.unsubscribe()
-			this.data.subscriptions.VOICE_STATE_UPDATE = null
+			if (this.data.subscriptions.VOICE_STATE_UPDATE !== null) {
+				await this.data.subscriptions.VOICE_STATE_UPDATE.unsubscribe()
+				this.data.subscriptions.VOICE_STATE_UPDATE = null
+			}
+		} catch (e) {
+			this.instance.log('warn', `clearVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 		}
 	}
 
 	// Gets a specific user
 	getUser = async (value: string): Promise<VoiceState | null> => {
-		const userValue = await this.instance.parseVariablesInString(value)
+		try {
+			const userValue = await this.instance.parseVariablesInString(value)
 
-		const user = this.sortedVoiceUsers().find((user: VoiceState, index: number) => {
-			const id = userValue.toLowerCase() === user.user.id
-			const name = userValue.toLowerCase() === user.user.username.toLowerCase()
-			const nick = user.user.global_name ? userValue.toLowerCase() === user.user.global_name.toLowerCase() : false
-			const indexCheck = !isNaN(parseInt(userValue, 10)) && parseInt(userValue, 10) === index
+			const user = this.sortedVoiceUsers().find((user: VoiceState, index: number) => {
+				const id = userValue.toLowerCase() === user.user.id
+				const name = userValue.toLowerCase() === user.user.username.toLowerCase()
+				const nick = user.user.global_name ? userValue.toLowerCase() === user.user.global_name.toLowerCase() : false
+				const indexCheck = !isNaN(parseInt(userValue, 10)) && parseInt(userValue, 10) === index
 
-			return id || name || nick || indexCheck
-		})
+				return id || name || nick || indexCheck
+			})
 
-		return user || null
+			return user || null
+		} catch (e) {
+			this.instance.log('warn', `getUser err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return null
+		}
 	}
 
 	// Updates Self Voice Settings
 	setVoiceSettings = async (selfVoiceSettings: Partial<VoiceSettings>): Promise<any> => {
-		return this.client.setVoiceSettings(selfVoiceSettings).then((newVoiceSettings: VoiceSettings) => {
-			this.data.userVoiceSettings = newVoiceSettings
-			this.instance.variables.updateVariables()
-			this.instance.checkFeedbacks('selfMute', 'selfDeaf')
-		})
+		return this.client
+			.setVoiceSettings(selfVoiceSettings)
+			.then((newVoiceSettings: VoiceSettings) => {
+				this.data.userVoiceSettings = newVoiceSettings
+				this.instance.variables.updateVariables()
+				this.instance.checkFeedbacks('selfMute', 'selfDeaf')
+			})
+			.catch((e) => {
+				this.instance.log('warn', `setVoiceSettings err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			})
 	}
 
 	// Sort text channels by guild name
 	sortedTextChannelChoices = (): DropdownChoice[] => {
-		const choices: DropdownChoice[] = []
+		try {
+			const choices: DropdownChoice[] = []
 
-		this.data.channels
-			.filter((channel) => channel.type === 0)
-			.forEach((channel) => {
-				choices.push({
-					id: channel.id as string,
-					label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
+			this.data.channels
+				.filter((channel) => channel.type === 0)
+				.forEach((channel) => {
+					choices.push({
+						id: channel.id as string,
+						label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
+					})
 				})
-			})
 
-		choices.sort((a, b) => a.label.localeCompare(b.label))
+			choices.sort((a, b) => a.label.localeCompare(b.label))
 
-		return choices
+			return choices
+		} catch (e) {
+			this.instance.log('warn', `sortedTextChannelChoices err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
+		}
 	}
 
 	// Sort voice channels by guild name
 	sortedVoiceChannelChoices = (): DropdownChoice[] => {
-		const choices: DropdownChoice[] = []
+		try {
+			const choices: DropdownChoice[] = []
 
-		this.data.channels
-			.filter((channel) => channel.type === 2)
-			.forEach((channel) => {
-				choices.push({
-					id: channel.id as string,
-					label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
+			this.data.channels
+				.filter((channel) => channel.type === 2)
+				.forEach((channel) => {
+					choices.push({
+						id: channel.id as string,
+						label: `${this.data.guildNames.get(channel.guild_id as string)} - ${channel.name}`,
+					})
 				})
-			})
 
-		choices.sort((a, b) => a.label.localeCompare(b.label))
+			choices.sort((a, b) => a.label.localeCompare(b.label))
 
-		return choices
+			return choices
+		} catch (e) {
+			this.instance.log('warn', `sortedVoiceChannelChoices err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
+		}
 	}
 
 	// Sort voice users in current channel by nickname
 	sortedVoiceUsers = (): VoiceState[] => {
-		if (!this.data.voiceChannel?.voice_states) return []
-		const voiceUsers = [...this.data.voiceChannel.voice_states]
+		try {
+			if (!this.data.voiceChannel?.voice_states) return []
+			const voiceUsers = [...this.data.voiceChannel.voice_states]
 
-		voiceUsers.sort((a, b) => {
-			return a.nick.localeCompare(b.nick) !== 0 ? a.nick.localeCompare(b.nick) : 0
-		})
+			voiceUsers.sort((a, b) => {
+				return a.nick.localeCompare(b.nick) !== 0 ? a.nick.localeCompare(b.nick) : 0
+			})
 
-		return voiceUsers
+			return voiceUsers
+		} catch (e) {
+			this.instance.log('warn', `sortedVoiceUsers err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
+		}
 	}
 
 	// Sort soundboard sounds by guild name and sound name
 	sortedSoundboardChioces = (): DropdownChoice[] => {
-		const choices: DropdownChoice[] = []
+		try {
+			const choices: DropdownChoice[] = []
 
-		this.data.soundboard.forEach((sound) => {
-			const guild = sound.guild_id === '0' ? 'DISCORD' : this.data.guildNames.get(sound.guild_id)
-			choices.push({
-				id: `${sound.guild_id}:${sound.sound_id}`,
-				label: `${guild} - ${sound.name}`,
+			this.data.soundboard.forEach((sound) => {
+				const guild = sound.guild_id === '0' ? 'DISCORD' : this.data.guildNames.get(sound.guild_id)
+				choices.push({
+					id: `${sound.guild_id}:${sound.sound_id}`,
+					label: `${guild} - ${sound.name}`,
+				})
 			})
-		})
 
-		choices.sort((a, b) => {
-			if (a.label.startsWith('DISCORD -') && !b.label.startsWith('DISCORD -')) return -1
-			if (!a.label.startsWith('DISCORD -') && b.label.startsWith('DISCORD -')) return 1
+			choices.sort((a, b) => {
+				if (a.label.startsWith('DISCORD -') && !b.label.startsWith('DISCORD -')) return -1
+				if (!a.label.startsWith('DISCORD -') && b.label.startsWith('DISCORD -')) return 1
 
-			return a.label.localeCompare(b.label)
-		})
+				return a.label.localeCompare(b.label)
+			})
 
-		return choices
+			return choices
+		} catch (e) {
+			this.instance.log('warn', `sortedSoundboardChoices err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+			return []
+		}
 	}
 }
