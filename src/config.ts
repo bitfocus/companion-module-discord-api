@@ -54,7 +54,7 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
 			label: 'Clear OAuth tokens and re-auth on next connection startup',
 			id: 'clearOAuth',
 			width: 12,
-			default: false
+			default: false,
 		},
 	]
 }

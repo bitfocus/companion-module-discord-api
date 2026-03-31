@@ -159,7 +159,7 @@ export class Discord {
 				redirectUri: 'http://localhost',
 				scopes: this.data.scopes,
 			})
-			.then(() => this.initSubscriptions())
+			.then(async () => this.initSubscriptions())
 			.catch((err) => {
 				this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
 				if (err?.code === 4009) {
@@ -170,7 +170,7 @@ export class Discord {
 			})
 	}
 
-	login = async () => {
+	login = async (): Promise<void> => {
 		return this.client
 			.login({
 				clientId: this.instance.config.clientID,
@@ -178,7 +178,7 @@ export class Discord {
 				redirectUri: 'http://localhost',
 				scopes: this.data.scopes,
 			})
-			.then(() => this.initSubscriptions())
+			.then(async () => this.initSubscriptions())
 			.catch((err) => {
 				this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
 				this.instance.updateStatus(InstanceStatus.ConnectionFailure)
@@ -754,10 +754,10 @@ export class Discord {
 		}
 	}
 
-	delay = async () => {
+	delay = async (): Promise<void> => {
 		return new Promise((resolve) => {
 			setTimeout(() => {
-				return resolve(0)
+				return resolve()
 			}, 500)
 		})
 	}

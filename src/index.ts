@@ -24,7 +24,7 @@ class DiscordInstance extends InstanceBase<Config> {
 		clientSecret: '',
 		refreshToken: '',
 		speakerDelay: 100,
-		clearOAuth: false
+		clearOAuth: false,
 	}
 
 	public readonly variables = new Variables(this)
