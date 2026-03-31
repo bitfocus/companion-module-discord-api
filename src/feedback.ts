@@ -2,12 +2,10 @@ import DiscordInstance from './index'
 //import { voicePNG64 } from './png64'
 import { graphics } from 'companion-module-utils'
 import {
-	combineRgb,
 	CompanionAdvancedFeedbackResult,
 	CompanionFeedbackButtonStyleResult,
 	CompanionFeedbackAdvancedEvent,
 	CompanionFeedbackBooleanEvent,
-	//CompanionFeedbackContext,
 	SomeCompanionFeedbackInputField,
 } from '@companion-module/base'
 
@@ -168,8 +166,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			description: `Indicates if you've muted yourself`,
 			options: [],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: () => {
 				return instance.discord.data.userVoiceSettings?.mute || instance.discord.data.userVoiceSettings?.deaf || false
@@ -182,8 +180,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			description: `Indicates if you've deafened yourself`,
 			options: [],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: () => {
 				return instance.discord.data.userVoiceSettings?.deaf || false
@@ -207,8 +205,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: (feedback) => {
 				return instance.discord.data.userVoiceSettings?.mode.type === feedback.options.state
@@ -221,8 +219,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			description: 'Indicate if your mic is active such as PTT being pressed, or Voice Activity level being reached',
 			options: [],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(0, 255, 0),
+				color: 0x000000,
+				bgcolor: 0x00ff00,
 			},
 			callback: () => {
 				return instance.discord.data.speaking.has(instance.discord.client.user?.id)
@@ -243,8 +241,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(0, 255, 0),
+				color: 0x000000,
+				bgcolor: 0x00ff00,
 			},
 			callback: async (feedback, context) => {
 				const userOption = await context.parseVariablesInString(feedback.options.user)
@@ -274,8 +272,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: async (feedback, context) => {
 				const userOption = await context.parseVariablesInString(feedback.options.user)
@@ -304,8 +302,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: async (feedback, context) => {
 				const userOption = await context.parseVariablesInString(feedback.options.user)
@@ -334,8 +332,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(0, 255, 0),
+				color: 0x000000,
+				bgcolor: 0x00ff00,
 			},
 			callback: (feedback) => {
 				return feedback.options.channel === instance.discord.data.voiceChannel?.id
@@ -420,8 +418,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				},
 			],
 			defaultStyle: {
-				color: combineRgb(255, 255, 255),
-				bgcolor: combineRgb(0, 100, 0),
+				color: 0xffffff,
+				bgcolor: 0x006400,
 			},
 			callback: async (feedback, context) => {
 				const userOption = await context.parseVariablesInString(feedback.options.user)
@@ -442,8 +440,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			description: 'Indicates if video sharing is active',
 			options: [],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: () => {
 				return instance.discord.data.videoActive
@@ -456,8 +454,8 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 			description: 'Indicates if screen sharing is active',
 			options: [],
 			defaultStyle: {
-				color: combineRgb(0, 0, 0),
-				bgcolor: combineRgb(255, 0, 0),
+				color: 0x000000,
+				bgcolor: 0xff0000,
 			},
 			callback: () => {
 				return instance.discord.data.screenShareActive

@@ -1,6 +1,6 @@
 import { ActionCallbacks } from './actions'
 import { FeedbackCallbacks } from './feedback'
-import { combineRgb, CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
+import { CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
 
 type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Video Control' | 'Discord Status'
 
@@ -22,8 +22,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Mute',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nMute',
 				size: '18',
 			},
@@ -37,7 +37,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'selfMute',
 					options: {},
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0xffffff, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -46,8 +46,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Deafen',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nDeafen',
 				size: '18',
 			},
@@ -61,7 +61,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'selfDeaf',
 					options: {},
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0xffffff, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -70,8 +70,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Leave Current Voice Channel',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Leave\\nVoice\\nChannel',
 				size: '18',
 			},
@@ -88,8 +88,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Increase Input Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nIn Vol\\n+10',
 				size: '18',
 			},
@@ -106,8 +106,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Decrease Input Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nIn Vol\\n-10',
 				size: '18',
 			},
@@ -124,8 +124,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Increase Input Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nOut Vol\\n+10',
 				size: '18',
 			},
@@ -142,8 +142,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Self Decrease Input Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Self\\nOut Vol\\n-10',
 				size: '18',
 			},
@@ -160,8 +160,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Selected User Mute',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Toggle\\nUser\\nMute',
 				size: '18',
 			},
@@ -175,7 +175,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'otherMute',
 					options: { user: '' },
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0xffffff, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -184,8 +184,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Increase Selected User Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Vol\\n+10',
 				size: '18',
 			},
@@ -207,8 +207,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Decrease Selected User Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Vol\\n-10',
 				size: '18',
 			},
@@ -230,8 +230,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Voice Input Mode',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Voice Input Toggle',
 				size: '18',
 			},
@@ -247,7 +247,7 @@ export function getPresets(): CompanionPresetDefinitions {
 					options: {
 						state: 'PUSH_TO_TALK',
 					},
-					style: { color: combineRgb(0, 0, 0), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0x000000, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -256,8 +256,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Push to Talk',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'PTT',
 				size: '18',
 			},
@@ -271,7 +271,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'selfMicActive',
 					options: {},
-					style: { color: combineRgb(0, 0, 0), bgcolor: combineRgb(0, 255, 0) },
+					style: { color: 0x000000, bgcolor: 0x00ff00 },
 				},
 			],
 		},
@@ -280,8 +280,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Play Soundboard Sound',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Soundboard',
 				size: '18',
 			},
@@ -299,8 +299,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Mic Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `Mic\\n$(label:voice_self_input_volume)`,
 				size: '18',
 			},
@@ -317,8 +317,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Headset Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `Headset\\n$(label:voice_self_output_volume)`,
 				size: '18',
 			},
@@ -335,8 +335,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Selected User',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `User\\n$(label:voice_user_selected_nick)`,
 				size: '18',
 			},
@@ -353,8 +353,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Selected User Volume',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `Vol\\n$(label:voice_user_selected_volume)`,
 				size: '18',
 			},
@@ -371,8 +371,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Toggle Video',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Toggle Video',
 				size: '18',
 			},
@@ -386,7 +386,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'videoCamera',
 					options: {},
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0xffffff, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -395,8 +395,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Toggle Screen Share',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: 'Toggle Screen Share',
 				size: '14',
 			},
@@ -410,7 +410,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'videoScreenShare',
 					options: {},
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(255, 0, 0) },
+					style: { color: 0xffffff, bgcolor: 0xff0000 },
 				},
 			],
 		},
@@ -419,8 +419,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Voice Ping',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `Ping\\n$(label:voice_connection_ping)`,
 				size: '18',
 			},
@@ -437,8 +437,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Voice Avg, Min, Max, Ping',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `Avg: $(label:voice_connection_ping_avg)\\nMin: $(label:voice_connection_ping_min)\\nMax: $(label:voice_connection_ping_max)`,
 				size: '18',
 			},
@@ -455,8 +455,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			name: 'Voice Connection',
 			type: 'button',
 			style: {
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				text: `$(label:voice_connection_status)`,
 				size: '18',
 			},
@@ -477,8 +477,8 @@ export function getPresets(): CompanionPresetDefinitions {
 			type: 'button',
 			style: {
 				alignment: 'center:top',
-				bgcolor: combineRgb(0, 0, 0),
-				color: combineRgb(255, 255, 255),
+				bgcolor: 0x000000,
+				color: 0xffffff,
 				pngalignment: 'center:bottom',
 				text: `$(label:voice_user_${i}_nick)`,
 				size: '18',
@@ -494,7 +494,7 @@ export function getPresets(): CompanionPresetDefinitions {
 				{
 					feedbackId: 'selectedUser',
 					options: { user: `${i}` },
-					style: { color: combineRgb(255, 255, 255), bgcolor: combineRgb(0, 100, 0) },
+					style: { color: 0xffffff, bgcolor: 0x006400 },
 				},
 			],
 		})
