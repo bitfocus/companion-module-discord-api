@@ -745,10 +745,10 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
 					instance.log('debug', `Toggling Camera`)
-					return instance.discord.client.toggleVideo().then()
+					await instance.discord.client.toggleVideo().catch((err) => {
+						instance.log('warn', `Error toggling camera: ${err}`)
+					})
 				}
-
-				return
 			},
 		},
 
@@ -758,10 +758,10 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
 					instance.log('debug', `Toggling Screen sharing`)
-					return instance.discord.client.toggleScreenshare().then()
+					await instance.discord.client.toggleScreenshare().catch((err) => {
+						instance.log('warn', `Error toggling screen sharing: ${err}`)
+					})
 				}
-
-				return
 			},
 		},
 	}

@@ -1,4 +1,10 @@
 # Patch Notes
+**v1.5.1**
+- Added a checkbox in the config settings to clear current OAuth tokens and require re-authorization when that config is saved. Requires restarting the connection
+- Fixed an issue with subscribing to topics that the OAuth token lacks scopes for, requiring the user to re-auth rather than crash
+- Added more logging at various stages of the connection and event subscription process, and more error logging
+- Fixed an issue due to a change in Discord itself that required adding a delay before sending certain requests in the startup process
+
 **v1.5.0**
 - Added a `Send Webhook Message` action, to assist in creating a Webhook message
 - Based on the work by @Khepricus in #47 the following has been added:

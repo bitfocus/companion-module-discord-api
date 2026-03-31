@@ -6,6 +6,7 @@ export interface Config {
 	clientID: string
 	clientSecret: string
 	speakerDelay: number
+	clearOAuth: boolean
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
@@ -47,6 +48,13 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
 			default: 0,
 			min: 0,
 			max: 10000,
+		},
+		{
+			type: 'checkbox',
+			label: 'Clear OAuth tokens and re-auth on next connection startup',
+			id: 'clearOAuth',
+			width: 12,
+			default: false
 		},
 	]
 }

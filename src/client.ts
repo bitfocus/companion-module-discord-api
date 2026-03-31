@@ -145,54 +145,50 @@ export class Discord {
 	}
 
 	init = async (): Promise<void> => {
-		try {
-			if (this.initialized) return
-			this.initialized = true
-			this.instance.log('debug', 'Initializing Discord client')
-			this.initListeners()
+		if (this.initialized) return
+		this.initialized = true
+		this.instance.log('debug', 'Initializing Discord client')
+		this.initListeners()
 
-			// New login attempt without OAuth tokens
-			const newLogin = async () => {
-				await this.client
-					.login({
-						clientId: this.instance.config.clientID,
-						clientSecret: this.instance.config.clientSecret,
-						redirectUri: 'http://localhost',
-						scopes: this.data.scopes,
-					})
-					.catch((err) => {
-						this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
-						this.instance.updateStatus(InstanceStatus.ConnectionFailure)
-					})
-			}
+		await this.client
+			.login({
+				accessToken: this.instance.config.accessToken,
+				refreshToken: this.instance.config.refreshToken,
+				clientId: this.instance.config.clientID,
+				clientSecret: this.instance.config.clientSecret,
+				redirectUri: 'http://localhost',
+				scopes: this.data.scopes,
+			})
+			.then(() => this.initSubscriptions())
+			.catch((err) => {
+				this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
+				if (err?.code === 4009) {
+					this.login()
+				} else {
+					this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+				}
+			})
+	}
 
-			await this.client
-				.login({
-					accessToken: this.instance.config.accessToken,
-					refreshToken: this.instance.config.refreshToken,
-					clientId: this.instance.config.clientID,
-					clientSecret: this.instance.config.clientSecret,
-					redirectUri: 'http://localhost',
-					scopes: this.data.scopes,
-				})
-				.catch((err) => {
-					this.instance.log('debug', `Login err: ${JSON.stringify(err)}`)
-					if (err?.code === 4009) {
-						newLogin()
-					} else {
-						this.instance.updateStatus(InstanceStatus.ConnectionFailure)
-					}
-				})
-		} catch (e) {
-			this.instance.log('warn', `createVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
-		}
+	login = async () => {
+		return this.client
+			.login({
+				clientId: this.instance.config.clientID,
+				clientSecret: this.instance.config.clientSecret,
+				redirectUri: 'http://localhost',
+				scopes: this.data.scopes,
+			})
+			.then(() => this.initSubscriptions())
+			.catch((err) => {
+				this.instance.log('warn', `Login err: ${JSON.stringify(err)}`)
+				this.instance.updateStatus(InstanceStatus.ConnectionFailure)
+			})
 	}
 
 	initListeners = (): void => {
 		const readyEvent = async () => {
 			try {
 				this.instance.log('debug', 'discord client ready')
-				this.instance.updateStatus(InstanceStatus.Ok)
 
 				this.data.accessToken = this.client.accessToken
 				this.data.refreshToken = this.client.refreshToken
@@ -201,16 +197,23 @@ export class Discord {
 				this.instance.saveConfig(newConfig)
 
 				await this.updateChannelList()
+
+				this.instance.log('debug', 'Client - Getting Voice Settings')
 				this.data.userVoiceSettings = await this.client.getVoiceSettings()
+
+				this.instance.log('debug', 'Client - Getting Soundboard Sounds')
 				this.data.soundboard = await this.client.getSoundboardSounds()
 
 				await this.createVoiceSubscriptions()
+
+				this.instance.log('debug', 'Client - Creating General Subscriptions')
 				await this.client.subscribe('CHANNEL_CREATE', {})
 				await this.client.subscribe('GUILD_CREATE', {})
 				await this.client.subscribe('VOICE_CHANNEL_SELECT', {})
 				await this.client.subscribe('VOICE_CONNECTION_STATUS', {})
 
 				this.instance.updateInstance()
+				this.instance.updateStatus(InstanceStatus.Ok)
 			} catch (e) {
 				this.instance.log('warn', `readyEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -441,10 +444,31 @@ export class Discord {
 		})
 	}
 
+	initSubscriptions = async (): Promise<void> => {
+		this.data.subscriptions.VOICE_SETTINGS_UPDATE = await this.client.subscribe('VOICE_SETTINGS_UPDATE', {}).catch((e) => {
+			this.instance.log('warn', JSON.stringify(e))
+
+			return null
+		})
+	}
+
+	clearTokens = (): void => {
+		this.instance.log('warn', 'Clearing OAuth tokens, please restart the Discord connection to Auth again')
+		this.instance.saveConfig({ ...this.instance.config, accessToken: '', refreshToken: '' })
+	}
+
 	// Get channels for a specific guild
 	getChannels = async (id: string): Promise<Partial<Channel>[]> => {
 		try {
-			const channels = await this.client.getChannels(id)
+			const channels = await this.client
+				.getChannels(id, 500)
+				.then((res) => {
+					return res
+				})
+				.catch((e) => {
+					this.instance.log('warn', `getChannels err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+					return []
+				})
 
 			return channels.map((channel) => {
 				return { ...channel, guild_id: id }
@@ -476,6 +500,8 @@ export class Discord {
 	updateChannelList = async (): Promise<void> => {
 		try {
 			this.data.guilds = await this.client.getGuilds()
+
+			await this.delay()
 			this.data.channels = await this.getChannelsAll()
 
 			this.data.guilds.forEach((guild) => {
@@ -491,6 +517,8 @@ export class Discord {
 
 	// Create subscriptions to Voice Channel topics
 	createVoiceSubscriptions = async (): Promise<void> => {
+		this.instance.log('debug', 'Client - Creating Voice Subscriptions')
+
 		try {
 			const voiceChannel = await this.client.getSelectedVoiceChannel()
 
@@ -504,14 +532,50 @@ export class Discord {
 					return a.user.id < b.user.id ? -1 : 1
 				})
 
-				this.data.subscriptions.SPEAKING_START = await this.client.subscribe('SPEAKING_START', { channel_id: voiceChannel.id })
-				this.data.subscriptions.SPEAKING_STOP = await this.client.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id })
-				this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id })
-				this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id })
-				this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id })
-				this.data.subscriptions.VOICE_SETTINGS_UPDATE = await this.client.subscribe('VOICE_SETTINGS_UPDATE', {})
-				this.data.subscriptions.VIDEO_STATE_UPDATE = await this.client.subscribe('VIDEO_STATE_UPDATE', {})
-				this.data.subscriptions.SCREENSHARE_STATE_UPDATE = await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {})
+				this.data.subscriptions.SPEAKING_START = await this.client.subscribe('SPEAKING_START', { channel_id: voiceChannel.id }).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.SPEAKING_STOP = await this.client.subscribe('SPEAKING_STOP', { channel_id: voiceChannel.id }).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.VOICE_STATE_CREATE = await this.client.subscribe('VOICE_STATE_CREATE', { channel_id: voiceChannel.id }).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.VOICE_STATE_DELETE = await this.client.subscribe('VOICE_STATE_DELETE', { channel_id: voiceChannel.id }).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.VOICE_STATE_UPDATE = await this.client.subscribe('VOICE_STATE_UPDATE', { channel_id: voiceChannel.id }).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.VIDEO_STATE_UPDATE = await this.client.subscribe('VIDEO_STATE_UPDATE', {}).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					return null
+				})
+
+				this.data.subscriptions.SCREENSHARE_STATE_UPDATE = await this.client.subscribe('SCREENSHARE_STATE_UPDATE', {}).catch((e) => {
+					this.instance.log('warn', JSON.stringify(e))
+
+					if (e?.data?.message === 'Not authenticated or invalid scope') {
+						this.clearTokens()
+					}
+					return null
+				})
 			}
 		} catch (e) {
 			this.instance.log('warn', `createVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
@@ -520,8 +584,9 @@ export class Discord {
 
 	// Clear subscriptions to Voice Channel topics
 	clearVoiceSubscriptions = async (): Promise<void> => {
+		this.instance.log('debug', 'Client - Clearing Voice Subscriptions')
+
 		try {
-			this.instance.log('debug', 'Clearing voice subscriptions')
 			this.data.voiceChannel = null
 			this.data.speaking.clear()
 
@@ -548,6 +613,16 @@ export class Discord {
 			if (this.data.subscriptions.VOICE_STATE_UPDATE !== null) {
 				await this.data.subscriptions.VOICE_STATE_UPDATE.unsubscribe()
 				this.data.subscriptions.VOICE_STATE_UPDATE = null
+			}
+
+			if (this.data.subscriptions.VIDEO_STATE_UPDATE !== null) {
+				await this.data.subscriptions.VIDEO_STATE_UPDATE.unsubscribe()
+				this.data.subscriptions.VIDEO_STATE_UPDATE = null
+			}
+
+			if (this.data.subscriptions.SCREENSHARE_STATE_UPDATE !== null) {
+				await this.data.subscriptions.SCREENSHARE_STATE_UPDATE.unsubscribe()
+				this.data.subscriptions.SCREENSHARE_STATE_UPDATE = null
 			}
 		} catch (e) {
 			this.instance.log('warn', `clearVoiceSubscriptions err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
@@ -677,5 +752,13 @@ export class Discord {
 			this.instance.log('warn', `sortedSoundboardChoices err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			return []
 		}
+	}
+
+	delay = async () => {
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				return resolve(0)
+			}, 500)
+		})
 	}
 }

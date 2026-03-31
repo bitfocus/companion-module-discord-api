@@ -24,6 +24,7 @@ class DiscordInstance extends InstanceBase<Config> {
 		clientSecret: '',
 		refreshToken: '',
 		speakerDelay: 100,
+		clearOAuth: false
 	}
 
 	public readonly variables = new Variables(this)
@@ -78,7 +79,9 @@ class DiscordInstance extends InstanceBase<Config> {
 	 * @description triggered every time the config for this instance is saved
 	 */
 	public async configUpdated(config: Config): Promise<void> {
-		if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret) {
+		if (config.clearOAuth) {
+			this.saveConfig({ ...config, clearOAuth: false, accessToken: '', refreshToken: '' })
+		} else if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret) {
 			this.config = config
 			this.clientInit()
 		} else {
