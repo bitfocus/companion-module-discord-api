@@ -23,7 +23,7 @@ export class Variables {
 
 		for (const name in this.currentVariables) {
 			// Clear variables that are no longer defined; otherwise their previous values persist.
-			newVariables[name] = undefined
+			if (!(name in variables)) newVariables[name] = undefined
 		}
 		for (const name in variables) {
 			newVariables[name] = variables[name]?.toString()
