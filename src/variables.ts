@@ -39,11 +39,11 @@ export class Variables {
 	public readonly updateDefinitions = (): void => {
 		const variables: Set<CompanionVariableDefinition> = new Set([])
 
-		variables.add({ name: 'Voice channel id', variableId: 'voice_channel_id' })
-		variables.add({ name: 'Voice channel name', variableId: 'voice_channel_name' })
-		variables.add({ name: 'Voice guild id', variableId: 'voice_guild_id' })
-		variables.add({ name: 'Voice guild name', variableId: 'voice_guild_name' })
-		variables.add({ name: 'Voice guild icon', variableId: 'voice_guild_icon' })
+		variables.add({ name: 'Voice Channel ID', variableId: 'voice_channel_id' })
+		variables.add({ name: 'Voice Channel Name', variableId: 'voice_channel_name' })
+		variables.add({ name: 'Voice Guild ID', variableId: 'voice_guild_id' })
+		variables.add({ name: 'Voice Guild Name', variableId: 'voice_guild_name' })
+		variables.add({ name: 'Voice Guild Icon URL', variableId: 'voice_guild_icon' })
 
 		variables.add({ name: 'Voice Connection Status', variableId: 'voice_connection_status' })
 		variables.add({ name: 'Voice Connection Hostname', variableId: 'voice_connection_hostname' })
