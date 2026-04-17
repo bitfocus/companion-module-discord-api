@@ -1,6 +1,6 @@
 import { Client, type Application, type Channel, type Guild, type VoiceSettings, type VoiceState, type SoundboardSound } from '@distdev/discord-ipc'
 import type DiscordInstance from './index'
-import { type DropdownChoice, InstanceStatus } from '@companion-module/base'
+import { CompanionActionContext, type DropdownChoice, InstanceStatus } from '@companion-module/base'
 
 export interface ClientData {
 	accessToken: null | string
@@ -630,9 +630,9 @@ export class Discord {
 	}
 
 	// Gets a specific user
-	getUser = async (value: string): Promise<VoiceState | null> => {
+	getUser = async (value: string, context?: CompanionActionContext): Promise<VoiceState | null> => {
 		try {
-			const userValue = await this.instance.parseVariablesInString(value)
+			const userValue = await (context || this.instance).parseVariablesInString(value)
 
 			const user = this.sortedVoiceUsers().find((user: VoiceState, index: number) => {
 				const id = userValue.toLowerCase() === user.user.id
