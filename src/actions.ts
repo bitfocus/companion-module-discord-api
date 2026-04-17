@@ -392,13 +392,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action) => {
-				const user = await instance.discord.getUser(action.options.user)
+			callback: async (action, context) => {
+				const user = await instance.discord.getUser(await context.parseVariablesInString(action.options.user))
 				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let mute = user.mute
@@ -438,13 +439,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action) => {
-				const user = await instance.discord.getUser(action.options.user)
+			callback: async (action, context) => {
+				const user = await instance.discord.getUser(await context.parseVariablesInString(action.options.user))
 				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let volume = action.options.volume
@@ -533,13 +535,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'User',
+					useVariables: { local: true },
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action) => {
-				const user = await instance.discord.getUser(action.options.user)
+			callback: async (action, context) => {
+				const user = await instance.discord.getUser(await context.parseVariablesInString(action.options.user))
 				if (user) instance.discord.data.selectedUser = instance.discord.data.selectedUser === user.user.id ? '' : user.user.id
 
 				instance.variables.updateVariables()

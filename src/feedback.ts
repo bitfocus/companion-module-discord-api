@@ -235,6 +235,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
@@ -266,6 +267,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
@@ -296,6 +298,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
@@ -348,6 +351,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: 'Self',
@@ -412,6 +416,7 @@ export function getFeedbacks(instance: DiscordInstance): DiscordFeedbacks {
 				{
 					type: 'textinput',
 					label: 'user',
+					useVariables: { local: true },
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',

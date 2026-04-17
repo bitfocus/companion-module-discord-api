@@ -8,7 +8,7 @@ interface InstanceVariableValue {
 
 export class Variables {
 	private readonly instance: DiscordInstance
-	//private currentVariables: InstanceVariableValue = {}
+	private currentVariables: InstanceVariableValue = {}
 
 	constructor(instance: DiscordInstance) {
 		this.instance = instance
@@ -21,11 +21,15 @@ export class Variables {
 	public readonly set = (variables: InstanceVariableValue): void => {
 		const newVariables: { [variableId: string]: string | undefined } = {}
 
+		for (const name in this.currentVariables) {
+			// To remove all variable not defined now like 'voice_user_X_A' because without that, content is persistent
+			newVariables[name] = undefined
+		}
 		for (const name in variables) {
 			newVariables[name] = variables[name]?.toString()
 		}
 
-		//this.currentVariables = variables
+		this.currentVariables = variables
 		this.instance.setVariableValues(newVariables)
 	}
 
@@ -34,6 +38,12 @@ export class Variables {
 	 */
 	public readonly updateDefinitions = (): void => {
 		const variables: Set<CompanionVariableDefinition> = new Set([])
+
+		variables.add({ name: 'Voice channel id', variableId: 'voice_channel_id' })
+		variables.add({ name: 'Voice channel name', variableId: 'voice_channel_name' })
+		variables.add({ name: 'Voice guild id', variableId: 'voice_guild_id' })
+		variables.add({ name: 'Voice guild name', variableId: 'voice_guild_name' })
+		variables.add({ name: 'Voice guild icon', variableId: 'voice_guild_icon' })
 
 		variables.add({ name: 'Voice Connection Status', variableId: 'voice_connection_status' })
 		variables.add({ name: 'Voice Connection Hostname', variableId: 'voice_connection_hostname' })
@@ -67,6 +77,7 @@ export class Variables {
 				variables.add({ name: `Voice User ${id} Self Mute`, variableId: `voice_user_${safeID}_self_mute` })
 				variables.add({ name: `Voice User ${id} Self Deaf`, variableId: `voice_user_${safeID}_self_deaf` })
 				variables.add({ name: `Voice User ${id} Speaking`, variableId: `voice_user_${safeID}_speaking` })
+				variables.add({ name: `Voice User ${id} Avatar`, variableId: `voice_user_${safeID}_avatar` })
 			})
 		})
 
@@ -88,6 +99,12 @@ export class Variables {
 		const newVariables: InstanceVariableValue = {}
 
 		if (this.instance.discord.data) {
+			newVariables.voice_channel_id = this.instance.discord.data.voiceChannel?.id || ''
+			newVariables.voice_channel_name = this.instance.discord.data.voiceChannel?.name || ''
+			newVariables.voice_guild_id = this.instance.discord.data.voiceChannel?.guild_id || ''
+			newVariables.voice_guild_name = this.instance.discord.data.guildNames.get(newVariables.voice_guild_id) || ''
+			newVariables.voice_guild_icon = this.instance.discord.data.guilds.find((e) => e.id === newVariables.voice_guild_id)?.icon_url || ''
+
 			newVariables.voice_connection_status = this.instance.discord.data.voiceStatus.state
 			newVariables.voice_connection_hostname = this.instance.discord.data.voiceStatus.hostname || ''
 			newVariables.voice_connection_ping = this.instance.discord.data.voiceStatus.last_ping || ''
@@ -117,6 +134,7 @@ export class Variables {
 					newVariables[`voice_user_${safeId}_self_mute`] = voiceState.voice_state.self_mute.toString() || 'false'
 					newVariables[`voice_user_${safeId}_self_deaf`] = voiceState.voice_state.self_deaf.toString() || 'false'
 					newVariables[`voice_user_${safeId}_speaking`] = this.instance?.discord.data?.delayedSpeaking.has(voiceState.user.id).toString()
+					newVariables[`voice_user_${safeId}_avatar`] = `https://cdn.discordapp.com/avatars/${voiceState.user.id || ''}/${voiceState.user.avatar || ''}.png`
 				})
 			})
 
