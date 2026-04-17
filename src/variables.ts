@@ -22,7 +22,7 @@ export class Variables {
 		const newVariables: { [variableId: string]: string | undefined } = {}
 
 		for (const name in this.currentVariables) {
-			// To remove all variable not defined now like 'voice_user_X_A' because without that, content is persistent
+			// Clear variables that are no longer defined; otherwise their previous values persist.
 			newVariables[name] = undefined
 		}
 		for (const name in variables) {
