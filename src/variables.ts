@@ -14,18 +14,18 @@ type userVariableValue = {
 }
 
 export type VariableValue = {
-	channel: { id?: string; name?: string }
-	guild: { id?: string; name?: string; icon?: string }
+	channel: { id: string | null; name: string | null }
+	guild: { id: string | null; name: string | null; icon: string | null }
 
-	voice_connection: { status: string; hostname?: string; ping: { current: number; average: number; min: number; max: number } }
-	voice_self: { input_mode?: string; input_volume: number; output_volume: number; mic_active: boolean }
+	voice_connection: { status: string; hostname: string | null; ping: { current: number; average: number; min: number; max: number } }
+	voice_self: { input_mode: string | null; input_volume: number; output_volume: number; mic_active: boolean }
 
-	voice_user_self: userVariableValue | undefined
-	voice_user_selected: userVariableValue | undefined
-	voice_user_by_index: userVariableValue[]
-	voice_user_by_id: { [key in string]: userVariableValue }
-	voice_user_by_nick: { [key in string]: userVariableValue }
-	voice_user_by_current_speakers: userVariableValue[]
+	voice_user_self: userVariableValue | null
+	voice_user_selected: userVariableValue | null
+	voice_users_by_index: userVariableValue[]
+	voice_users_by_id: { [key in string]: userVariableValue }
+	voice_users_by_nick: { [key in string]: userVariableValue }
+	voice_users_by_current_speaker: userVariableValue[]
 
 	video_camera_active?: boolean
 	video_screen_share_active?: boolean
@@ -51,10 +51,10 @@ export class Variables {
 
 			voice_user_self: { name: 'Informations about yourself' },
 			voice_user_selected: { name: 'Informations about the selected user' },
-			voice_user_by_index: { name: 'Informations about users by index' },
-			voice_user_by_id: { name: 'Informations about users by ID' },
-			voice_user_by_nick: { name: 'Informations about users by pseudo' },
-			voice_user_by_current_speakers: { name: 'Users Informations of currently speakers' },
+			voice_users_by_index: { name: 'Informations about users by index' },
+			voice_users_by_id: { name: 'Informations about users by ID' },
+			voice_users_by_nick: { name: 'Informations about users by pseudo' },
+			voice_users_by_current_speaker: { name: 'Users Informations of currently speakers' },
 
 			video_camera_active: { name: 'If your camera is active' },
 			video_screen_share_active: { name: 'If your screen share is active' },
@@ -82,38 +82,38 @@ export class Variables {
 
 		this.instance.setVariableValues({
 			channel: {
-				id: this.instance.discord.data.voiceChannel?.id,
-				name: this.instance.discord.data.voiceChannel?.name,
+				id: this.instance.discord.data.voiceChannel?.id || null,
+				name: this.instance.discord.data.voiceChannel?.name || null,
 			},
 			guild: {
-				id: this.instance.discord.data.voiceChannel?.guild_id,
-				name: this.instance.discord.data.guildNames.get(this.instance.discord.data.voiceChannel?.guild_id || ''),
-				icon: this.instance.discord.data.guilds.find((e) => e.id === this.instance.discord.data.voiceChannel?.guild_id)?.icon_url,
+				id: this.instance.discord.data.voiceChannel?.guild_id || null,
+				name: this.instance.discord.data.guildNames.get(this.instance.discord.data.voiceChannel?.guild_id || '') || null,
+				icon: this.instance.discord.data.guilds.find((e) => e.id === this.instance.discord.data.voiceChannel?.guild_id)?.icon_url || null,
 			},
 
 			voice_connection: {
 				status: this.instance.discord.data.voiceStatus.state,
 				hostname: this.instance.discord.data.voiceStatus.hostname,
 				ping: {
-					current: this.instance.discord.data.voiceStatus.last_ping || -1,
-					average: this.instance.discord.data.voiceStatus.average_ping,
+					current: this.instance.discord.data.voiceStatus.last_ping ?? -1,
+					average: this.instance.discord.data.voiceStatus.last_ping ? this.instance.discord.data.voiceStatus.average_ping : -1,
 					min: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.min(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : -1,
 					max: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : -1,
 				},
 			},
 			voice_self: {
-				input_mode: this.instance.discord.data.userVoiceSettings?.mode.type,
+				input_mode: this.instance.discord.data.userVoiceSettings?.mode.type || null,
 				input_volume: this.instance.discord.data.userVoiceSettings?.input.volume || -1,
 				output_volume: this.instance.discord.data.userVoiceSettings?.output.volume || -1,
 				mic_active: this.instance.discord.data.speaking.has(this.instance.discord.client.user?.id),
 			},
 
-			voice_user_self: voiceUsers.find((e) => e.id === this.instance.discord.client.user.id),
-			voice_user_selected: voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser),
-			voice_user_by_index: voiceUsers,
-			voice_user_by_id: voiceUsers.reduce((obj, user) => ({ ...obj, [user.id]: user }), {}),
-			voice_user_by_nick: voiceUsers.reduce((obj, user) => ({ ...obj, [user.nick]: user }), {}),
-			voice_user_by_current_speakers: voiceUsers.filter((e) => e.speaking),
+			voice_user_self: voiceUsers.find((e) => e.id === this.instance.discord.client.user.id) ?? null,
+			voice_user_selected: voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser) ?? null,
+			voice_users_by_index: voiceUsers,
+			voice_users_by_id: voiceUsers.reduce((obj, user) => ({ ...obj, [user.id]: user }), {}),
+			voice_users_by_nick: voiceUsers.reduce((obj, user) => ({ ...obj, [user.nick]: user }), {}),
+			voice_users_by_current_speaker: voiceUsers.filter((e) => e.speaking),
 
 			video_camera_active: this.instance.discord.data.videoActive,
 			video_screen_share_active: this.instance.discord.data.screenShareActive,
