@@ -1,26 +1,43 @@
-import { ActionCallbacks } from './actions'
-import { FeedbackCallbacks } from './feedback'
-import { CompanionButtonPresetDefinition, CompanionPresetDefinitions } from '@companion-module/base'
+import { CompanionPresetDefinitions, CompanionPresetSection } from '@companion-module/base'
+import { type Manifest } from './index.js'
 
-type PresetCategory = 'Voice Control' | 'Voice Status & User Selection' | 'Video Control' | 'Discord Status'
-
-interface DiscordPresetAdditions {
-	category: PresetCategory
-	steps: {
-		down: ActionCallbacks[]
-		up: ActionCallbacks[]
-	}[]
-	feedbacks: FeedbackCallbacks[]
-}
-
-export type DiscordPreset = Exclude<CompanionButtonPresetDefinition, 'category' | 'steps' | 'feedbacks'> & DiscordPresetAdditions
-
-export function getPresets(): CompanionPresetDefinitions {
-	const presets: DiscordPreset[] = [
+export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPresetDefinitions<Manifest>] {
+	const structure: CompanionPresetSection<Manifest>[] = [
 		{
-			category: 'Voice Control',
+			id: 'status',
+			name: 'Discord Status',
+			description: 'Ping and state of the voice connection',
+			definitions: [],
+		},
+		{
+			id: 'video',
+			name: 'Video Control',
+			description: 'Camera and screen share',
+			definitions: [],
+		},
+		{
+			id: 'voice',
+			name: 'Voice Control',
+			description: 'Volumes, muting, soundboard, etc...',
+			definitions: [],
+		},
+		{
+			id: 'voice_status',
+			name: 'Voice Status',
+			description: 'configure selected user mic and headphone, or yours',
+			definitions: [],
+		},
+		{
+			id: 'users',
+			name: 'User Selection',
+			description: 'Select a user, and saw status of this one',
+			definitions: [],
+		},
+	]
+	const presets: CompanionPresetDefinitions<Manifest> = {
+		self_mute: {
 			name: 'Self Mute',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -41,10 +58,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Voice Control',
+		self_deafen: {
 			name: 'Self Deafen',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -65,10 +81,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Voice Control',
+		leave_current_voice_channel: {
 			name: 'Leave Current Voice Channel',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -83,10 +98,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
+		self_increase_input_volume: {
 			name: 'Self Increase Input Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -101,10 +115,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
+		self_decrease_input_volume: {
 			name: 'Self Decrease Input Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -119,10 +132,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
-			name: 'Self Increase Input Volume',
-			type: 'button',
+		self_increase_output_volume: {
+			name: 'Self Increase Output Volume',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -137,10 +149,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
-			name: 'Self Decrease Input Volume',
-			type: 'button',
+		self_decrease_output_volume: {
+			name: 'Self Decrease Output Volume',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -155,10 +166,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
+		selected_user_mute: {
 			name: 'Selected User Mute',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -179,10 +189,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Voice Control',
+		increase_selected_user_volume: {
 			name: 'Increase Selected User Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -202,10 +211,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
+		decrease_selected_user_volume: {
 			name: 'Decrease Selected User Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -225,10 +233,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Control',
+		voice_input_mode: {
 			name: 'Voice Input Mode',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -251,10 +258,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Voice Control',
+		push_to_talk: {
 			name: 'Push to Talk',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -275,10 +281,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Voice Control',
+		soundboard: {
 			name: 'Play Soundboard Sound',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -293,11 +298,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-
-		{
-			category: 'Voice Status & User Selection',
+		mic_volume: {
 			name: 'Mic Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -312,10 +315,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Status & User Selection',
+		headset_volume: {
 			name: 'Headset Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -330,10 +332,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Status & User Selection',
+		selected_user: {
 			name: 'Selected User',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -348,10 +349,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Voice Status & User Selection',
+		selected_user_volume: {
 			name: 'Selected User Volume',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -366,10 +366,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Video Control',
+		toggle_video: {
 			name: 'Toggle Video',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -390,10 +389,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Video Control',
+		toggle_screen_share: {
 			name: 'Toggle Screen Share',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -414,10 +412,9 @@ export function getPresets(): CompanionPresetDefinitions {
 				},
 			],
 		},
-		{
-			category: 'Discord Status',
+		voice_ping: {
 			name: 'Voice Ping',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -432,10 +429,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Discord Status',
+		voice_pings: {
 			name: 'Voice Avg, Min, Max, Ping',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -450,10 +446,9 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-		{
-			category: 'Discord Status',
+		voice_connection: {
 			name: 'Voice Connection',
-			type: 'button',
+			type: 'simple',
 			style: {
 				bgcolor: 0x000000,
 				color: 0xffffff,
@@ -468,13 +463,12 @@ export function getPresets(): CompanionPresetDefinitions {
 			],
 			feedbacks: [],
 		},
-	]
+	}
 
 	for (let i = 0; i < 10; i++) {
-		presets.push({
-			category: 'Voice Status & User Selection',
+		presets[`user_${i}`] = {
 			name: `User ${i}`,
-			type: 'button',
+			type: 'simple',
 			style: {
 				alignment: 'center:top',
 				bgcolor: 0x000000,
@@ -497,8 +491,8 @@ export function getPresets(): CompanionPresetDefinitions {
 					style: { color: 0xffffff, bgcolor: 0x006400 },
 				},
 			],
-		})
+		}
 	}
 
-	return presets as unknown as CompanionPresetDefinitions
+	return [structure, presets]
 }

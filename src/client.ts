@@ -1,6 +1,6 @@
 import { Client, type Application, type Channel, type Guild, type VoiceSettings, type VoiceState, type SoundboardSound } from '@distdev/discord-ipc'
-import type DiscordInstance from './index'
-import { CompanionActionContext, type DropdownChoice, InstanceStatus } from '@companion-module/base'
+import type DiscordInstance from './index.js'
+import { type DropdownChoice, InstanceStatus } from '@companion-module/base'
 
 export interface ClientData {
 	accessToken: null | string
@@ -229,7 +229,7 @@ export class Discord {
 				}
 
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks()
+				this.instance.checkAllFeedbacks()
 			} catch (e) {
 				this.instance.log('warn', `voiceStateUpdateEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -254,7 +254,7 @@ export class Discord {
 				}
 
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks()
+				this.instance.checkAllFeedbacks()
 			} catch (e) {
 				this.instance.log('warn', `voiceStateDeleteEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -279,7 +279,7 @@ export class Discord {
 				}
 
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks()
+				this.instance.checkAllFeedbacks()
 			} catch (e) {
 				this.instance.log('warn', `voiceStateUpdateEvent err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -630,15 +630,13 @@ export class Discord {
 	}
 
 	// Gets a specific user
-	getUser = async (value: string, context?: CompanionActionContext): Promise<VoiceState | null> => {
+	getUser = async (value: string): Promise<VoiceState | null> => {
 		try {
-			const userValue = await (context || this.instance).parseVariablesInString(value)
-
 			const user = this.sortedVoiceUsers().find((user: VoiceState, index: number) => {
-				const id = userValue.toLowerCase() === user.user.id
-				const name = userValue.toLowerCase() === user.user.username.toLowerCase()
-				const nick = user.user.global_name ? userValue.toLowerCase() === user.user.global_name.toLowerCase() : false
-				const indexCheck = !isNaN(parseInt(userValue, 10)) && parseInt(userValue, 10) === index
+				const id = value.toLowerCase() === user.user.id
+				const name = value.toLowerCase() === user.user.username.toLowerCase()
+				const nick = user.user.global_name ? value.toLowerCase() === user.user.global_name.toLowerCase() : false
+				const indexCheck = !isNaN(parseInt(value, 10)) && parseInt(value, 10) === index
 
 				return id || name || nick || indexCheck
 			})

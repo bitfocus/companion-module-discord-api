@@ -2,6 +2,7 @@
 	"name": "discord-api",
 	"version": "1.5.1",
 	"main": "dist/index.js",
+    "type": "module",
 	"scripts": {
 		"dev": "yarn build:watch",
 		"build": "rimraf dist && yarn build:main",
@@ -38,12 +39,12 @@
 		"node": "^22.21"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12.0",
+		"@companion-module/base": "~2.0",
 		"@distdev/discord-ipc": "^1.1.0",
 		"companion-module-utils": "^0.4.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.6.1",
+		"@companion-module/tools": "^2.7.1",
 		"@types/discord-rpc": "~4.0.3",
 		"@types/jest": "~29.5.14",
 		"@types/node": "22.9.0",

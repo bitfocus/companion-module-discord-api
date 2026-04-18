@@ -1,202 +1,43 @@
-import { CompanionActionContext, CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { CompanionActionDefinitions, CompanionActionSchema, JsonObject } from '@companion-module/base'
 import { type UserVoiceSettings } from '@distdev/discord-ipc'
-import { RichPresence } from './client'
-import DiscordInstance from './index'
-import { generateWebhookOptions, webhookAction } from './webhook'
+import { RichPresence } from './client.js'
+import DiscordInstance, { Manifest } from './index.js'
+import { generateWebhookOptions, webhookAction, WebhookActionValues } from './webhook.js'
 
-export interface DiscordActions {
-	selfMute: DiscordAction<SelfMuteCallback>
-	selfDeafen: DiscordAction<SelfDeafenCallback>
-	selfInputVolume: DiscordAction<SelfInputVolumeCallback>
-	selfOutputVolume: DiscordAction<SelfOutputVolumeCallback>
-	selfInputMode: DiscordAction<SelfInputModeCallback>
-	otherMute: DiscordAction<OtherMuteCallback>
-	otherVolume: DiscordAction<OtherVolumeCallback>
-	joinVoiceChannel: DiscordAction<JoinVoiceChannelCallback>
-	leaveCurrentVoiceChannel: DiscordAction<LeaveCurrentVoiceChannelCallback>
-	joinTextChannel: DiscordAction<JoinTextChannelCallback>
-	selectUser: DiscordAction<SelectUserCallback>
-	richPresence: DiscordAction<RichPresenceCallback>
-	clearRichPresence: DiscordAction<ClearRichPresenceCallback>
-	sendWebhookMessage: DiscordAction<SendWebhookMessageCallback>
-	ptt: DiscordAction<PTTCallback>
-	playSoundboard: DiscordAction<PlaySoundboardCallback>
-	videoToggleCamera: DiscordAction<VideoToggleCameraallback>
-	videoToggleScreenshare: DiscordAction<VideoToggleScreenshareCallback>
-
-	// Index signature
-	[key: string]: DiscordAction<any>
-}
-
-interface SelfMuteCallback {
-	actionId: 'selfMute'
-	options: Readonly<{
-		type: 'Toggle' | 'Mute' | 'Unmute'
-	}>
-}
-
-interface SelfDeafenCallback {
-	actionId: 'selfDeafen'
-	options: Readonly<{
-		type: 'Toggle' | 'Deafen' | 'Undeafen'
-	}>
-}
-
-interface SelfInputVolumeCallback {
-	actionId: 'selfInputVolume'
-	options: Readonly<{
-		type: 'Set' | 'Increase' | 'Decrease'
-		volume: number
-	}>
-}
-
-interface SelfOutputVolumeCallback {
-	actionId: 'selfOutputVolume'
-	options: Readonly<{
-		type: 'Set' | 'Increase' | 'Decrease'
-		volume: number
-	}>
-}
-
-interface SelfInputModeCallback {
-	actionId: 'selfInputMode'
-	options: Readonly<{
-		mode: 'Toggle' | 'PUSH_TO_TALK' | 'VOICE_ACTIVITY'
-	}>
-}
-
-interface OtherMuteCallback {
-	actionId: 'otherMute'
-	options: Readonly<{
-		type: 'Toggle' | 'Mute' | 'Unmute'
-		user: string
-	}>
-}
-
-interface OtherVolumeCallback {
-	actionId: 'otherVolume'
-	options: Readonly<{
-		type: 'Set' | 'Increase' | 'Decrease'
-		volume: number
-		user: string
-	}>
-}
-
-interface JoinVoiceChannelCallback {
-	actionId: 'joinVoiceChannel'
-	options: Readonly<{
-		channel: string
-		force: boolean
-		leave: boolean
-	}>
-}
-
-interface LeaveCurrentVoiceChannelCallback {
-	actionId: 'leaveCurrentVoiceChannel'
-	options: Record<string, never>
-}
-
-interface JoinTextChannelCallback {
-	actionId: 'joinTextChannel'
-	options: Readonly<{
-		channel: string
-	}>
-}
-
-interface SelectUserCallback {
-	actionId: 'selectUser'
-	options: Readonly<{
-		user: string
-	}>
-}
-
-interface RichPresenceCallback {
-	actionId: 'richPresence'
-	options: Readonly<{
+export type DiscordActions = {
+	selfMute: CompanionActionSchema<{ type: string }>
+	selfDeafen: CompanionActionSchema<{ type: string }>
+	selfInputVolume: CompanionActionSchema<{ type: string; volume: number }>
+	selfOutputVolume: CompanionActionSchema<{ type: string; volume: number }>
+	selfInputMode: CompanionActionSchema<{ mode: string }>
+	ptt: CompanionActionSchema<{ active: boolean }>
+	otherMute: CompanionActionSchema<{ type: string; user: string }>
+	otherVolume: CompanionActionSchema<{ type: string; volume: number; user: string }>
+	joinVoiceChannel: CompanionActionSchema<{ channel: string; force: boolean; leave: boolean }>
+	leaveCurrentVoiceChannel: CompanionActionSchema<JsonObject>
+	joinTextChannel: CompanionActionSchema<{ channel: string }>
+	selectUser: CompanionActionSchema<{ user: string }>
+	richPresence: CompanionActionSchema<{
 		details: string
 		state: string
 		imgLarge: string
-		imgLargeText: string
+		imgLargeText?: string
 		imgSmall: string
-		imgSmallText: string
+		imgSmallText?: string
 		button1Label: string
 		button1URL: string
-		button2Label: string
-		button2URL: string
+		button2Label?: string
+		button2URL?: string
 		startTime: boolean
 	}>
+	clearRichPresence: CompanionActionSchema<JsonObject>
+	sendWebhookMessage: CompanionActionSchema<WebhookActionValues>
+	playSoundboard: CompanionActionSchema<{ sound: string }>
+	videoToggleCamera: CompanionActionSchema<JsonObject>
+	videoToggleScreenshare: CompanionActionSchema<JsonObject>
 }
 
-interface ClearRichPresenceCallback {
-	actionId: 'clearRichPresence'
-	options: Record<string, never>
-}
-
-export interface SendWebhookMessageCallback {
-	actionId: 'sendWebhookMessage'
-	options: Record<string, string | number | boolean>
-}
-
-interface PTTCallback {
-	actionId: 'ptt'
-	options: Readonly<{
-		active: boolean
-	}>
-}
-
-interface PlaySoundboardCallback {
-	actionId: 'playSoundboard'
-	options: Readonly<{
-		sound: string
-	}>
-}
-
-interface VideoToggleCameraallback {
-	actionId: 'videoToggleCamera'
-	options: Record<string, never>
-}
-
-interface VideoToggleScreenshareCallback {
-	actionId: 'videoToggleScreenshare'
-	options: Record<string, never>
-}
-
-export type ActionCallbacks =
-	| SelfMuteCallback
-	| SelfDeafenCallback
-	| SelfInputVolumeCallback
-	| SelfOutputVolumeCallback
-	| SelfInputModeCallback
-	| OtherMuteCallback
-	| OtherVolumeCallback
-	| JoinVoiceChannelCallback
-	| LeaveCurrentVoiceChannelCallback
-	| JoinTextChannelCallback
-	| SelectUserCallback
-	| RichPresenceCallback
-	| ClearRichPresenceCallback
-	| SendWebhookMessageCallback
-	| PTTCallback
-	| PlaySoundboardCallback
-	| VideoToggleCameraallback
-	| VideoToggleScreenshareCallback
-
-// Force options to have a default to prevent sending undefined values
-export type InputFieldWithDefault = Exclude<SomeCompanionActionInputField, 'default'> & {
-	default: string | number | boolean | null
-}
-
-// Actions specific to Discord
-export interface DiscordAction<T> {
-	name: string
-	description?: string
-	options: InputFieldWithDefault[]
-	callback: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>, context: CompanionActionContext) => void | Promise<void>
-	subscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
-	unsubscribe?: (action: Readonly<Omit<CompanionActionEvent, 'options' | 'id'> & T>) => void
-}
-
-export function getActions(instance: DiscordInstance): DiscordActions {
+export function getActions(instance: DiscordInstance): CompanionActionDefinitions<Manifest['actions']> {
 	return {
 		selfMute: {
 			name: 'Self - Mute',
@@ -353,8 +194,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				if (voiceMode === 'Toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
 				instance.log('debug', `Setting Input Mode: ${voiceMode}`)
-				const newVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
-				instance.discord.data.userVoiceSettings = newVoiceSettings
+				instance.discord.data.userVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.checkFeedbacks('selfInputMode')
 			},
 		},
@@ -392,14 +232,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
-					useVariables: { local: true },
+					useVariables: true,
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action, context) => {
-				const user = await instance.discord.getUser(action.options.user, context)
+			callback: async (action) => {
+				const user = await instance.discord.getUser(action.options.user)
 				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let mute = user.mute
@@ -439,14 +279,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'user',
-					useVariables: { local: true },
+					useVariables: true,
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action, context) => {
-				const user = await instance.discord.getUser(action.options.user, context)
+			callback: async (action) => {
+				const user = await instance.discord.getUser(action.options.user)
 				if (user === null || user.user.id === instance.discord.client.user.id) return
 
 				let volume = action.options.volume
@@ -535,14 +375,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				{
 					type: 'textinput',
 					label: 'User',
-					useVariables: { local: true },
+					useVariables: true,
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
 				},
 			],
-			callback: async (action, context) => {
-				const user = await instance.discord.getUser(action.options.user, context)
+			callback: async (action) => {
+				const user = await instance.discord.getUser(action.options.user)
 				if (user) instance.discord.data.selectedUser = instance.discord.data.selectedUser === user.user.id ? '' : user.user.id
 
 				instance.variables.updateVariables()
@@ -580,9 +420,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Large Image Text',
 					id: 'imgLargeText',
 					default: '',
-					isVisible: (options) => {
-						return options.imgLarge !== ''
-					},
+					isVisibleExpression: `$(options:imgLarge) !== ''`,
 				},
 				{
 					type: 'textinput',
@@ -596,9 +434,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Small Image Text',
 					id: 'imgSmallText',
 					default: '',
-					isVisible: (options) => {
-						return options.imgSmall !== ''
-					},
+					isVisibleExpression: `$(options:imgSmall) !== ''`,
 				},
 				{
 					type: 'textinput',
@@ -617,18 +453,14 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 					label: 'Button 2 Text',
 					id: 'button2Label',
 					default: '',
-					isVisible: (options) => {
-						return options.button1Label !== '' && options.button1URL !== ''
-					},
+					isVisibleExpression: `$(options:button1Label) !== '' && $(options:button1URL) !== ''`,
 				},
 				{
 					type: 'textinput',
 					label: 'Button 2 URL',
 					id: 'button2URL',
 					default: '',
-					isVisible: (options) => {
-						return options.button1Label !== '' && options.button1URL !== ''
-					},
+					isVisibleExpression: `$(options:button1Label) !== '' && $(options:button1URL) !== ''`,
 				},
 				{
 					type: 'checkbox',
@@ -638,46 +470,31 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 				},
 			],
 			callback: async (action) => {
-				const all = [
-					instance.parseVariablesInString(action.options.state),
-					instance.parseVariablesInString(action.options.details),
-					instance.parseVariablesInString(action.options.imgLarge),
-					instance.parseVariablesInString(action.options.imgLargeText),
-					instance.parseVariablesInString(action.options.imgSmall),
-					instance.parseVariablesInString(action.options.imgSmallText),
-					instance.parseVariablesInString(action.options.button1Label),
-					instance.parseVariablesInString(action.options.button1URL),
-					instance.parseVariablesInString(action.options.button2Label),
-					instance.parseVariablesInString(action.options.button2URL),
-				]
-
-				const [state, details, imgLarge, imgLargeText, imgSmall, imgSmallText, button1Label, button1URL, button2Label, button2URL] = await Promise.all(all)
-
 				const activity: RichPresence = {
-					state,
-					details,
+					state: action.options.state,
+					details: action.options.details,
 				}
 
-				if (!state || !details) {
+				if (!action.options.state || !action.options.details) {
 					instance.log('warn', 'Discord Rich Presence must have a State and Details')
 					return
 				}
 
-				if (imgLarge) {
-					activity.largeImageKey = imgLarge
-					activity.largeImageText = imgLargeText
+				if (action.options.imgLarge) {
+					activity.largeImageKey = action.options.imgLarge
+					activity.largeImageText = action.options.imgLargeText
 				}
 
-				if (imgSmall) {
-					activity.smallImageKey = imgSmall
-					activity.smallImageText = imgSmallText
+				if (action.options.imgSmall) {
+					activity.smallImageKey = action.options.imgSmall
+					activity.smallImageText = action.options.imgSmallText
 				}
 
-				if (button1Label && button1URL) {
-					activity.buttons = [{ label: button1Label, url: button1URL }]
+				if (action.options.button1Label && action.options.button1URL) {
+					activity.buttons = [{ label: action.options.button1Label, url: action.options.button1URL }]
 
-					if (button2Label && button2URL) {
-						activity.buttons.push({ label: button2Label, url: button2URL })
+					if (action.options.button2Label && action.options.button2URL) {
+						activity.buttons.push({ label: action.options.button2Label, url: action.options.button2URL })
 					}
 				}
 
@@ -703,7 +520,7 @@ export function getActions(instance: DiscordInstance): DiscordActions {
 			name: 'Webhooks - Send Webhook Message',
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
-			callback: async (action, context) => webhookAction(instance, action, context),
+			callback: async (action) => webhookAction(instance, action),
 		},
 
 		playSoundboard: {

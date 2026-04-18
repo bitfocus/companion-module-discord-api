@@ -1,6 +1,6 @@
-import type { CompanionActionContext } from '@companion-module/base'
-import type { InputFieldWithDefault, SendWebhookMessageCallback } from './actions'
-import type DiscordInstance from './index'
+import type DiscordInstance from './index.js'
+import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { IntRange } from './utils.js'
 
 type WebhookBody = {
 	username: string
@@ -65,8 +65,49 @@ type WebhookPollAnswers = {
 	}
 }
 
-export const generateWebhookOptions = (): InputFieldWithDefault[] => {
-	const embed: InputFieldWithDefault[] = [
+export type WebhookActionValues = {
+	url: string
+	useCustomBody: boolean
+	customBody?: string
+	username?: string
+	avatarURL?: string
+	content?: string
+	embed?: boolean
+	embed1Color?: number
+	embed1AuthorName?: string
+	embed1AuthorURL?: string
+	embed1AuthorIconURL?: string
+	embed1Title?: string
+	embed1URL?: string
+	embed1Description?: string
+	embed1Fields?: boolean
+	embed1ThumbnailURL?: string
+	embed1ImageURL?: string
+	embed1Footer?: string
+	embed1FooterIconURL?: string
+	embed1Timestamp?: string
+	poll?: boolean
+	pollQuestion?: string
+	pollMultiSelect?: boolean
+	tts?: boolean
+	allowedMentions?: boolean
+	allowedMentionsParse?: string
+	allowedMentionsUsers?: string
+	allowedMentionsRoles?: string
+} & {
+	[Key in `embed1Field${IntRange<1, 26>}Name`]?: string
+} & {
+	[Key in `embed1Field${IntRange<1, 26>}Value`]?: string
+} & {
+	[Key in `embed1Field${IntRange<1, 26>}Inline`]?: boolean
+} & {
+	[Key in `pollAnswer${IntRange<1, 11>}`]?: string
+}
+
+type WebhookActionInputField = SomeCompanionActionInputField<keyof WebhookActionValues>
+
+export const generateWebhookOptions = (): WebhookActionInputField[] => {
+	const embed: WebhookActionInputField[] = [
 		{
 			type: 'checkbox',
 			label: 'Embed',
@@ -87,7 +128,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Author Name',
 			id: 'embed1AuthorName',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -95,7 +136,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Author URL',
 			id: 'embed1AuthorURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1AuthorName) !== ''`,
 		},
 		{
@@ -103,7 +144,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Author Icon URL',
 			id: 'embed1AuthorIconURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1AuthorName) !== ''`,
 		},
 		{
@@ -111,7 +152,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Title',
 			id: 'embed1Title',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -119,7 +160,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Title URL',
 			id: 'embed1URL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1Title) !== ''`,
 		},
 		{
@@ -127,7 +168,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Description',
 			id: 'embed1Description',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -153,23 +194,23 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			{
 				type: 'textinput',
 				label: `Field ${i} Name`,
-				id: `embed1Field${i}Name`,
+				id: `embed1Field${i as IntRange<1, 26>}Name`,
 				default: '',
 				isVisibleExpression: visibility,
-				useVariables: { local: true },
+				useVariables: true,
 			},
 			{
 				type: 'textinput',
 				label: `Field ${i} Value`,
-				id: `embed1Field${i}Value`,
+				id: `embed1Field${i as IntRange<1, 26>}Value`,
 				default: '',
 				isVisibleExpression: visibility,
-				useVariables: { local: true },
+				useVariables: true,
 			},
 			{
 				type: 'checkbox',
 				label: `Field ${i} Inline`,
-				id: `embed1Field${i}Inline`,
+				id: `embed1Field${i as IntRange<1, 26>}Inline`,
 				default: false,
 				isVisibleExpression: visibility,
 			},
@@ -182,7 +223,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Thumbnail URL',
 			id: 'embed1ThumbnailURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -190,7 +231,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Image URL',
 			id: 'embed1ImageURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -198,7 +239,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Footer Text',
 			id: 'embed1Footer',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -206,7 +247,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Footer Icon URL',
 			id: 'embed1FooterIconURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 		{
@@ -214,12 +255,12 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Timestamp (2025-12-31T12:00:00.000Z format)',
 			id: 'embed1Timestamp',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
 		},
 	)
 
-	const poll: InputFieldWithDefault[] = [
+	const poll: WebhookActionInputField[] = [
 		{
 			type: 'checkbox',
 			label: 'Poll',
@@ -234,7 +275,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			id: 'pollQuestion',
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
-			useVariables: { local: true },
+			useVariables: true,
 		},
 	]
 
@@ -250,20 +291,20 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 		poll.push({
 			type: 'textinput',
 			label: `Poll Answer ${i}`,
-			id: `pollAnswer${i}`,
+			id: `pollAnswer${i as IntRange<1, 11>}`,
 			default: '',
 			isVisibleExpression: visibility,
-			useVariables: { local: true },
+			useVariables: true,
 		})
 	}
 
-	const options: InputFieldWithDefault[] = [
+	const options: WebhookActionInputField[] = [
 		{
 			type: 'textinput',
 			label: 'Webhook URL',
 			id: 'url',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 		},
 		{
 			type: 'checkbox',
@@ -276,7 +317,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Custom Webhook Body',
 			id: 'customBody',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `$(options:useCustomBody)`,
 		},
 		{
@@ -285,7 +326,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Leave blank to use Webhook settings',
 			id: 'username',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
 		{
@@ -294,7 +335,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Leave blank to use Webhook settings',
 			id: 'avatarURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
 		{
@@ -303,7 +344,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Up to 2000 characters',
 			id: 'content',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
 
@@ -355,8 +396,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 	return options
 }
 
-export const webhookAction = async (instance: DiscordInstance, action: SendWebhookMessageCallback, context: CompanionActionContext): Promise<void> => {
-	const url = await context.parseVariablesInString(action.options.url as string)
+export const webhookAction = async (instance: DiscordInstance, action: CompanionActionEvent<WebhookActionValues>): Promise<void> => {
 	const webhookBody: WebhookBody = {
 		username: '',
 		avatar_url: '',
@@ -364,14 +404,14 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 		tts: action.options.tts as boolean,
 	}
 
-	if (!url) {
+	if (!action.options.url) {
 		instance.log('warn', 'Invalid Webhook URL')
 		return
 	}
 
-	if (action.options.username) webhookBody.username = await context.parseVariablesInString(action.options.username as string)
-	if (action.options.avatarURL) webhookBody.avatar_url = await context.parseVariablesInString(action.options.avatarURL as string)
-	if (action.options.content) webhookBody.content = await context.parseVariablesInString(action.options.content as string)
+	if (action.options.username) webhookBody.username = action.options.username
+	if (action.options.avatarURL) webhookBody.avatar_url = action.options.avatarURL
+	if (action.options.content) webhookBody.content = action.options.content
 
 	if (action.options.embed) {
 		const embedOptions: WebhookEmbed = {
@@ -381,25 +421,25 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 
 		if (action.options[`embed1AuthorName`]) {
 			embedOptions.author = {
-				name: await context.parseVariablesInString(action.options[`embed1AuthorName`] as string),
+				name: action.options[`embed1AuthorName`],
 			}
 
-			if (action.options[`embed1AuthorURL`]) embedOptions.author.url = await context.parseVariablesInString(action.options[`embed1AuthorURL`] as string)
-			if (action.options[`embed1AuthorIconURL`]) embedOptions.author.icon_url = await context.parseVariablesInString(action.options[`embed1AuthorIconURL`] as string)
+			if (action.options[`embed1AuthorURL`]) embedOptions.author.url = action.options[`embed1AuthorURL`]
+			if (action.options[`embed1AuthorIconURL`]) embedOptions.author.icon_url = action.options[`embed1AuthorIconURL`]
 		}
 
-		if (action.options[`embed1Title`]) embedOptions.title = await context.parseVariablesInString(action.options[`embed1Title`] as string)
-		if (action.options[`embed1URL`]) embedOptions.url = await context.parseVariablesInString(action.options[`embed1URL`] as string)
-		if (action.options[`embed1Description`]) embedOptions.description = await context.parseVariablesInString(action.options[`embed1Description`] as string)
+		if (action.options[`embed1Title`]) embedOptions.title = action.options[`embed1Title`]
+		if (action.options[`embed1URL`]) embedOptions.url = action.options[`embed1URL`]
+		if (action.options[`embed1Description`]) embedOptions.description = action.options[`embed1Description`]
 
 		if (action.options[`embed1Fields`]) {
 			let fieldCount = 1
 			for (let j = 1; j < 26; j++) {
-				if (j === fieldCount && action.options[`embed1Field${j}Name`]) {
+				if (j === fieldCount && action.options[`embed1Field${j as IntRange<1, 26>}Name`]) {
 					embedOptions.fields.push({
-						name: await context.parseVariablesInString(action.options[`embed1Field${j}Name`] as string),
-						value: await context.parseVariablesInString(action.options[`embed1Field${j}Value`] as string),
-						inline: action.options[`embed1Field${j}Inline`] as boolean,
+						name: action.options[`embed1Field${j as IntRange<1, 26>}Name`] as string,
+						value: action.options[`embed1Field${j as IntRange<1, 26>}Value`] as string,
+						inline: action.options[`embed1Field${j as IntRange<1, 26>}Inline`] as boolean,
 					})
 
 					fieldCount++
@@ -407,15 +447,15 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 			}
 		}
 
-		if (action.options[`embed1ThumbnailURL`]) embedOptions.thumbnail = { url: await context.parseVariablesInString(action.options[`embed1ThumbnailURL`] as string) }
-		if (action.options[`embed1ImageURL`]) embedOptions.image = { url: await context.parseVariablesInString(action.options[`embed1ImageURL`] as string) }
+		if (action.options[`embed1ThumbnailURL`]) embedOptions.thumbnail = { url: action.options[`embed1ThumbnailURL`] }
+		if (action.options[`embed1ImageURL`]) embedOptions.image = { url: action.options[`embed1ImageURL`] }
 		if (action.options[`embed1Footer`]) {
 			embedOptions.footer = {
-				text: await context.parseVariablesInString(action.options[`embed1Footer`] as string),
-				icon_url: await context.parseVariablesInString(action.options[`embed1FooterIconURL`] as string),
+				text: action.options[`embed1Footer`],
+				icon_url: action.options[`embed1FooterIconURL`] as string,
 			}
 		}
-		if (action.options[`embed1Timestamp`]) embedOptions.timestamp = await context.parseVariablesInString(action.options[`embed1Timestamp`] as string)
+		if (action.options[`embed1Timestamp`]) embedOptions.timestamp = action.options[`embed1Timestamp`]
 
 		if (JSON.stringify(embedOptions) !== '{}') webhookBody.embeds.push(embedOptions)
 	}
@@ -423,7 +463,7 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 	if (action.options.poll) {
 		webhookBody.poll = {
 			question: {
-				text: await context.parseVariablesInString(action.options.pollQuestion as string),
+				text: action.options.pollQuestion as string,
 			},
 			answers: [],
 			allow_multiselect: action.options.pollMultiSelect as boolean,
@@ -431,8 +471,8 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 
 		let answers = 1
 		for (let i = 1; i < 11; i++) {
-			if (i === answers && action.options[`pollAnswer${i}`]) {
-				webhookBody.poll.answers.push({ poll_media: { text: await context.parseVariablesInString(action.options[`pollAnswer${i}`] as string) } })
+			if (i === answers && action.options[`pollAnswer${i as IntRange<1, 11>}`]) {
+				webhookBody.poll.answers.push({ poll_media: { text: action.options[`pollAnswer${i as IntRange<1, 11>}`] as string } })
 				answers++
 			}
 		}
@@ -440,15 +480,15 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 
 	if (action.options.allowedMentions) {
 		webhookBody.allowed_mentions = {}
-		if (action.options.allowedMentionsParse) webhookBody.allowed_mentions.parse = (await context.parseVariablesInString(action.options.allowedMentionsParse as string)).split(' ')
-		if (action.options.allowedMentionsRoles) webhookBody.allowed_mentions.roles = (await context.parseVariablesInString(action.options.allowedMentionsRoles as string)).split(' ')
-		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = (await context.parseVariablesInString(action.options.allowedMentionsUsers as string)).split(' ')
+		if (action.options.allowedMentionsParse) webhookBody.allowed_mentions.parse = action.options.allowedMentionsParse.split(' ')
+		if (action.options.allowedMentionsRoles) webhookBody.allowed_mentions.roles = action.options.allowedMentionsRoles.split(' ')
+		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = action.options.allowedMentionsUsers.split(' ')
 	}
 
-	instance.log('debug', `Sending Webhook message to ${url} with body:`)
+	instance.log('debug', `Sending Webhook message to ${action.options.url} with body:`)
 	instance.log('debug', JSON.stringify(webhookBody, null, 2))
 
-	await fetch(url, {
+	await fetch(action.options.url, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
