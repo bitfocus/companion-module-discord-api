@@ -334,7 +334,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						? feedback.options.user
 						: feedback.options.selected === 'selected'
 							? instance.discord.data.selectedUser
-							: instance.discord.client.user.id
+							: instance.discord.client.user?.id
 				if (!userOption) return {}
 
 				const voiceUser = instance.discord.sortedVoiceUsers().find((voiceState: any, index: number) => {
