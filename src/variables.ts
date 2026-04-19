@@ -1,6 +1,6 @@
 import DiscordInstance from './index.js'
 
-type userVariableValue = {
+type UserVariableValue = {
 	index: number
 	id: string
 	nick: string
@@ -23,12 +23,12 @@ export type VariableValue = {
 	self: string | null
 	user_selected: string | null
 
-	voice_user_self: userVariableValue | null
-	voice_user_selected: userVariableValue | null
-	voice_users_by_index: userVariableValue[]
-	voice_users_by_id: { [key in string]: userVariableValue }
-	voice_users_by_nick: { [key in string]: userVariableValue }
-	voice_users_by_current_speaker: userVariableValue[]
+	voice_user_self: UserVariableValue | null
+	voice_user_selected: UserVariableValue | null
+	voice_users_by_index: UserVariableValue[]
+	voice_users_by_id: { [key in string]: UserVariableValue }
+	voice_users_by_nick: { [key in string]: UserVariableValue }
+	voice_users_by_current_speaker: UserVariableValue[]
 
 	video_camera_active?: boolean
 	video_screen_share_active?: boolean
@@ -73,7 +73,7 @@ export class Variables {
 	public readonly updateVariables = (): void => {
 		if (!this.instance.discord.data) return
 
-		const voiceUsers: userVariableValue[] = this.instance.discord.sortedVoiceUsers().map((vUser, index) => ({
+		const voiceUsers: UserVariableValue[] = this.instance.discord.sortedVoiceUsers().map((vUser, index) => ({
 			index,
 			id: vUser.user.id,
 			nick: vUser.nick,
