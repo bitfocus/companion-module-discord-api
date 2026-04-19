@@ -20,6 +20,9 @@ export type VariableValue = {
 	voice_connection: { status: string; hostname: string | null; ping: { current: number; average: number; min: number; max: number } }
 	voice_self: { input_mode: string | null; input_volume: number; output_volume: number; mic_active: boolean }
 
+	self: string | null
+	user_selected: string | null
+
 	voice_user_self: userVariableValue | null
 	voice_user_selected: userVariableValue | null
 	voice_users_by_index: userVariableValue[]
@@ -48,6 +51,9 @@ export class Variables {
 
 			voice_connection: { name: 'Stats of current current connection' },
 			voice_self: { name: 'Informations about your voice parameters' },
+
+			self: { name: 'Your id' },
+			user_selected: { name: 'Id of selected user' },
 
 			voice_user_self: { name: 'Informations about yourself' },
 			voice_user_selected: { name: 'Informations about the selected user' },
@@ -80,6 +86,9 @@ export class Variables {
 			volume: vUser.volume,
 		}))
 
+		const self = voiceUsers.find((e) => e.id === this.instance.discord.client.user.id)
+		const selectedUser = voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser)
+
 		this.instance.setVariableValues({
 			channel: {
 				id: this.instance.discord.data.voiceChannel?.id || null,
@@ -108,8 +117,11 @@ export class Variables {
 				mic_active: this.instance.discord.data.speaking.has(this.instance.discord.client.user?.id),
 			},
 
-			voice_user_self: voiceUsers.find((e) => e.id === this.instance.discord.client.user.id) ?? null,
-			voice_user_selected: voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser) ?? null,
+			self: self?.id ?? null,
+			user_selected: selectedUser?.id ?? null,
+
+			voice_user_self: self ?? null,
+			voice_user_selected: selectedUser ?? null,
 			voice_users_by_index: voiceUsers,
 			voice_users_by_id: voiceUsers.reduce((obj, user) => ({ ...obj, [user.id]: user }), {}),
 			voice_users_by_nick: voiceUsers.reduce((obj, user) => ({ ...obj, [user.nick]: user }), {}),

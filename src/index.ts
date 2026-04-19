@@ -44,7 +44,7 @@ export default class DiscordInstance extends InstanceBase<Manifest> {
 	public async init(config: Config): Promise<void> {
 		this.logger.debug(`Process ID: ${process.pid}`)
 		await this.configUpdated(config)
-		this.updateInstance()
+		await this.updateInstance()
 		this.setPresetDefinitions(...getPresets())
 		this.clientInit()
 	}

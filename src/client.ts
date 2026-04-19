@@ -343,7 +343,7 @@ export class Discord {
 				this.instance.log('debug', `Event: VOICE_SETTINGS_UPDATE - ${JSON.stringify(voiceUserUpdate)}`)
 				this.data.userVoiceSettings = voiceUserUpdate
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'voiceStyling')
+				this.instance.checkFeedbacks('selfMute', 'selfDeaf', 'showImageContent')
 			} catch (e) {
 				this.instance.log('warn', `VOICE_SETTINGS_UPDATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -363,7 +363,7 @@ export class Discord {
 				})
 
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks('voiceStyling')
+				this.instance.checkFeedbacks('showImageContent')
 			} catch (e) {
 				this.instance.log('warn', `VOICE_STATE_CREATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			}
@@ -394,7 +394,7 @@ export class Discord {
 			try {
 				this.data.speaking.add(args.user_id)
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
+				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'showImageContent')
 
 				this.data.delayedSpeakingTimers[args.user_id] = setTimeout(() => {
 					this.data.delayedSpeaking.add(args.user_id)
@@ -411,7 +411,7 @@ export class Discord {
 				this.data.speaking.delete(args.user_id)
 				this.data.delayedSpeaking.delete(args.user_id)
 				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'voiceStyling')
+				this.instance.checkFeedbacks('selfMicActive', 'otherMicActive', 'showImageContent')
 
 				if (this.data.delayedSpeakingTimers[args.user_id]) clearTimeout(this.data.delayedSpeakingTimers[args.user_id])
 			} catch (e) {
