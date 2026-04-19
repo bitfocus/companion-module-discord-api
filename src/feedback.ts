@@ -289,7 +289,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 				{
 					type: 'dropdown',
 					label: 'Selected user ?',
-					tooltip: 'if true, use the selected user, otherise, use custom user',
+					tooltip: 'if true, use the selected user, otherwise, use custom user',
 					id: 'selected',
 					default: 'self',
 					disableAutoExpression: true,
@@ -334,7 +334,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						? feedback.options.user
 						: feedback.options.selected === 'selected'
 							? instance.discord.data.selectedUser
-							: instance.discord.client.user.id
+							: instance.discord.client.user?.id
 				if (!userOption) return {}
 
 				const voiceUser = instance.discord.sortedVoiceUsers().find((voiceState: any, index: number) => {

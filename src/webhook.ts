@@ -333,7 +333,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			type: 'textinput',
 			label: 'Custom Webhook Body',
 			id: 'customBody',
-			description: 'Please, prefer the expression vue for a better usage',
+			description: 'Please prefer the expression view for better usability',
 			expressionDescription: '',
 			default: JSON.stringify(webhookExample, null, 2),
 			useVariables: true,
