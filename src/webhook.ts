@@ -68,7 +68,7 @@ type WebhookPollAnswers = {
 export type WebhookActionValues = {
 	url: string
 	useCustomBody: boolean
-	customBody?: string
+	customBody?: string | WebhookBody
 	username?: string
 	avatarURL?: string
 	content?: string
@@ -442,11 +442,18 @@ export const webhookAction = async (instance: DiscordInstance, action: Companion
 	}
 
 	if (action.options.useCustomBody) {
-		return await sendWebhook(
-			action.options.url,
-			typeof action.options.customBody === 'string' ? JSON.parse(action.options.customBody) : (action.options.customBody ?? {}),
-			instance,
-		)
+		let customBody: WebhookBody
+		if (typeof action.options.customBody === 'string') {
+			try {
+				customBody = JSON.parse(action.options.customBody)
+			} catch (err) {
+				instance.log('warn', `Invalid custom webhook body JSON: ${err}`)
+				return
+			}
+		} else {
+			customBody = action.options.customBody ?? ({} as any)
+		}
+		return await sendWebhook(action.options.url, customBody, instance)
 	}
 
 	const webhookBody: WebhookBody = {
