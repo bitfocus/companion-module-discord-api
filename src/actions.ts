@@ -4,19 +4,32 @@ import { RichPresence } from './client.js'
 import DiscordInstance, { Manifest } from './index.js'
 import { generateWebhookOptions, webhookAction, WebhookActionValues } from './webhook.js'
 
+type muteType = 'toggle' | 'mute' | 'unmute'
+type deafenType = 'toggle' | 'deafen' | 'undeafen'
+type volumeType = 'set' | 'increase' | 'decrease'
+
 export type DiscordActions = {
-	selfMute: CompanionActionSchema<{ type: string }>
-	selfDeafen: CompanionActionSchema<{ type: string }>
-	selfInputVolume: CompanionActionSchema<{ type: string; volume: number }>
-	selfOutputVolume: CompanionActionSchema<{ type: string; volume: number }>
-	selfInputMode: CompanionActionSchema<{ mode: string }>
+	selfMute: CompanionActionSchema<{ type: muteType }>
+	selfDeafen: CompanionActionSchema<{ type: deafenType }>
+	selfInputVolume: CompanionActionSchema<{ type: volumeType; volume: number }>
+	selfOutputVolume: CompanionActionSchema<{ type: volumeType; volume: number }>
+	selfInputMode: CompanionActionSchema<{ mode: 'toggle' | 'PUSH_TO_TALK' | 'VOICE_ACTIVITY' }>
+
 	ptt: CompanionActionSchema<{ active: boolean }>
-	otherMute: CompanionActionSchema<{ type: string; user: string }>
-	otherVolume: CompanionActionSchema<{ type: string; volume: number; user: string }>
-	joinVoiceChannel: CompanionActionSchema<{ channel: string; force: boolean; leave: boolean }>
-	leaveCurrentVoiceChannel: CompanionActionSchema<JsonObject>
-	joinTextChannel: CompanionActionSchema<{ channel: string }>
+	playSoundboard: CompanionActionSchema<{ sound: '0' | `${number}:${number}` }>
+
+	otherMute: CompanionActionSchema<{ type: muteType; user: string }>
+	otherVolume: CompanionActionSchema<{ type: volumeType; volume: number; user: string }>
+
 	selectUser: CompanionActionSchema<{ user: string }>
+
+	joinVoiceChannel: CompanionActionSchema<{ channel: `${number}`; force: boolean; leave: boolean }>
+	leaveCurrentVoiceChannel: CompanionActionSchema<JsonObject>
+	joinTextChannel: CompanionActionSchema<{ channel: `${number}` }>
+
+	videoToggleCamera: CompanionActionSchema<JsonObject>
+	videoToggleScreenShare: CompanionActionSchema<JsonObject>
+
 	richPresence: CompanionActionSchema<{
 		details: string
 		state: string
@@ -32,13 +45,11 @@ export type DiscordActions = {
 	}>
 	clearRichPresence: CompanionActionSchema<JsonObject>
 	sendWebhookMessage: CompanionActionSchema<WebhookActionValues>
-	playSoundboard: CompanionActionSchema<{ sound: string }>
-	videoToggleCamera: CompanionActionSchema<JsonObject>
-	videoToggleScreenshare: CompanionActionSchema<JsonObject>
 }
 
 export function getActions(instance: DiscordInstance): CompanionActionDefinitions<Manifest['actions']> {
 	return {
+		//region self
 		selfMute: {
 			name: 'Self - Mute',
 			options: [
@@ -46,11 +57,11 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Toggle',
+					default: 'toggle',
 					choices: [
-						{ id: 'Toggle', label: 'Toggle' },
-						{ id: 'Mute', label: 'Mute' },
-						{ id: 'Unmute', label: 'Unmute' },
+						{ id: 'toggle', label: 'Toggle' },
+						{ id: 'mute', label: 'Mute' },
+						{ id: 'unmute', label: 'Unmute' },
 					],
 				},
 			],
@@ -58,10 +69,10 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				if (instance.discord.data.userVoiceSettings === null) return
 
 				if (instance.discord.data.userVoiceSettings.deaf) {
-					if (action.options.type !== 'Mute') return instance.discord.client.setVoiceSettings({ mute: false, deaf: false }).then()
+					if (action.options.type !== 'mute') return instance.discord.client.setVoiceSettings({ mute: false, deaf: false }).then()
 				} else {
-					let mute = action.options.type === 'Mute'
-					if (action.options.type === 'Toggle') mute = !instance.discord.data.userVoiceSettings.mute
+					let mute = action.options.type === 'mute'
+					if (action.options.type === 'toggle') mute = !instance.discord.data.userVoiceSettings.mute
 					if (mute === instance.discord.data.userVoiceSettings.mute) return
 
 					return instance.discord.client.setVoiceSettings({ mute }).then()
@@ -69,7 +80,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return
 			},
 		},
-
 		selfDeafen: {
 			name: 'Self - Deafen',
 			options: [
@@ -77,23 +87,22 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Toggle',
+					default: 'toggle',
 					choices: [
-						{ id: 'Toggle', label: 'Toggle' },
-						{ id: 'Deafen', label: 'Deafen' },
-						{ id: 'unDeafen', label: 'unDeafen' },
+						{ id: 'toggle', label: 'Toggle' },
+						{ id: 'deafen', label: 'Deafen' },
+						{ id: 'undeafen', label: 'unDeafen' },
 					],
 				},
 			],
 			callback: async (action) => {
-				let deaf = action.options.type === 'Deafen'
-				if (action.options.type === 'Toggle') deaf = !instance.discord.data.userVoiceSettings!.deaf
+				let deaf = action.options.type === 'deafen'
+				if (action.options.type === 'toggle') deaf = !instance.discord.data.userVoiceSettings!.deaf
 				if (instance.discord.data.userVoiceSettings === null || deaf === instance.discord.data.userVoiceSettings.deaf) return
 
 				return instance.discord.client.setVoiceSettings({ deaf }).then()
 			},
 		},
-
 		selfInputVolume: {
 			name: 'Self - Input Volume',
 			options: [
@@ -101,11 +110,11 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Set',
+					default: 'set',
 					choices: [
-						{ id: 'Set', label: 'Set' },
-						{ id: 'Increase', label: 'Increase' },
-						{ id: 'Decrease', label: 'Decrease' },
+						{ id: 'set', label: 'Set' },
+						{ id: 'increase', label: 'Increase' },
+						{ id: 'decrease', label: 'Decrease' },
 					],
 				},
 				{
@@ -118,12 +127,12 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				},
 			],
 			callback: async (action) => {
-				if (action.options.type === 'Set') {
+				if (action.options.type === 'set') {
 					return instance.discord.client.setVoiceSettings({ input: { volume: action.options.volume } } as any).then()
 				} else {
 					const currentVolume = instance.discord.data.userVoiceSettings?.input.volume
 					if (currentVolume !== undefined) {
-						let newVolume = currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
+						let newVolume = currentVolume + (action.options.type === 'increase' ? action.options.volume : -action.options.volume)
 						if (newVolume < 0) newVolume = 0
 						if (newVolume > 100) newVolume = 100
 
@@ -134,7 +143,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				}
 			},
 		},
-
 		selfOutputVolume: {
 			name: 'Self - Output Volume',
 			options: [
@@ -144,9 +152,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					id: 'type',
 					default: 'Set',
 					choices: [
-						{ id: 'Set', label: 'Set' },
-						{ id: 'Increase', label: 'Increase' },
-						{ id: 'Decrease', label: 'Decrease' },
+						{ id: 'set', label: 'Set' },
+						{ id: 'increase', label: 'Increase' },
+						{ id: 'decrease', label: 'Decrease' },
 					],
 				},
 				{
@@ -159,12 +167,12 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				},
 			],
 			callback: (action) => {
-				if (action.options.type === 'Set') {
+				if (action.options.type === 'set') {
 					instance.discord.client.setVoiceSettings({ output: { volume: action.options.volume } } as any)
 				} else {
 					const currentVolume = instance.discord.data.userVoiceSettings?.output.volume
 					if (currentVolume !== undefined) {
-						let newVolume = currentVolume + (action.options.type === 'Increase' ? action.options.volume : -action.options.volume)
+						let newVolume = currentVolume + (action.options.type === 'increase' ? action.options.volume : -action.options.volume)
 						if (newVolume < 0) newVolume = 0
 						if (newVolume > 200) newVolume = 200
 
@@ -173,7 +181,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				}
 			},
 		},
-
 		selfInputMode: {
 			name: 'Self - Input Mode',
 			options: [
@@ -181,9 +188,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Mode',
 					id: 'mode',
-					default: 'Toggle',
+					default: 'toggle',
 					choices: [
-						{ id: 'Toggle', label: 'Toggle' },
+						{ id: 'toggle', label: 'Toggle' },
 						{ id: 'PUSH_TO_TALK', label: 'Push to Talk' },
 						{ id: 'VOICE_ACTIVITY', label: 'Voice Activity' },
 					],
@@ -191,14 +198,16 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			],
 			callback: async (action) => {
 				let voiceMode = action.options.mode
-				if (voiceMode === 'Toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
+				if (voiceMode === 'toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
 				instance.log('debug', `Setting Input Mode: ${voiceMode}`)
 				instance.discord.data.userVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.checkFeedbacks('selfInputMode')
 			},
 		},
+		//endregion
 
+		//region voice control
 		ptt: {
 			name: 'Self - Push to Talk',
 			options: [
@@ -214,7 +223,44 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				await instance.discord.client.setPushToTalk(action.options.active).then()
 			},
 		},
+		playSoundboard: {
+			name: 'Play Soundboard Sound',
+			description: 'Playing cross server soundboard sounds requires Discord Nitro',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Sound',
+					id: 'sound',
+					default: '0',
+					choices: [{ id: '0', label: 'Select Sound' }, ...(instance.discord.sortedSoundboardChioces() || [])],
+				},
+			],
+			callback: async (action) => {
+				if (action.options.sound === '0') return
 
+				if (instance.discord.data.voiceChannel) {
+					const [guild_id, sound_id] = action.options.sound.split(':')
+					instance.log('debug', `Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
+
+					return instance.discord.client
+						.playSoundboardSound(guild_id, sound_id)
+						.catch((err) => {
+							if (err?.data) {
+								instance.log('warn', `Error playing Soundboard: ${JSON.stringify(err.data)}`)
+							} else {
+								instance.log('warn', 'Error playing Soundboard')
+								instance.log('debug', err)
+							}
+						})
+						.then()
+				}
+
+				return
+			},
+		},
+		//endregion
+
+		//region other users
 		otherMute: {
 			name: 'Other - Mute',
 			options: [
@@ -222,11 +268,11 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Toggle',
+					default: 'toggle',
 					choices: [
-						{ id: 'Toggle', label: 'Toggle' },
-						{ id: 'Mute', label: 'Mute' },
-						{ id: 'Unmute', label: 'Unmute' },
+						{ id: 'toggle', label: 'Toggle' },
+						{ id: 'mute', label: 'Mute' },
+						{ id: 'unmute', label: 'Unmute' },
 					],
 				},
 				{
@@ -244,15 +290,14 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				let mute = user.mute
 
-				if (action.options.type === 'Toggle') mute = !mute
-				if (action.options.type === 'Mute') mute = true
-				if (action.options.type === 'Unmute') mute = false
+				if (action.options.type === 'toggle') mute = !mute
+				if (action.options.type === 'mute') mute = true
+				if (action.options.type === 'unmute') mute = false
 
 				await instance.discord.client.setUserVoiceSettings(user.user.id, { mute })
 				instance.variables.updateVariables()
 			},
 		},
-
 		otherVolume: {
 			name: 'Other - Volume',
 			description: 'Note: For some reason Discord treats volumes between 94.4 and 100 as 100, so increase/decrease outside of that range',
@@ -261,11 +306,11 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Set',
+					default: 'set',
 					choices: [
-						{ id: 'Set', label: 'Set' },
-						{ id: 'Increase', label: 'Increase' },
-						{ id: 'Decrease', label: 'Decrease' },
+						{ id: 'set', label: 'Set' },
+						{ id: 'increase', label: 'Increase' },
+						{ id: 'decrease', label: 'Decrease' },
 					],
 				},
 				{
@@ -291,8 +336,8 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				let volume = action.options.volume
 
-				if (action.options.type !== 'Set') {
-					volume = user.volume + (action.options.type === 'Increase' ? volume : -volume)
+				if (action.options.type !== 'set') {
+					volume = user.volume + (action.options.type === 'increase' ? volume : -volume)
 
 					if (volume < 0) volume = 0
 					if (volume > 200) volume = 200
@@ -303,6 +348,29 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			},
 		},
 
+		selectUser: {
+			name: 'Select User',
+			options: [
+				{
+					type: 'textinput',
+					label: 'User',
+					useVariables: true,
+					tooltip: 'User ID, username, display name, or index',
+					id: 'user',
+					default: '',
+				},
+			],
+			callback: async (action) => {
+				const user = await instance.discord.getUser(action.options.user)
+				if (user) instance.discord.data.selectedUser = instance.discord.data.selectedUser === user.user.id ? '' : user.user.id
+
+				instance.variables.updateVariables()
+				instance.checkFeedbacks('selectedUser', 'otherMute', 'showImageContent')
+			},
+		},
+		//endregion
+
+		//region channel
 		joinVoiceChannel: {
 			name: 'Join Channel - Voice',
 			options: [
@@ -340,7 +408,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return
 			},
 		},
-
 		leaveCurrentVoiceChannel: {
 			name: 'Leave Current Channel',
 			options: [],
@@ -350,7 +417,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return
 			},
 		},
-
 		joinTextChannel: {
 			name: 'Join Channel - Text',
 			options: [
@@ -368,28 +434,36 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return instance.discord.client.selectTextChannel(action.options.channel).then()
 			},
 		},
+		//endregion
 
-		selectUser: {
-			name: 'Select User',
-			options: [
-				{
-					type: 'textinput',
-					label: 'User',
-					useVariables: true,
-					tooltip: 'User ID, username, display name, or index',
-					id: 'user',
-					default: '',
-				},
-			],
-			callback: async (action) => {
-				const user = await instance.discord.getUser(action.options.user)
-				if (user) instance.discord.data.selectedUser = instance.discord.data.selectedUser === user.user.id ? '' : user.user.id
-
-				instance.variables.updateVariables()
-				instance.checkFeedbacks('selectedUser', 'otherMute', 'showImageContent')
+		//region video
+		videoToggleCamera: {
+			name: 'Video - Toggle Camera',
+			options: [],
+			callback: async () => {
+				if (instance.discord.data.voiceChannel) {
+					instance.log('debug', `Toggling Camera`)
+					await instance.discord.client.toggleVideo().catch((err) => {
+						instance.log('warn', `Error toggling camera: ${err}`)
+					})
+				}
 			},
 		},
+		videoToggleScreenShare: {
+			name: 'Video - Toggle Screen Share',
+			options: [],
+			callback: async () => {
+				if (instance.discord.data.voiceChannel) {
+					instance.log('debug', `Toggling Screen sharing`)
+					await instance.discord.client.toggleScreenshare().catch((err) => {
+						instance.log('warn', `Error toggling screen sharing: ${err}`)
+					})
+				}
+			},
+		},
+		//endregion
 
+		//region other actions
 		richPresence: {
 			name: 'Activity - Set Activity/Rich Presence',
 			description: 'Sets the Activity to show playing your App Name',
@@ -501,7 +575,6 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return instance.discord.client.setActivity(activity).then()
 			},
 		},
-
 		clearRichPresence: {
 			name: 'Activity - Clear Activity/Rich Presence',
 			description: 'Clears the Activity set by this connection',
@@ -511,74 +584,12 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				return instance.discord.client.clearActivity().then()
 			},
 		},
-
 		sendWebhookMessage: {
 			name: 'Webhooks - Send Webhook Message',
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
 			callback: async (action) => webhookAction(instance, action),
 		},
-
-		playSoundboard: {
-			name: 'Play Soundboard Sound',
-			description: 'Playing cross server soundboard sounds requires Discord Nitro',
-			options: [
-				{
-					type: 'dropdown',
-					label: 'Sound',
-					id: 'sound',
-					default: '0',
-					choices: [{ id: '0', label: 'Select Sound' }, ...(instance.discord.sortedSoundboardChioces() || [])],
-				},
-			],
-			callback: async (action) => {
-				if (action.options.sound === '0') return
-
-				if (instance.discord.data.voiceChannel) {
-					const [guild_id, sound_id] = action.options.sound.split(':')
-					instance.log('debug', `Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
-
-					return instance.discord.client
-						.playSoundboardSound(guild_id, sound_id)
-						.catch((err) => {
-							if (err?.data) {
-								instance.log('warn', `Error playing Soundboard: ${JSON.stringify(err.data)}`)
-							} else {
-								instance.log('warn', 'Error playing Soundboard')
-								instance.log('debug', err)
-							}
-						})
-						.then()
-				}
-
-				return
-			},
-		},
-
-		videoToggleCamera: {
-			name: 'Video - Toggle Camera',
-			options: [],
-			callback: async () => {
-				if (instance.discord.data.voiceChannel) {
-					instance.log('debug', `Toggling Camera`)
-					await instance.discord.client.toggleVideo().catch((err) => {
-						instance.log('warn', `Error toggling camera: ${err}`)
-					})
-				}
-			},
-		},
-
-		videoToggleScreenshare: {
-			name: 'Video - Toggle Screen Share',
-			options: [],
-			callback: async () => {
-				if (instance.discord.data.voiceChannel) {
-					instance.log('debug', `Toggling Screen sharing`)
-					await instance.discord.client.toggleScreenshare().catch((err) => {
-						instance.log('warn', `Error toggling screen sharing: ${err}`)
-					})
-				}
-			},
-		},
+		//endregion
 	}
 }
