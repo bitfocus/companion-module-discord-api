@@ -430,14 +430,14 @@ const sendWebhook = async (url: string, webhookBody: WebhookBody, instance: Disc
 			return ''
 		})
 		.then((res) => {
-			if (res) instance.log('warn', `Webhook err: ${res}`)
+			if (res) instance.logger.warn(`Webhook err: ${res}`)
 		})
-		.catch((err) => instance.log('warn', `Webhook err: ${err}`))
+		.catch((err) => instance.logger.warn(`Webhook err: ${err}`))
 }
 
 export const webhookAction = async (instance: DiscordInstance, action: CompanionActionEvent<WebhookActionValues>): Promise<void> => {
 	if (!action.options.url) {
-		instance.log('warn', 'Invalid Webhook URL')
+		instance.logger.warn('Invalid Webhook URL')
 		return
 	}
 
@@ -447,7 +447,7 @@ export const webhookAction = async (instance: DiscordInstance, action: Companion
 			try {
 				customBody = JSON.parse(action.options.customBody)
 			} catch (err) {
-				instance.log('warn', `Invalid custom webhook body JSON: ${err}`)
+				instance.logger.warn(`Invalid custom webhook body JSON: ${err}`)
 				return
 			}
 		} else {
@@ -537,8 +537,8 @@ export const webhookAction = async (instance: DiscordInstance, action: Companion
 		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = action.options.allowedMentionsUsers.split(' ')
 	}
 
-	instance.log('debug', `Sending Webhook message to ${action.options.url} with body:`)
-	instance.log('debug', JSON.stringify(webhookBody, null, 2))
+	instance.logger.debug(`Sending Webhook message to ${action.options.url} with body:`)
+	instance.logger.debug(JSON.stringify(webhookBody, null, 2))
 
 	await sendWebhook(action.options.url, webhookBody, instance)
 }

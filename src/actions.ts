@@ -200,7 +200,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				let voiceMode = action.options.mode
 				if (voiceMode === 'toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
-				instance.log('debug', `Setting Input Mode: ${voiceMode}`)
+				instance.logger.debug(`Setting Input Mode: ${voiceMode}`)
 				instance.discord.data.userVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.checkFeedbacks('selfInputMode')
 			},
@@ -219,7 +219,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				},
 			],
 			callback: async (action) => {
-				instance.log('debug', `PTT: ${action.options.active}`)
+				instance.logger.debug(`PTT: ${action.options.active}`)
 				await instance.discord.client.setPushToTalk(action.options.active).then()
 			},
 		},
@@ -240,16 +240,16 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				if (instance.discord.data.voiceChannel) {
 					const [guild_id, sound_id] = action.options.sound.split(':')
-					instance.log('debug', `Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
+					instance.logger.debug(`Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
 
 					return instance.discord.client
 						.playSoundboardSound(guild_id, sound_id)
 						.catch((err) => {
 							if (err?.data) {
-								instance.log('warn', `Error playing Soundboard: ${JSON.stringify(err.data)}`)
+								instance.logger.warn(`Error playing Soundboard: ${JSON.stringify(err.data)}`)
 							} else {
-								instance.log('warn', 'Error playing Soundboard')
-								instance.log('debug', err)
+								instance.logger.warn('Error playing Soundboard')
+								instance.logger.debug(err)
 							}
 						})
 						.then()
@@ -442,9 +442,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			options: [],
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
-					instance.log('debug', `Toggling Camera`)
+					instance.logger.debug(`Toggling Camera`)
 					await instance.discord.client.toggleVideo().catch((err) => {
-						instance.log('warn', `Error toggling camera: ${err}`)
+						instance.logger.warn(`Error toggling camera: ${err}`)
 					})
 				}
 			},
@@ -454,9 +454,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			options: [],
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
-					instance.log('debug', `Toggling Screen sharing`)
+					instance.logger.debug(`Toggling Screen sharing`)
 					await instance.discord.client.toggleScreenshare().catch((err) => {
-						instance.log('warn', `Error toggling screen sharing: ${err}`)
+						instance.logger.warn(`Error toggling screen sharing: ${err}`)
 					})
 				}
 			},
@@ -546,7 +546,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				}
 
 				if (!action.options.state || !action.options.details) {
-					instance.log('warn', 'Discord Rich Presence must have a State and Details')
+					instance.logger.warn('Discord Rich Presence must have a State and Details')
 					return
 				}
 
@@ -570,7 +570,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				if (action.options.startTime) activity.startTimestamp = new Date()
 
-				instance.log('debug', `Setting activity: ${JSON.stringify(activity)}`)
+				instance.logger.debug(`Setting activity: ${JSON.stringify(activity)}`)
 
 				return instance.discord.client.setActivity(activity).then()
 			},
@@ -580,7 +580,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			description: 'Clears the Activity set by this connection',
 			options: [],
 			callback: async () => {
-				instance.log('debug', 'Clearing activity')
+				instance.logger.debug('Clearing activity')
 				return instance.discord.client.clearActivity().then()
 			},
 		},
