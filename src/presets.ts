@@ -751,7 +751,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 		},
 		ptt_mic: {
 			type: 'simple',
-			name: 'Push to Talk (non natif version: mute and unmute manually)',
+			name: 'Push to Talk (non-native version: mute and unmute manually)',
 			keywords: ['push', 'talk', 'mute'],
 			style: {
 				text: 'Push to Talk',
