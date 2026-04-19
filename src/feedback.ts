@@ -382,8 +382,6 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						return {
 							imageBuffer: (Buffer.from(scaledMicIcon) as any).toString('base64'),
 						}
-
-						return {}
 					}
 					case 'headphone': {
 						const headsetIconNative = graphics.icon({
@@ -398,8 +396,6 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						return {
 							imageBuffer: (Buffer.from(scaledHeadsetIcon) as any).toString('base64'),
 						}
-
-						return {}
 					}
 					case 'mix': {
 						const micIcon = graphics.icon({
