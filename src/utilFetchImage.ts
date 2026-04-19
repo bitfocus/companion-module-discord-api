@@ -8,9 +8,6 @@ interface CacheEntry {
 const PNG64_CACHE = new Map<string, CacheEntry>()
 const CACHE_TTL = 1 * 60 * 60 * 1000 // 1 hour
 
-/**
- * Nettoie les entrées expirées du cache
- */
 function cleanExpiredCache(): void {
 	const now = Date.now()
 	for (const [url, entry] of PNG64_CACHE.entries()) {
@@ -20,27 +17,21 @@ function cleanExpiredCache(): void {
 	}
 }
 
-/**
- * Récupère une valeur du cache si elle existe et n'est pas expirée
- */
-function getCacheEntry(url: string): string | null {
-	const entry = PNG64_CACHE.get(url)
+function getCacheEntry(url: string, w: number, h: number): string | null {
+	const entry = PNG64_CACHE.get(`${url}|${w}x${h}`)
 	if (!entry) return null
 
 	const now = Date.now()
 	if (now - entry.timestamp > CACHE_TTL) {
-		PNG64_CACHE.delete(url)
+		PNG64_CACHE.delete(`${url}|${w}x${h}`)
 		return null
 	}
 
 	return entry.data
 }
 
-/**
- * Stocke une valeur dans le cache
- */
-function setCacheEntry(url: string, data: string): void {
-	PNG64_CACHE.set(url, {
+function setCacheEntry(url: string, w: number, h: number, data: string): void {
+	PNG64_CACHE.set(`${url}|${w}x${h}`, {
 		data,
 		timestamp: Date.now(),
 	})
@@ -106,7 +97,7 @@ function getImageDimensions(pngBuffer: Buffer): { width: number; height: number 
 export async function urlToPng64(url: string, targetWidth: number, targetHeight: number): Promise<string | null> {
 	try {
 		cleanExpiredCache()
-		const cachedData = getCacheEntry(url)
+		const cachedData = getCacheEntry(url, targetWidth, targetHeight)
 		if (cachedData) {
 			return cachedData
 		}
@@ -129,7 +120,7 @@ export async function urlToPng64(url: string, targetWidth: number, targetHeight:
 		})
 
 		if (png64) {
-			setCacheEntry(url, png64)
+			setCacheEntry(url, targetWidth, targetHeight, png64)
 		}
 
 		return png64
