@@ -274,7 +274,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 				{
 					type: 'dropdown',
 					label: 'Content',
-					tooltip: 'Choose wich content you want to show',
+					tooltip: 'Choose which content you want to show',
 					id: 'content',
 					default: 'guild',
 					choices: [
