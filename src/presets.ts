@@ -172,7 +172,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Decrease', volume: 10 },
+							options: { type: 'decrease', volume: 10 },
 						},
 					],
 					up: [],
@@ -196,20 +196,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfMute',
-							options: { type: 'Toggle' },
+							options: { type: 'toggle' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Decrease', volume: 2 },
+							options: { type: 'decrease', volume: 2 },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Increase', volume: 2 },
+							options: { type: 'increase', volume: 2 },
 						},
 					],
 				},
@@ -234,7 +234,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Increase', volume: 10 },
+							options: { type: 'increase', volume: 10 },
 						},
 					],
 					up: [],
@@ -257,20 +257,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfMute',
-							options: { type: 'Toggle' },
+							options: { type: 'toggle' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Decrease', volume: 2 },
+							options: { type: 'decrease', volume: 2 },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'selfInputVolume',
-							options: { type: 'Increase', volume: 2 },
+							options: { type: 'increase', volume: 2 },
 						},
 					],
 				},
@@ -301,7 +301,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Decrease', volume: 10 },
+							options: { type: 'decrease', volume: 10 },
 						},
 					],
 					up: [],
@@ -325,20 +325,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfDeafen',
-							options: { type: 'Toggle' },
+							options: { type: 'toggle' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Decrease', volume: 2 },
+							options: { type: 'decrease', volume: 2 },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Increase', volume: 2 },
+							options: { type: 'increase', volume: 2 },
 						},
 					],
 				},
@@ -363,7 +363,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Increase', volume: 10 },
+							options: { type: 'increase', volume: 10 },
 						},
 					],
 					up: [],
@@ -386,20 +386,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfDeafen',
-							options: { type: 'Toggle' },
+							options: { type: 'toggle' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Decrease', volume: 2 },
+							options: { type: 'decrease', volume: 2 },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'selfOutputVolume',
-							options: { type: 'Increase', volume: 2 },
+							options: { type: 'increase', volume: 2 },
 						},
 					],
 				},
@@ -430,7 +430,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 10, user: '$(label:user_selected)' },
+							options: { type: 'decrease', volume: 10, user: '$(label:user_selected)' },
 						},
 					],
 					up: [],
@@ -458,20 +458,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherMute',
-							options: { type: 'Toggle', user: '$(label:user_selected)' },
+							options: { type: 'toggle', user: '$(label:user_selected)' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 2, user: '$(label:user_selected)' },
+							options: { type: 'decrease', volume: 2, user: '$(label:user_selected)' },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 2, user: '$(label:user_selected)' },
+							options: { type: 'increase', volume: 2, user: '$(label:user_selected)' },
 						},
 					],
 				},
@@ -496,7 +496,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 10, user: '$(label:user_selected)' },
+							options: { type: 'increase', volume: 10, user: '$(label:user_selected)' },
 						},
 					],
 					up: [],
@@ -519,20 +519,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherMute',
-							options: { type: 'Toggle', user: '$(label:user_selected)' },
+							options: { type: 'toggle', user: '$(label:user_selected)' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 2, user: '$(label:user_selected)' },
+							options: { type: 'decrease', volume: 2, user: '$(label:user_selected)' },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 2, user: '$(label:user_selected)' },
+							options: { type: 'increase', volume: 2, user: '$(label:user_selected)' },
 						},
 					],
 				},
@@ -563,7 +563,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 10, user: '$(local:user)' },
+							options: { type: 'decrease', volume: 10, user: '$(local:user)' },
 						},
 					],
 					up: [],
@@ -599,20 +599,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherMute',
-							options: { type: 'Toggle', user: '$(local:user)' },
+							options: { type: 'toggle', user: '$(local:user)' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 2, user: '$(local:user)' },
+							options: { type: 'decrease', volume: 2, user: '$(local:user)' },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 2, user: '$(local:user)' },
+							options: { type: 'increase', volume: 2, user: '$(local:user)' },
 						},
 					],
 				},
@@ -645,7 +645,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 10, user: '$(local:user)' },
+							options: { type: 'increase', volume: 10, user: '$(local:user)' },
 						},
 					],
 					up: [],
@@ -676,20 +676,20 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherMute',
-							options: { type: 'Toggle', user: '$(local:user)' },
+							options: { type: 'toggle', user: '$(local:user)' },
 						},
 					],
 					up: [],
 					rotate_left: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Decrease', volume: 2, user: '$(local:user)' },
+							options: { type: 'decrease', volume: 2, user: '$(local:user)' },
 						},
 					],
 					rotate_right: [
 						{
 							actionId: 'otherVolume',
-							options: { type: 'Increase', volume: 2, user: '$(local:user)' },
+							options: { type: 'increase', volume: 2, user: '$(local:user)' },
 						},
 					],
 				},
@@ -764,13 +764,13 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'selfMute',
-							options: { type: 'Unmute' },
+							options: { type: 'unmute' },
 						},
 					],
 					up: [
 						{
 							actionId: 'selfMute',
-							options: { type: 'Mute' },
+							options: { type: 'mute' },
 						},
 					],
 				},
@@ -880,7 +880,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 				{
 					down: [
 						{
-							actionId: 'videoToggleScreenshare',
+							actionId: 'videoToggleScreenShare',
 							options: {},
 						},
 					],
@@ -923,7 +923,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 					down: [
 						{
 							actionId: 'otherMute',
-							options: { type: 'Toggle', user: '$(local:user)' },
+							options: { type: 'toggle', user: '$(local:user)' },
 						},
 					],
 					up: [],

@@ -6,16 +6,16 @@ import { scaleIconBuffer, urlToPng64 } from './utilFetchImage.js'
 export type DiscordFeedbacks = {
 	selfMute: CompanionFeedbackSchema<JsonObject>
 	selfDeaf: CompanionFeedbackSchema<JsonObject>
-	selfInputMode: CompanionFeedbackSchema<{ state: string }>
+	selfInputMode: CompanionFeedbackSchema<{ state: 'PUSH_TO_TALK' | 'VOICE_ACTIVITY' }>
 	selfMicActive: CompanionFeedbackSchema<JsonObject>
 	otherMicActive: CompanionFeedbackSchema<{ user: string }>
 	otherMute: CompanionFeedbackSchema<{ user: string }>
 	otherDeaf: CompanionFeedbackSchema<{ user: string }>
-	voiceChannel: CompanionFeedbackSchema<{ channel: string }>
+	voiceChannel: CompanionFeedbackSchema<{ channel: `${number}` }>
 	selectedUser: CompanionFeedbackSchema<{ user: string }>
 	videoCamera: CompanionFeedbackSchema<JsonObject>
 	videoScreenShare: CompanionFeedbackSchema<JsonObject>
-	showImageContent: CompanionFeedbackSchema<{ content: string; selected: string; user?: string }>
+	showImageContent: CompanionFeedbackSchema<{ content: 'guild' | 'avatar' | 'mic' | 'headphone' | 'mix'; selected: 'selected' | 'self' | 'custom'; user?: string }>
 }
 
 export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefinitions<Manifest['feedbacks']> {
