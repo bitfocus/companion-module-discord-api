@@ -1,152 +1,134 @@
-import { type VoiceState } from '@distdev/discord-ipc'
-import DiscordInstance from './'
-import { CompanionVariableDefinition } from '@companion-module/base'
+import DiscordInstance from './index.js'
 
-interface InstanceVariableValue {
-	[key: string]: string | number | undefined
+type UserVariableValue = {
+	index: number
+	id: string
+	nick: string
+	avatar: string
+	mute: boolean
+	deaf: boolean
+	self_mute: boolean
+	self_deaf: boolean
+	speaking: boolean
+	volume: number
+}
+
+export type VariableValue = {
+	channel: { id: string | null; name: string | null }
+	guild: { id: string | null; name: string | null; icon: string | null }
+
+	voice_connection: { status: string; hostname: string | null; ping: { current: number; average: number; min: number; max: number } }
+	voice_self: { input_mode: string | null; input_volume: number; output_volume: number; mic_active: boolean }
+
+	self: string | null
+	user_selected: string | null
+
+	voice_user_self: UserVariableValue | null
+	voice_user_selected: UserVariableValue | null
+	voice_users_by_index: UserVariableValue[]
+	voice_users_by_id: { [key in string]: UserVariableValue }
+	voice_users_by_nick: { [key in string]: UserVariableValue }
+	voice_users_by_current_speaker: UserVariableValue[]
+
+	video_camera_active?: boolean
+	video_screen_share_active?: boolean
 }
 
 export class Variables {
 	private readonly instance: DiscordInstance
-	//private currentVariables: InstanceVariableValue = {}
 
 	constructor(instance: DiscordInstance) {
 		this.instance = instance
 	}
 
 	/**
-	 * @param variables Object of variable names and their values
-	 * @description Updates or removes variable for current instance
-	 */
-	public readonly set = (variables: InstanceVariableValue): void => {
-		const newVariables: { [variableId: string]: string | undefined } = {}
-
-		for (const name in variables) {
-			newVariables[name] = variables[name]?.toString()
-		}
-
-		//this.currentVariables = variables
-		this.instance.setVariableValues(newVariables)
-	}
-
-	/**
 	 * @description Sets variable definitions
 	 */
 	public readonly updateDefinitions = (): void => {
-		const variables: Set<CompanionVariableDefinition> = new Set([])
+		this.instance.setVariableDefinitions({
+			channel: { name: 'Information about the currently connected voice channel' },
+			guild: { name: 'Information about the currently connected guild in a voice channel' },
 
-		variables.add({ name: 'Voice Connection Status', variableId: 'voice_connection_status' })
-		variables.add({ name: 'Voice Connection Hostname', variableId: 'voice_connection_hostname' })
-		variables.add({ name: 'Voice Connection Ping', variableId: 'voice_connection_ping' })
-		variables.add({ name: 'Voice Connection Ping Avg', variableId: 'voice_connection_ping_avg' })
-		variables.add({ name: 'Voice Connection Ping Min', variableId: 'voice_connection_ping_min' })
-		variables.add({ name: 'Voice Connection Ping Max', variableId: 'voice_connection_ping_max' })
+			voice_connection: { name: 'Stats of the current connection' },
+			voice_self: { name: 'Information about your voice parameters' },
 
-		variables.add({ name: 'Voice Self Input Mode', variableId: 'voice_self_input_mode' })
-		variables.add({ name: 'Voice Self Input Volume', variableId: 'voice_self_input_volume' })
-		variables.add({ name: 'Voice Self Mic Active', variableId: 'voice_self_mic_active' })
-		variables.add({ name: 'Voice Self Output Volume', variableId: 'voice_self_output_volume' })
+			self: { name: 'Your ID' },
+			user_selected: { name: 'ID of the selected user' },
 
-		variables.add({ name: 'Video Camera Active', variableId: 'video_camera_active' })
-		variables.add({ name: 'Video Screen Share Active', variableId: 'video_screen_share_active' })
+			voice_user_self: { name: 'Information about yourself' },
+			voice_user_selected: { name: 'Information about the selected user' },
+			voice_users_by_index: { name: 'Information about users by index' },
+			voice_users_by_id: { name: 'Information about users by ID' },
+			voice_users_by_nick: { name: 'Information about users by nickname' },
+			voice_users_by_current_speaker: { name: 'Information about currently speaking users' },
 
-		const voiceUsers: any[] = this.instance.discord.sortedVoiceUsers() || []
-		voiceUsers.forEach((voiceState, index) => {
-			variables.add({ name: `Voice User ${index} Nick`, variableId: `voice_user_${index}_nick` })
-			variables.add({
-				name: `Voice User ${voiceState.user.id} Nick`,
-				variableId: `voice_user_${voiceState.user.id}_nick`,
-			})
-			;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
-				id = id + ''
-				const safeID = id.replace(/[^a-z0-9-_.]+/gi, '')
-
-				variables.add({ name: `Voice User ${id} Volume`, variableId: `voice_user_${safeID}_volume` })
-				variables.add({ name: `Voice User ${id} Mute`, variableId: `voice_user_${safeID}_mute` })
-				variables.add({ name: `Voice User ${id} Deaf`, variableId: `voice_user_${safeID}_deaf` })
-				variables.add({ name: `Voice User ${id} Self Mute`, variableId: `voice_user_${safeID}_self_mute` })
-				variables.add({ name: `Voice User ${id} Self Deaf`, variableId: `voice_user_${safeID}_self_deaf` })
-				variables.add({ name: `Voice User ${id} Speaking`, variableId: `voice_user_${safeID}_speaking` })
-			})
+			video_camera_active: { name: 'If your camera is active' },
+			video_screen_share_active: { name: 'If your screen share is active' },
 		})
-
-		variables.add({ name: 'Voice Current Speaker ID', variableId: 'voice_current_speaker_id' })
-		variables.add({ name: 'Voice Current Speaker Nick', variableId: 'voice_current_speaker_nick' })
-		variables.add({ name: 'Voice Current Speaker Number', variableId: 'voice_current_speaker_number' })
-
-		variables.add({ name: 'Voice User Selected ID', variableId: 'voice_user_selected_id' })
-		variables.add({ name: 'Voice User Selected Nick', variableId: 'voice_user_selected_nick' })
-		variables.add({ name: 'Voice User Selected Volume', variableId: 'voice_user_selected_volume' })
-
-		this.instance.setVariableDefinitions([...variables])
 	}
 
 	/**
 	 * @description Update variables
 	 */
 	public readonly updateVariables = (): void => {
-		const newVariables: InstanceVariableValue = {}
+		if (!this.instance.discord.data) return
 
-		if (this.instance.discord.data) {
-			newVariables.voice_connection_status = this.instance.discord.data.voiceStatus.state
-			newVariables.voice_connection_hostname = this.instance.discord.data.voiceStatus.hostname || ''
-			newVariables.voice_connection_ping = this.instance.discord.data.voiceStatus.last_ping || ''
-			newVariables.voice_connection_ping_avg = this.instance.discord.data.voiceStatus.last_ping || ''
-			newVariables.voice_connection_ping_min =
-				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.min(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
-			newVariables.voice_connection_ping_max =
-				this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value)) : ''
+		const voiceUsers: UserVariableValue[] = this.instance.discord.sortedVoiceUsers().map((vUser, index) => ({
+			index,
+			id: vUser.user.id,
+			nick: vUser.nick,
+			avatar: `https://cdn.discordapp.com/avatars/${vUser.user.id || ''}/${vUser.user.avatar || ''}.png`,
+			mute: vUser.voice_state.mute,
+			deaf: vUser.voice_state.deaf,
+			self_mute: vUser.voice_state.self_mute,
+			self_deaf: vUser.voice_state.self_deaf,
+			speaking: this.instance.discord.data.delayedSpeaking.has(vUser.user.id),
+			volume: vUser.volume,
+		}))
 
-			newVariables.voice_self_input_mode = this.instance.discord.data.userVoiceSettings?.mode.type || ''
-			newVariables.voice_self_input_volume = this.instance.discord.data.userVoiceSettings?.input.volume.toFixed(2)
-			newVariables.voice_self_mic_active = this.instance.discord.data.speaking.has(this.instance.discord.client.user?.id).toString()
-			newVariables.voice_self_output_volume = this.instance.discord.data.userVoiceSettings?.output.volume.toFixed(2)
+		const self = voiceUsers.find((e) => e.id === this.instance.discord.client.user?.id)
+		const selectedUser = voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser)
 
-			for (let i = 0; i < 200; i++) {
-				newVariables[`voice_user_${i}_nick`] = this.instance.discord.sortedVoiceUsers()[i]?.nick || ''
-			}
-			const voiceUsers: VoiceState[] = this.instance.discord.sortedVoiceUsers() || []
-			voiceUsers.forEach((voiceState, index) => {
-				newVariables[`voice_user_${index}_nick`] = voiceState.nick
-				newVariables[`voice_user_${voiceState.user.id}_nick`] = voiceState.nick
-				;[index, voiceState.nick, voiceState.user.id].forEach((id) => {
-					const safeId = (id + '').replace(/[^a-z0-9-_.]+/gi, '')
-					newVariables[`voice_user_${safeId}_volume`] = voiceState.volume || ''
-					newVariables[`voice_user_${safeId}_mute`] = voiceState.mute.toString() || 'false'
-					newVariables[`voice_user_${safeId}_deaf`] = voiceState.voice_state.deaf.toString() || 'false'
-					newVariables[`voice_user_${safeId}_self_mute`] = voiceState.voice_state.self_mute.toString() || 'false'
-					newVariables[`voice_user_${safeId}_self_deaf`] = voiceState.voice_state.self_deaf.toString() || 'false'
-					newVariables[`voice_user_${safeId}_speaking`] = this.instance?.discord.data?.delayedSpeaking.has(voiceState.user.id).toString()
-				})
-			})
+		this.instance.setVariableValues({
+			channel: {
+				id: this.instance.discord.data.voiceChannel?.id || null,
+				name: this.instance.discord.data.voiceChannel?.name || null,
+			},
+			guild: {
+				id: this.instance.discord.data.voiceChannel?.guild_id || null,
+				name: this.instance.discord.data.guildNames.get(this.instance.discord.data.voiceChannel?.guild_id || '') || null,
+				icon: this.instance.discord.data.guilds.find((e) => e.id === this.instance.discord.data.voiceChannel?.guild_id)?.icon_url || null,
+			},
 
-			newVariables.voice_current_speaker_id = ''
-			newVariables.voice_current_speaker_nick = ''
-			newVariables.voice_current_speaker_number = ''
+			voice_connection: {
+				status: this.instance.discord.data.voiceStatus.state,
+				hostname: this.instance.discord.data.voiceStatus.hostname,
+				ping: {
+					current: Math.round(this.instance.discord.data.voiceStatus.last_ping ?? -1),
+					average: this.instance.discord.data.voiceStatus.last_ping != null ? Math.round(this.instance.discord.data.voiceStatus.average_ping) : -1,
+					min: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.round(Math.min(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value))) : -1,
+					max: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.round(Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value))) : -1,
+				},
+			},
+			voice_self: {
+				input_mode: this.instance.discord.data.userVoiceSettings?.mode.type || null,
+				input_volume: this.instance.discord.data.userVoiceSettings?.input.volume || -1,
+				output_volume: this.instance.discord.data.userVoiceSettings?.output.volume || -1,
+				mic_active: this.instance.discord.data.speaking.has(this.instance.discord.client.user?.id),
+			},
 
-			const currentSpeaker = Array.from(this.instance?.discord.data?.delayedSpeaking || []).pop()
-			if (typeof currentSpeaker === 'string') {
-				const user = this.instance.discord.sortedVoiceUsers().find((voiceState: any) => voiceState.user.id === currentSpeaker)
-				const userIndex = this.instance.discord.sortedVoiceUsers().findIndex((voiceState: any) => voiceState.user.id === currentSpeaker)
+			self: self?.id ?? null,
+			user_selected: selectedUser?.id ?? null,
 
-				newVariables.voice_current_speaker_id = currentSpeaker || ''
-				newVariables.voice_current_speaker_nick = user?.nick || ''
-				newVariables.voice_current_speaker_number = userIndex || ''
-			}
+			voice_user_self: self ?? null,
+			voice_user_selected: selectedUser ?? null,
+			voice_users_by_index: voiceUsers,
+			voice_users_by_id: voiceUsers.reduce((obj, user) => ({ ...obj, [user.id]: user }), {}),
+			voice_users_by_nick: voiceUsers.reduce((obj, user) => ({ ...obj, [user.nick]: user }), {}),
+			voice_users_by_current_speaker: voiceUsers.filter((e) => e.speaking),
 
-			newVariables.voice_user_selected_nick = ''
-			newVariables.voice_user_selected_volume = ''
-			newVariables.voice_user_selected_id = this.instance.discord.data.selectedUser || ''
-
-			const selectedUser = this.instance.discord.sortedVoiceUsers().find((voiceState: any) => voiceState.user.id === this.instance.discord.data.selectedUser)
-			newVariables.voice_user_selected_nick = selectedUser?.nick || ''
-			newVariables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
-		}
-
-		newVariables.video_camera_active = this.instance.discord.data.videoActive.toString()
-		newVariables.video_screen_share_active = this.instance.discord.data.screenShareActive.toString()
-
-		this.set(newVariables)
-		this.updateDefinitions()
+			video_camera_active: this.instance.discord.data.videoActive,
+			video_screen_share_active: this.instance.discord.data.screenShareActive,
+		})
 	}
 }

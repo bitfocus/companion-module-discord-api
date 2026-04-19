@@ -1,12 +1,12 @@
-import type { CompanionActionContext } from '@companion-module/base'
-import type { InputFieldWithDefault, SendWebhookMessageCallback } from './actions'
-import type DiscordInstance from './index'
+import type DiscordInstance from './index.js'
+import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { IntRange } from './utils.js'
 
 type WebhookBody = {
-	username: string
+	username?: string
 	avatar_url?: string
 	content?: string
-	embeds: WebhookEmbed[]
+	embeds?: WebhookEmbed[]
 	poll?: WebhookPoll
 	tts: boolean
 	allowed_mentions?: {
@@ -52,7 +52,7 @@ type WebhookPoll = {
 	}
 	answers: WebhookPollAnswers[]
 	duration?: number
-	allow_multiselect: boolean
+	allow_multiselect?: boolean
 }
 
 type WebhookPollAnswers = {
@@ -65,111 +65,166 @@ type WebhookPollAnswers = {
 	}
 }
 
-export const generateWebhookOptions = (): InputFieldWithDefault[] => {
-	const embed: InputFieldWithDefault[] = [
+export type WebhookActionValues = {
+	url: string
+	useCustomBody: boolean
+	customBody?: string | WebhookBody
+	username?: string
+	avatarURL?: string
+	content?: string
+	embed?: boolean
+	embed1Color?: number
+	embed1AuthorName?: string
+	embed1AuthorURL?: string
+	embed1AuthorIconURL?: string
+	embed1Title?: string
+	embed1URL?: string
+	embed1Description?: string
+	embed1Fields?: number
+	embed1ThumbnailURL?: string
+	embed1ImageURL?: string
+	embed1Footer?: string
+	embed1FooterIconURL?: string
+	embed1Timestamp?: string
+	poll?: boolean
+	pollQuestion?: string
+	pollMultiSelect?: boolean
+	pollAnswers?: number
+	tts?: boolean
+	allowedMentions?: boolean
+	allowedMentionsParse?: string
+	allowedMentionsUsers?: string
+	allowedMentionsRoles?: string
+} & {
+	[Key in `embed1Field${IntRange<1, 26>}Name` | `embed1Field${IntRange<1, 26>}Value` | `pollAnswer${IntRange<1, 11>}`]?: string
+} & {
+	[Key in `embed1Field${IntRange<1, 26>}Inline`]?: boolean
+}
+
+type WebhookActionInputField = SomeCompanionActionInputField<keyof WebhookActionValues>
+
+const webhookExample: WebhookBody = {
+	username: 'bitfocus companion',
+	avatar_url: 'https://bitfocus.io/assets/products/companion/companion.png',
+	content: 'message',
+	embeds: [
+		{
+			color: 0xff0000,
+			author: { name: 'embed 1 author name', url: 'http://embed1.avatar.url/', icon_url: 'http://embed1.avatar.icon.url/' },
+			title: 'embed 1 title',
+			url: 'http://embed1.title.url',
+			description: 'embed 1 description',
+			fields: [{ name: 'embed 1 field 1 name', value: 'embed 1 field 1 value', inline: false }],
+			thumbnail: { url: 'http://embed1.thumbnail.url/' },
+			image: { url: 'http://embed1.image.url/' },
+			footer: { text: 'embed 1 footer text', icon_url: 'http://embed1.footer.icon.url/' },
+			timestamp: '2025-12-31T12:00:00.000Z',
+		},
+	],
+	tts: false,
+}
+
+export const generateWebhookOptions = (): WebhookActionInputField[] => {
+	const embed: WebhookActionInputField[] = [
 		{
 			type: 'checkbox',
 			label: 'Embed',
 			tooltip: 'Enable to show Embed related options',
 			id: 'embed',
 			default: false,
-			isVisibleExpression: `!$(options:useCustomBody)`,
+			isVisibleExpression: `!$(options:useCustomBody) && !$(options:poll)`,
+			disableAutoExpression: true,
 		},
 		{
 			type: 'colorpicker',
 			label: 'Embed Color',
 			id: 'embed1Color',
 			default: 0,
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Author Name',
 			id: 'embed1AuthorName',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Author URL',
 			id: 'embed1AuthorURL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1AuthorName) !== ''`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Author Icon URL',
 			id: 'embed1AuthorIconURL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1AuthorName) !== ''`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Title',
 			id: 'embed1Title',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Title URL',
 			id: 'embed1URL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1Title) !== ''`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Description',
 			id: 'embed1Description',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
-			type: 'checkbox',
-			label: 'Fields',
-			tooltip: 'Enable to show Embed Field options',
+			type: 'dropdown',
+			label: 'Number of fields',
 			id: 'embed1Fields',
-			default: false,
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			default: 0,
+			choices: new Array(26).fill(0).map((_, i) => ({ id: i, label: i.toString() })),
+			disableAutoExpression: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 	]
 
 	for (let i = 1; i < 26; i++) {
-		let visibility = `!$(options:useCustomBody) && $(options:embed) === true && $(options:embed1Fields) === true`
-
-		if (i > 1) {
-			for (let j = 1; j < i; j++) {
-				visibility += ` && $(options:embed1Field${j}Name) !== ''`
-			}
-		}
+		const visibility = `!$(options:useCustomBody) && $(options:embed) && $(options:embed1Fields) >= ${i}`
 
 		embed.push(
 			{
 				type: 'textinput',
 				label: `Field ${i} Name`,
-				id: `embed1Field${i}Name`,
+				id: `embed1Field${i as IntRange<1, 26>}Name`,
 				default: '',
 				isVisibleExpression: visibility,
-				useVariables: { local: true },
+				useVariables: true,
 			},
 			{
 				type: 'textinput',
 				label: `Field ${i} Value`,
-				id: `embed1Field${i}Value`,
+				id: `embed1Field${i as IntRange<1, 26>}Value`,
 				default: '',
 				isVisibleExpression: visibility,
-				useVariables: { local: true },
+				useVariables: true,
 			},
 			{
 				type: 'checkbox',
 				label: `Field ${i} Inline`,
-				id: `embed1Field${i}Inline`,
+				id: `embed1Field${i as IntRange<1, 26>}Inline`,
 				default: false,
 				isVisibleExpression: visibility,
 			},
@@ -182,101 +237,113 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			label: 'Embed Thumbnail URL',
 			id: 'embed1ThumbnailURL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Embed Image URL',
 			id: 'embed1ImageURL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Embed Footer Text',
 			id: 'embed1Footer',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Embed Footer Icon URL',
 			id: 'embed1FooterIconURL',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 		{
 			type: 'textinput',
 			label: 'Embed Timestamp (2025-12-31T12:00:00.000Z format)',
 			id: 'embed1Timestamp',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed) === true`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
 		},
 	)
 
-	const poll: InputFieldWithDefault[] = [
+	const poll: WebhookActionInputField[] = [
 		{
 			type: 'checkbox',
 			label: 'Poll',
 			tooltip: 'Enable to show Poll related options',
 			id: 'poll',
 			default: false,
-			isVisibleExpression: `!$(options:useCustomBody)`,
+			isVisibleExpression: `!$(options:useCustomBody) && !$(options:embed)`,
+			disableAutoExpression: true,
 		},
 		{
 			type: 'textinput',
 			label: 'Poll Question',
 			id: 'pollQuestion',
 			default: '',
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
-			useVariables: { local: true },
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+			useVariables: true,
+		},
+		{
+			type: 'checkbox',
+			label: 'Allow multiple selections',
+			id: 'pollMultiSelect',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+		},
+		{
+			type: 'dropdown',
+			label: 'Number of answers',
+			id: 'pollAnswers',
+			default: 2,
+			choices: new Array(9).fill(0).map((_, i) => ({ id: i + 2, label: (i + 2).toString() })),
+			disableAutoExpression: true,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
 		},
 	]
 
 	for (let i = 1; i < 11; i++) {
-		let visibility = `!$(options:useCustomBody) && $(options:poll) === true`
-
-		if (i > 1) {
-			for (let j = 1; j < i; j++) {
-				visibility += ` && $(options:pollAnswer${j}) !== ''`
-			}
-		}
-
 		poll.push({
 			type: 'textinput',
 			label: `Poll Answer ${i}`,
-			id: `pollAnswer${i}`,
+			id: `pollAnswer${i as IntRange<1, 11>}`,
 			default: '',
-			isVisibleExpression: visibility,
-			useVariables: { local: true },
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) && $(options:pollAnswers) >= ${i}`,
+			useVariables: true,
 		})
 	}
 
-	const options: InputFieldWithDefault[] = [
+	const options: WebhookActionInputField[] = [
 		{
 			type: 'textinput',
 			label: 'Webhook URL',
 			id: 'url',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 		},
 		{
 			type: 'checkbox',
 			label: 'Use Custom Webhook Body',
 			id: 'useCustomBody',
 			default: false,
+			disableAutoExpression: true,
 		},
 		{
 			type: 'textinput',
 			label: 'Custom Webhook Body',
 			id: 'customBody',
-			default: '',
-			useVariables: { local: true },
+			description: 'Please prefer the expression view for better usability',
+			expressionDescription: '',
+			default: JSON.stringify(webhookExample, null, 2),
+			useVariables: true,
 			isVisibleExpression: `$(options:useCustomBody)`,
 		},
 		{
@@ -285,7 +352,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Leave blank to use Webhook settings',
 			id: 'username',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
 		{
@@ -294,7 +361,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Leave blank to use Webhook settings',
 			id: 'avatarURL',
 			default: '',
-			useVariables: { local: true },
+			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
 		{
@@ -303,8 +370,8 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Up to 2000 characters',
 			id: 'content',
 			default: '',
-			useVariables: { local: true },
-			isVisibleExpression: `!$(options:useCustomBody)`,
+			useVariables: true,
+			isVisibleExpression: `!$(options:useCustomBody) && !$(options:poll)`,
 		},
 
 		...embed,
@@ -317,6 +384,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			id: 'tts',
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody)`,
+			disableAutoExpression: true,
 		},
 		{
 			type: 'checkbox',
@@ -325,6 +393,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			id: 'allowedMentions',
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody)`,
+			disableAutoExpression: true,
 		},
 		{
 			type: 'textinput',
@@ -332,7 +401,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Space separated, not to be used alongside Users, or Roles options',
 			id: 'allowedMentionsParse',
 			default: 'users',
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions) === true`,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
 		},
 		{
 			type: 'textinput',
@@ -340,7 +409,7 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Space separated',
 			id: 'allowedMentionsUsers',
 			default: '',
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions) === true`,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
 		},
 		{
 			type: 'textinput',
@@ -348,106 +417,14 @@ export const generateWebhookOptions = (): InputFieldWithDefault[] => {
 			tooltip: 'Space separated',
 			id: 'allowedMentionsRoles',
 			default: '',
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions) === true`,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
 		},
 	]
 
 	return options
 }
 
-export const webhookAction = async (instance: DiscordInstance, action: SendWebhookMessageCallback, context: CompanionActionContext): Promise<void> => {
-	const url = await context.parseVariablesInString(action.options.url as string)
-	const webhookBody: WebhookBody = {
-		username: '',
-		avatar_url: '',
-		embeds: [],
-		tts: action.options.tts as boolean,
-	}
-
-	if (!url) {
-		instance.log('warn', 'Invalid Webhook URL')
-		return
-	}
-
-	if (action.options.username) webhookBody.username = await context.parseVariablesInString(action.options.username as string)
-	if (action.options.avatarURL) webhookBody.avatar_url = await context.parseVariablesInString(action.options.avatarURL as string)
-	if (action.options.content) webhookBody.content = await context.parseVariablesInString(action.options.content as string)
-
-	if (action.options.embed) {
-		const embedOptions: WebhookEmbed = {
-			color: action.options[`embed1Color`] as number,
-			fields: [],
-		}
-
-		if (action.options[`embed1AuthorName`]) {
-			embedOptions.author = {
-				name: await context.parseVariablesInString(action.options[`embed1AuthorName`] as string),
-			}
-
-			if (action.options[`embed1AuthorURL`]) embedOptions.author.url = await context.parseVariablesInString(action.options[`embed1AuthorURL`] as string)
-			if (action.options[`embed1AuthorIconURL`]) embedOptions.author.icon_url = await context.parseVariablesInString(action.options[`embed1AuthorIconURL`] as string)
-		}
-
-		if (action.options[`embed1Title`]) embedOptions.title = await context.parseVariablesInString(action.options[`embed1Title`] as string)
-		if (action.options[`embed1URL`]) embedOptions.url = await context.parseVariablesInString(action.options[`embed1URL`] as string)
-		if (action.options[`embed1Description`]) embedOptions.description = await context.parseVariablesInString(action.options[`embed1Description`] as string)
-
-		if (action.options[`embed1Fields`]) {
-			let fieldCount = 1
-			for (let j = 1; j < 26; j++) {
-				if (j === fieldCount && action.options[`embed1Field${j}Name`]) {
-					embedOptions.fields.push({
-						name: await context.parseVariablesInString(action.options[`embed1Field${j}Name`] as string),
-						value: await context.parseVariablesInString(action.options[`embed1Field${j}Value`] as string),
-						inline: action.options[`embed1Field${j}Inline`] as boolean,
-					})
-
-					fieldCount++
-				}
-			}
-		}
-
-		if (action.options[`embed1ThumbnailURL`]) embedOptions.thumbnail = { url: await context.parseVariablesInString(action.options[`embed1ThumbnailURL`] as string) }
-		if (action.options[`embed1ImageURL`]) embedOptions.image = { url: await context.parseVariablesInString(action.options[`embed1ImageURL`] as string) }
-		if (action.options[`embed1Footer`]) {
-			embedOptions.footer = {
-				text: await context.parseVariablesInString(action.options[`embed1Footer`] as string),
-				icon_url: await context.parseVariablesInString(action.options[`embed1FooterIconURL`] as string),
-			}
-		}
-		if (action.options[`embed1Timestamp`]) embedOptions.timestamp = await context.parseVariablesInString(action.options[`embed1Timestamp`] as string)
-
-		if (JSON.stringify(embedOptions) !== '{}') webhookBody.embeds.push(embedOptions)
-	}
-
-	if (action.options.poll) {
-		webhookBody.poll = {
-			question: {
-				text: await context.parseVariablesInString(action.options.pollQuestion as string),
-			},
-			answers: [],
-			allow_multiselect: action.options.pollMultiSelect as boolean,
-		}
-
-		let answers = 1
-		for (let i = 1; i < 11; i++) {
-			if (i === answers && action.options[`pollAnswer${i}`]) {
-				webhookBody.poll.answers.push({ poll_media: { text: await context.parseVariablesInString(action.options[`pollAnswer${i}`] as string) } })
-				answers++
-			}
-		}
-	}
-
-	if (action.options.allowedMentions) {
-		webhookBody.allowed_mentions = {}
-		if (action.options.allowedMentionsParse) webhookBody.allowed_mentions.parse = (await context.parseVariablesInString(action.options.allowedMentionsParse as string)).split(' ')
-		if (action.options.allowedMentionsRoles) webhookBody.allowed_mentions.roles = (await context.parseVariablesInString(action.options.allowedMentionsRoles as string)).split(' ')
-		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = (await context.parseVariablesInString(action.options.allowedMentionsUsers as string)).split(' ')
-	}
-
-	instance.log('debug', `Sending Webhook message to ${url} with body:`)
-	instance.log('debug', JSON.stringify(webhookBody, null, 2))
-
+const sendWebhook = async (url: string, webhookBody: WebhookBody, instance: DiscordInstance) => {
 	await fetch(url, {
 		method: 'POST',
 		headers: {
@@ -460,7 +437,115 @@ export const webhookAction = async (instance: DiscordInstance, action: SendWebho
 			return ''
 		})
 		.then((res) => {
-			if (res) instance.log('warn', `Webhook err: ${res}`)
+			if (res) instance.logger.warn(`Webhook err: ${res}`)
 		})
-		.catch((err) => instance.log('warn', `Webhook err: ${err}`))
+		.catch((err) => instance.logger.warn(`Webhook err: ${err}`))
+}
+
+export const webhookAction = async (instance: DiscordInstance, action: CompanionActionEvent<WebhookActionValues>): Promise<void> => {
+	if (!action.options.url) {
+		instance.logger.warn('Invalid Webhook URL')
+		return
+	}
+
+	if (action.options.useCustomBody) {
+		let customBody: WebhookBody
+		if (typeof action.options.customBody === 'string') {
+			try {
+				customBody = JSON.parse(action.options.customBody)
+			} catch (err) {
+				instance.logger.warn(`Invalid custom webhook body JSON: ${err}`)
+				return
+			}
+		} else {
+			customBody = action.options.customBody ?? ({} as any)
+		}
+		return await sendWebhook(action.options.url, customBody, instance)
+	}
+
+	const webhookBody: WebhookBody = {
+		tts: action.options.tts as boolean,
+	}
+
+	if (action.options.username) webhookBody.username = action.options.username
+	if (action.options.avatarURL) webhookBody.avatar_url = action.options.avatarURL
+	if (action.options.content && !action.options.poll) webhookBody.content = action.options.content
+
+	if (action.options.embed) {
+		webhookBody.embeds = []
+		const embedOptions: WebhookEmbed = {
+			color: action.options[`embed1Color`] as number,
+			fields: [],
+		}
+
+		if (action.options[`embed1AuthorName`]) {
+			embedOptions.author = {
+				name: action.options[`embed1AuthorName`],
+			}
+
+			if (action.options[`embed1AuthorURL`]) embedOptions.author.url = action.options[`embed1AuthorURL`]
+			if (action.options[`embed1AuthorIconURL`]) embedOptions.author.icon_url = action.options[`embed1AuthorIconURL`]
+		}
+
+		if (action.options[`embed1Title`]) embedOptions.title = action.options[`embed1Title`]
+		if (action.options[`embed1URL`]) embedOptions.url = action.options[`embed1URL`]
+		if (action.options[`embed1Description`]) embedOptions.description = action.options[`embed1Description`]
+
+		if (action.options[`embed1Fields`]) {
+			let fieldCount = 1
+			for (let j = 1; j < 26; j++) {
+				if (j === fieldCount && action.options[`embed1Field${j as IntRange<1, 26>}Name`]) {
+					embedOptions.fields.push({
+						name: action.options[`embed1Field${j as IntRange<1, 26>}Name`] as string,
+						value: action.options[`embed1Field${j as IntRange<1, 26>}Value`] as string,
+						inline: action.options[`embed1Field${j as IntRange<1, 26>}Inline`] as boolean,
+					})
+
+					fieldCount++
+				}
+			}
+		}
+
+		if (action.options[`embed1ThumbnailURL`]) embedOptions.thumbnail = { url: action.options[`embed1ThumbnailURL`] }
+		if (action.options[`embed1ImageURL`]) embedOptions.image = { url: action.options[`embed1ImageURL`] }
+		if (action.options[`embed1Footer`]) {
+			embedOptions.footer = {
+				text: action.options[`embed1Footer`],
+				icon_url: action.options[`embed1FooterIconURL`] as string,
+			}
+		}
+		if (action.options[`embed1Timestamp`]) embedOptions.timestamp = action.options[`embed1Timestamp`]
+
+		if (JSON.stringify(embedOptions) !== '{}') webhookBody.embeds.push(embedOptions)
+	}
+
+	if (action.options.poll) {
+		webhookBody.poll = {
+			question: {
+				text: action.options.pollQuestion as string,
+			},
+			answers: [],
+			allow_multiselect: action.options.pollMultiSelect as boolean,
+		}
+
+		let answers = 1
+		for (let i = 1; i < 11; i++) {
+			if (i === answers && action.options[`pollAnswer${i as IntRange<1, 11>}`]) {
+				webhookBody.poll.answers.push({ poll_media: { text: action.options[`pollAnswer${i as IntRange<1, 11>}`] as string } })
+				answers++
+			}
+		}
+	}
+
+	if (action.options.allowedMentions) {
+		webhookBody.allowed_mentions = {}
+		if (action.options.allowedMentionsParse) webhookBody.allowed_mentions.parse = action.options.allowedMentionsParse.split(' ')
+		if (action.options.allowedMentionsRoles) webhookBody.allowed_mentions.roles = action.options.allowedMentionsRoles.split(' ')
+		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = action.options.allowedMentionsUsers.split(' ')
+	}
+
+	instance.logger.debug(`Sending Webhook message to ${action.options.url} with body:`)
+	instance.logger.debug(JSON.stringify(webhookBody, null, 2))
+
+	await sendWebhook(action.options.url, webhookBody, instance)
 }

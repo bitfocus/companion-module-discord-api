@@ -1,6 +1,6 @@
 import { SomeCompanionConfigField } from '@companion-module/base'
 
-export interface Config {
+export type Config = {
 	accessToken?: string
 	refreshToken?: string
 	clientID: string
