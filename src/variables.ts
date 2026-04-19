@@ -86,7 +86,7 @@ export class Variables {
 			volume: vUser.volume,
 		}))
 
-		const self = voiceUsers.find((e) => e.id === this.instance.discord.client.user.id)
+		const self = voiceUsers.find((e) => e.id === this.instance.discord.client.user?.id)
 		const selectedUser = voiceUsers.find((e) => e.id === this.instance.discord.data.selectedUser)
 
 		this.instance.setVariableValues({
