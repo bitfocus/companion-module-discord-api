@@ -301,6 +301,13 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			disableAutoExpression: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
 		},
+		{
+			type: 'checkbox',
+			label: 'Allow multiple selections',
+			id: 'pollMultiSelect',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+		},
 	]
 
 	for (let i = 1; i < 11; i++) {
