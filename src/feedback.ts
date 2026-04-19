@@ -289,7 +289,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 				{
 					type: 'dropdown',
 					label: 'Selected user ?',
-					tooltip: 'if true, use the selected user, otherise, use custom user',
+					tooltip: 'if true, use the selected user, otherwise, use custom user',
 					id: 'selected',
 					default: 'self',
 					disableAutoExpression: true,
