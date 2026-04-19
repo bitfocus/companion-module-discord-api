@@ -293,19 +293,19 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			useVariables: true,
 		},
 		{
+			type: 'checkbox',
+			label: 'Allow multiple selections',
+			id: 'pollMultiSelect',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+		},
+		{
 			type: 'dropdown',
 			label: 'Number of answers',
 			id: 'pollAnswers',
 			default: 2,
 			choices: new Array(9).fill(0).map((_, i) => ({ id: i + 2, label: (i + 2).toString() })),
 			disableAutoExpression: true,
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
-		},
-		{
-			type: 'checkbox',
-			label: 'Allow multiple selections',
-			id: 'pollMultiSelect',
-			default: false,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
 		},
 	]
