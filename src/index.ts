@@ -111,6 +111,7 @@ export default class DiscordInstance extends InstanceBase<Manifest> {
 		this.setActionDefinitions(actions)
 		this.setFeedbackDefinitions(feedbacks)
 		this.checkAllFeedbacks()
+		this.variables.updateDefinitions()
 		this.variables.updateVariables()
 	}
 

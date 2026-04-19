@@ -130,6 +130,5 @@ export class Variables {
 			video_camera_active: this.instance.discord.data.videoActive,
 			video_screen_share_active: this.instance.discord.data.screenShareActive,
 		})
-		this.updateDefinitions()
 	}
 }
