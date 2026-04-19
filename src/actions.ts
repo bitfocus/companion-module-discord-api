@@ -150,7 +150,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					type: 'dropdown',
 					label: 'Type',
 					id: 'type',
-					default: 'Set',
+					default: 'set',
 					choices: [
 						{ id: 'set', label: 'Set' },
 						{ id: 'increase', label: 'Increase' },
