@@ -46,21 +46,21 @@ export class Variables {
 	 */
 	public readonly updateDefinitions = (): void => {
 		this.instance.setVariableDefinitions({
-			channel: { name: 'Information of current connected voice channel' },
-			guild: { name: 'Information of current connected guild in a voice channel' },
+			channel: { name: 'Information about the currently connected voice channel' },
+			guild: { name: 'Information about the currently connected guild in a voice channel' },
 
-			voice_connection: { name: 'Stats of current current connection' },
-			voice_self: { name: 'Informations about your voice parameters' },
+			voice_connection: { name: 'Stats of the current connection' },
+			voice_self: { name: 'Information about your voice parameters' },
 
-			self: { name: 'Your id' },
-			user_selected: { name: 'Id of selected user' },
+			self: { name: 'Your ID' },
+			user_selected: { name: 'ID of the selected user' },
 
-			voice_user_self: { name: 'Informations about yourself' },
-			voice_user_selected: { name: 'Informations about the selected user' },
-			voice_users_by_index: { name: 'Informations about users by index' },
-			voice_users_by_id: { name: 'Informations about users by ID' },
-			voice_users_by_nick: { name: 'Informations about users by pseudo' },
-			voice_users_by_current_speaker: { name: 'Users Informations of currently speakers' },
+			voice_user_self: { name: 'Information about yourself' },
+			voice_user_selected: { name: 'Information about the selected user' },
+			voice_users_by_index: { name: 'Information about users by index' },
+			voice_users_by_id: { name: 'Information about users by ID' },
+			voice_users_by_nick: { name: 'Information about users by nickname' },
+			voice_users_by_current_speaker: { name: 'Information about currently speaking users' },
 
 			video_camera_active: { name: 'If your camera is active' },
 			video_screen_share_active: { name: 'If your screen share is active' },
