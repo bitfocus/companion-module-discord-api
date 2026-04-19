@@ -105,7 +105,7 @@ export class Variables {
 				hostname: this.instance.discord.data.voiceStatus.hostname,
 				ping: {
 					current: Math.round(this.instance.discord.data.voiceStatus.last_ping ?? -1),
-					average: this.instance.discord.data.voiceStatus.last_ping ? Math.round(this.instance.discord.data.voiceStatus.average_ping) : -1,
+					average: this.instance.discord.data.voiceStatus.last_ping != null ? Math.round(this.instance.discord.data.voiceStatus.average_ping) : -1,
 					min: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.round(Math.min(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value))) : -1,
 					max: this.instance.discord.data.voiceStatus.pings.length > 0 ? Math.round(Math.max(...this.instance.discord.data.voiceStatus.pings.map((ping: any) => ping.value))) : -1,
 				},
