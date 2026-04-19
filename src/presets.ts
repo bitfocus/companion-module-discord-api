@@ -14,7 +14,7 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 		{
 			id: 'users',
 			name: 'User Selection',
-			description: 'Select a user, and saw status of this one',
+			description: 'Select a user and see their status',
 			definitions: new Array(numberOfUserPresets)
 				.fill(0)
 				.map((_, i) => [`avatar${i}`, `select${i}`])
