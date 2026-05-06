@@ -1,7 +1,7 @@
 import { CompanionPresetDefinitions, CompanionPresetSection } from '@companion-module/base'
 import { type Manifest } from './index.js'
 
-const numberOfUserPresets = 9
+const numberOfUserPresets = 18
 
 export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPresetDefinitions<Manifest>] {
 	const structure: CompanionPresetSection<Manifest>[] = [
@@ -15,46 +15,97 @@ export function getPresets(): [CompanionPresetSection<Manifest>[], CompanionPres
 			id: 'users',
 			name: 'User Selection',
 			description: 'Select a user and see their status',
-			definitions: new Array(numberOfUserPresets)
-				.fill(0)
-				.map((_, i) => [`avatar${i}`, `select${i}`])
-				.flat()
-				.sort((a, b) => a.localeCompare(b)),
+			definitions: [
+				{
+					id: 'users.avatars',
+					type: 'simple',
+					name: 'Avatar of users',
+					description: 'Display the avatar and pseudo of user, and press this button to mute this one.',
+					presets: new Array(numberOfUserPresets)
+						.fill(0)
+						.map((_, i) => [`avatar${i}`])
+						.flat(),
+				},
+				{
+					id: 'users.styling',
+					type: 'simple',
+					name: 'Styling of users',
+					description: 'Display the styling (user state and headphone state) and pseudo of users, and press this button to select this one.',
+					presets: new Array(numberOfUserPresets)
+						.fill(0)
+						.map((_, i) => [`select${i}`])
+						.flat(),
+				},
+			],
 		},
 		{
 			id: 'voice_status',
 			name: 'Voice Status & User Control',
 			description: 'configure selected user mic and headphone (or yours) + guild and channel infos',
 			definitions: [
-				'guild_details',
-				'channel_details',
-
-				'self_volume_input_down',
-				'self_volume_input',
-				'self_volume_input_up',
-				'self_mute',
-
-				'self_volume_output_down',
-				'self_volume_output',
-				'self_volume_output_up',
-				'self_deaf',
-
-				'selected_volume_down',
-				'selected_volume',
-				'selected_volume_up',
-				'selected_mute',
-
-				'other_volume_down',
-				'other_volume',
-				'other_volume_up',
-				'other_mute',
+				{
+					id: 'voice_status.channel_details',
+					type: 'simple',
+					name: 'Channel & guild',
+					description: 'Display the name of the current channel, or guild and guild icon (the guild of the current channel).',
+					presets: ['guild_details', 'channel_details'],
+				},
+				{
+					id: 'voice_status.self_input',
+					type: 'simple',
+					name: 'Self input voice status',
+					description: 'Configure your mic, and see their status.',
+					presets: ['self_volume_input_down', 'self_volume_input', 'self_volume_input_up', 'self_mute'],
+				},
+				{
+					id: 'voice_status.self_output',
+					type: 'simple',
+					name: 'Self output voice status',
+					description: 'Configure your headphone, and see their status.',
+					presets: ['self_volume_output_down', 'self_volume_output', 'self_volume_output_up', 'self_deaf'],
+				},
+				{
+					id: 'voice_status.selected',
+					type: 'simple',
+					name: 'Selected voice status',
+					description: 'Configure mic, and see their status of selected user.',
+					presets: ['selected_volume_down', 'selected_volume', 'selected_volume_up', 'selected_mute'],
+				},
+				{
+					id: 'voice_status.other',
+					type: 'simple',
+					name: 'Other voice status',
+					description: 'Configure mic, and see their status of an other user. (configure wich user in local variables)',
+					presets: ['other_volume_down', 'other_volume', 'other_volume_up', 'other_mute'],
+				},
 			],
 		},
 		{
 			id: 'voice_control',
 			name: 'Voice Control',
 			description: 'push to talk, soundboard, etc... (red push to talk is not compatible with your discord parameters, to change: parameters -> voice & video -> push to talk)',
-			definitions: ['ptt', 'ptt_mic', 'soundboard', 'leave'],
+			definitions: [
+				{
+					id: 'voice_control.global',
+					type: 'simple',
+					name: '',
+					presets: ['soundboard', 'leave'],
+				},
+				{
+					id: 'voice_control.ptt',
+					type: 'simple',
+					name: 'Natif push to talk',
+					description: 'Use this one when push to talk is enabled in your discord options.',
+					presets: ['ptt'],
+				},
+				{
+					id: 'voice_control.ptt_mic',
+					type: 'simple',
+					name: 'Mic push to talk',
+					description: 'Use this one when push to talk is disabled in your discord options.',
+					presets: ['ptt_mic'],
+				},
+			],
 		},
 		{
 			id: 'video',
