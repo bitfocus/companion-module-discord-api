@@ -34,6 +34,7 @@ export default class DiscordInstance extends InstanceBase<Manifest> {
 		refreshToken: '',
 		speakerDelay: 100,
 		clearOAuth: false,
+		preV3: true,
 	}
 
 	public readonly variables = new Variables(this)
