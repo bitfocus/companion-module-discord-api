@@ -133,6 +133,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'embed',
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody) && !$(options:poll)`,
+			expressionDescription: `Valid type: boolean`,
 			disableAutoExpression: true,
 		},
 		{
@@ -141,6 +142,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'embed1Color',
 			default: 0,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: number (hex color)`,
 		},
 		{
 			type: 'textinput',
@@ -149,6 +151,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'textinput',
@@ -157,6 +160,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -165,6 +169,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -173,6 +178,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'textinput',
@@ -181,6 +187,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -189,6 +196,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'dropdown',
@@ -198,6 +206,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			choices: new Array(26).fill(0).map((_, i) => ({ id: i, label: i.toString() })),
 			disableAutoExpression: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid values: 0..25 (number of fields)`,
 		},
 	]
 
@@ -212,6 +221,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 				default: '',
 				isVisibleExpression: visibility,
 				useVariables: true,
+				expressionDescription: `Valid type: string`,
 			},
 			{
 				type: 'textinput',
@@ -220,6 +230,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 				default: '',
 				isVisibleExpression: visibility,
 				useVariables: true,
+				expressionDescription: `Valid type: string`,
 			},
 			{
 				type: 'checkbox',
@@ -227,6 +238,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 				id: `embed1Field${i as IntRange<1, 26>}Inline`,
 				default: false,
 				isVisibleExpression: visibility,
+				expressionDescription: `Valid type: boolean`,
 			},
 		)
 	}
@@ -239,6 +251,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -247,6 +260,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -255,6 +269,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'textinput',
@@ -263,6 +278,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -271,6 +287,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:embed)`,
+			expressionDescription: `Valid type: string (ISO timestamp like "2025-12-31T12:00:00.000Z")`,
 		},
 	)
 
@@ -282,6 +299,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'poll',
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody) && !$(options:embed)`,
+			expressionDescription: `Valid type: boolean`,
 			disableAutoExpression: true,
 		},
 		{
@@ -291,6 +309,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
 			useVariables: true,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'checkbox',
@@ -298,6 +317,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'pollMultiSelect',
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+			expressionDescription: `Valid type: boolean`,
 		},
 		{
 			type: 'dropdown',
@@ -307,6 +327,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			choices: new Array(9).fill(0).map((_, i) => ({ id: i + 2, label: (i + 2).toString() })),
 			disableAutoExpression: true,
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll)`,
+			expressionDescription: `Valid values: 2..10 (number of answers)`,
 		},
 	]
 
@@ -318,6 +339,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) && $(options:pollAnswers) >= ${i}`,
 			useVariables: true,
+			expressionDescription: `Valid type: string`,
 		})
 	}
 
@@ -328,12 +350,14 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'url',
 			default: '',
 			useVariables: true,
+			expressionDescription: `Valid type: string (Webhook URL)`,
 		},
 		{
 			type: 'checkbox',
 			label: 'Use Custom Webhook Body',
 			id: 'useCustomBody',
 			default: false,
+			expressionDescription: `Valid type: boolean`,
 			disableAutoExpression: true,
 		},
 		{
@@ -341,7 +365,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			label: 'Custom Webhook Body',
 			id: 'customBody',
 			description: 'Please prefer the expression view for better usability',
-			expressionDescription: '',
+			expressionDescription: `Valid type: string (JSON) or JsonObject`,
 			default: JSON.stringify(webhookExample, null, 2),
 			useVariables: true,
 			isVisibleExpression: `$(options:useCustomBody)`,
@@ -354,6 +378,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
+			expressionDescription: `Valid type: string`,
 		},
 		{
 			type: 'textinput',
@@ -363,6 +388,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody)`,
+			expressionDescription: `Valid type: string (URL)`,
 		},
 		{
 			type: 'textinput',
@@ -372,6 +398,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: '',
 			useVariables: true,
 			isVisibleExpression: `!$(options:useCustomBody) && !$(options:poll)`,
+			expressionDescription: `Valid type: string (max 2000 chars)`,
 		},
 
 		...embed,
@@ -385,6 +412,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 			disableAutoExpression: true,
+			expressionDescription: `Valid type: boolean`,
 		},
 		{
 			type: 'checkbox',
@@ -394,6 +422,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			default: false,
 			isVisibleExpression: `!$(options:useCustomBody)`,
 			disableAutoExpression: true,
+			expressionDescription: `Valid type: boolean`,
 		},
 		{
 			type: 'textinput',
@@ -402,6 +431,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'allowedMentionsParse',
 			default: 'users',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
+			expressionDescription: `Valid type: string (space separated roles IDs)`,
 		},
 		{
 			type: 'textinput',
@@ -410,6 +440,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'allowedMentionsUsers',
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
+			expressionDescription: `Valid type: string (space separated users IDs)`,
 		},
 		{
 			type: 'textinput',
@@ -418,6 +449,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 			id: 'allowedMentionsRoles',
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody) && $(options:allowedMentions)`,
+			expressionDescription: `Valid type: string (space separated roles IDs)`,
 		},
 	]
 

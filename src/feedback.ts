@@ -35,6 +35,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 							tooltip: 'User ID, name#discriminator, nick, or index',
 							id: 'user',
 							default: 'Self',
+							expressionDescription: `Valid type: string`,
 						},
 					],
 					callback: async (feedback): Promise<CompanionAdvancedFeedbackResult> => {
@@ -135,6 +136,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						{ id: 'PUSH_TO_TALK', label: 'Push To Talk' },
 						{ id: 'VOICE_ACTIVITY', label: 'Voice Activity' },
 					],
+					expressionDescription: `Valid values: "PUSH_TO_TALK", "VOICE_ACTIVITY"`,
 				},
 			],
 			defaultStyle: {
@@ -172,6 +174,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			defaultStyle: {
@@ -205,6 +208,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			defaultStyle: {
@@ -237,6 +241,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			defaultStyle: {
@@ -268,6 +273,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					id: 'channel',
 					default: '0',
 					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedVoiceChannelChoices() || [])],
+					expressionDescription: `Valid values: "<channelId>"`,
 				},
 			],
 			defaultStyle: {
@@ -291,6 +297,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					tooltip: 'User ID, name#discriminator, nick, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			defaultStyle: {
@@ -358,6 +365,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						{ id: 'mix', label: 'User mic and headphone' },
 					],
 					disableAutoExpression: true,
+					expressionDescription: `Valid values: "guild", "avatar", "mic", "headphone", "mix"`,
 				},
 				{
 					type: 'dropdown',
@@ -372,6 +380,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 						{ id: 'self', label: 'Self user' },
 						{ id: 'custom', label: 'Custom user' },
 					],
+					expressionDescription: `Valid values: "selected", "self", "custom"`,
 				},
 				{
 					type: 'textinput',
@@ -381,6 +390,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 					id: 'user',
 					default: '',
 					isVisibleExpression: `$(options:content) !== 'guild' && $(options:selected) === 'custom'`,
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			callback: async (feedback): Promise<CompanionAdvancedFeedbackResult> => {

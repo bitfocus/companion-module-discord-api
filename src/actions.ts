@@ -63,6 +63,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'mute', label: 'Mute' },
 						{ id: 'unmute', label: 'Unmute' },
 					],
+					expressionDescription: `Valid values: "toggle", "mute", "unmute"`,
 				},
 			],
 			callback: async (action) => {
@@ -93,6 +94,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'deafen', label: 'Deafen' },
 						{ id: 'undeafen', label: 'unDeafen' },
 					],
+					expressionDescription: `Valid values: "toggle", "deafen", "undeafen"`,
 				},
 			],
 			callback: async (action) => {
@@ -116,6 +118,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'increase', label: 'Increase' },
 						{ id: 'decrease', label: 'Decrease' },
 					],
+					expressionDescription: `Valid values: "set", "increase", "decrease"`,
 				},
 				{
 					type: 'number',
@@ -124,6 +127,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					default: 100,
 					min: 0,
 					max: 100,
+					expressionDescription: `Valid type: number (0-100)`,
 				},
 			],
 			callback: async (action) => {
@@ -156,6 +160,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'increase', label: 'Increase' },
 						{ id: 'decrease', label: 'Decrease' },
 					],
+					expressionDescription: `Valid values: "set", "increase", "decrease"`,
 				},
 				{
 					type: 'number',
@@ -164,6 +169,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					default: 100,
 					min: 0,
 					max: 200,
+					expressionDescription: `Valid type: number (0-200)`,
 				},
 			],
 			callback: (action) => {
@@ -194,6 +200,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'PUSH_TO_TALK', label: 'Push to Talk' },
 						{ id: 'VOICE_ACTIVITY', label: 'Voice Activity' },
 					],
+					expressionDescription: `Valid values: "toggle", "PUSH_TO_TALK", "VOICE_ACTIVITY"`,
 				},
 			],
 			callback: async (action) => {
@@ -216,6 +223,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					label: 'Active',
 					id: 'active',
 					default: true,
+					expressionDescription: `Valid type: boolean`,
 				},
 			],
 			callback: async (action) => {
@@ -233,6 +241,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					id: 'sound',
 					default: '0',
 					choices: [{ id: '0', label: 'Select Sound' }, ...(instance.discord.sortedSoundboardChioces() || [])],
+					expressionDescription: `Valid values: "<guildId>:<soundId>"`,
 				},
 			],
 			callback: async (action) => {
@@ -274,6 +283,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'mute', label: 'Mute' },
 						{ id: 'unmute', label: 'Unmute' },
 					],
+					expressionDescription: `Valid values: "toggle", "mute", "unmute"`,
 				},
 				{
 					type: 'textinput',
@@ -282,6 +292,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			callback: async (action) => {
@@ -312,6 +323,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 						{ id: 'increase', label: 'Increase' },
 						{ id: 'decrease', label: 'Decrease' },
 					],
+					expressionDescription: `Valid values: "set", "increase", "decrease"`,
 				},
 				{
 					type: 'number',
@@ -320,6 +332,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					default: 100,
 					min: 0,
 					max: 100,
+					expressionDescription: `Valid type: number (0-100)`,
 				},
 				{
 					type: 'textinput',
@@ -328,6 +341,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			callback: async (action) => {
@@ -358,6 +372,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'User ID, username, display name, or index',
 					id: 'user',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 			],
 			callback: async (action) => {
@@ -380,6 +395,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					id: 'channel',
 					default: '0',
 					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedVoiceChannelChoices() || [])],
+					expressionDescription: `Valid values: "<channelId>"`,
 				},
 				{
 					type: 'checkbox',
@@ -387,6 +403,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'When enabled allows for changing voice channels while already connected to one',
 					id: 'force',
 					default: true,
+					expressionDescription: `Valid type: boolean`,
 				},
 				{
 					type: 'checkbox',
@@ -394,6 +411,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'When enabled allows for changing voice channels while already connected to one',
 					id: 'leave',
 					default: true,
+					expressionDescription: `Valid type: boolean`,
 				},
 			],
 			callback: async (action) => {
@@ -426,6 +444,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					id: 'channel',
 					default: '0',
 					choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedTextChannelChoices() || [])],
+					expressionDescription: `Valid values: "<channelId>"`,
 				},
 			],
 			callback: async (action) => {
@@ -474,6 +493,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'Line 1 of text',
 					id: 'details',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
@@ -481,6 +501,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'Line 2 of text',
 					id: 'state',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
@@ -488,12 +509,14 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'Must match an art asset uploaded to your Discord Developer console',
 					id: 'imgLarge',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
 					label: 'Large Image Text',
 					id: 'imgLargeText',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
@@ -501,42 +524,49 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 					tooltip: 'Must match an art asset uploaded to your Discord Developer console',
 					id: 'imgSmall',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
 					label: 'Small Image Text',
 					id: 'imgSmallText',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
 					label: 'Button 1 Text',
 					id: 'button1Label',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
 					label: 'Button 1 URL',
 					id: 'button1URL',
 					default: '',
+					expressionDescription: `Valid type: string (URL)`,
 				},
 				{
 					type: 'textinput',
 					label: 'Button 2 Text',
 					id: 'button2Label',
 					default: '',
+					expressionDescription: `Valid type: string`,
 				},
 				{
 					type: 'textinput',
 					label: 'Button 2 URL',
 					id: 'button2URL',
 					default: '',
+					expressionDescription: `Valid type: string (URL)`,
 				},
 				{
 					type: 'checkbox',
 					label: 'Show Start Time',
 					id: 'startTime',
 					default: true,
+					expressionDescription: `Valid type: boolean`,
 				},
 			],
 			callback: async (action) => {
