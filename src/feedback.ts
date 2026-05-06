@@ -21,78 +21,6 @@ export type DiscordFeedbacks = {
 }
 
 export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefinitions<Manifest['feedbacks']> {
-	const preV3: CompanionFeedbackDefinitions<{ voiceStyling?: CompanionFeedbackSchema<{ user: string }> }> = instance.config.preV3
-		? {
-				voiceStyling: {
-					type: 'advanced',
-					name: 'Deprecated - Voice - Styled Voice Status',
-					description:
-						'PNG styled mute/deaf/speaking status. This feedback is deprecated, please replace it by a "Content background" feedback with the content "User mic and headphone" instead.',
-					options: [
-						{
-							type: 'textinput',
-							label: 'user',
-							tooltip: 'User ID, name#discriminator, nick, or index',
-							id: 'user',
-							default: 'Self',
-							expressionDescription: `Valid type: string`,
-						},
-					],
-					callback: async (feedback): Promise<CompanionAdvancedFeedbackResult> => {
-						if (!feedback.image) return {}
-
-						const self = feedback.options.user.toLowerCase() === 'self'
-						let mute: 'mic1' | 'mic2' | 'mic3' | 'mic4' | 'mic5' = 'mic1'
-						let deaf: 'headset1' | 'headset2' | 'headset3' | 'headset4' = 'headset1'
-
-						// 0 = unmuted, 1 = muted other, 2 = server mute, 3 = self mute/suppressed
-
-						const voiceUser = instance.discord.sortedVoiceUsers().find((voiceState: any, index: number) => {
-							if (!isNaN(parseInt(feedback.options.user, 10)) && parseInt(feedback.options.user, 10) === index) return true
-
-							if (self) return voiceState.user.id === instance.discord.client.user.id
-							return (
-								feedback.options.user === voiceState.user.id ||
-								feedback.options.user === `${voiceState.user.username}#${voiceState.user.discriminator}` ||
-								feedback.options.user === voiceState.nick
-							)
-						})
-
-						if (voiceUser) {
-							if (voiceUser.voice_state.self_mute || voiceUser.voice_state.suppress) mute = 'mic2'
-							if (voiceUser.mute) mute = 'mic3'
-							if (instance.discord.data.speaking.has(voiceUser.user.id)) mute = 'mic5'
-							if (voiceUser.voice_state.mute) mute = 'mic4'
-							if (voiceUser.voice_state.self_deaf) deaf = 'headset2'
-							if (voiceUser.voice_state.deaf) deaf = 'headset4'
-
-							const micIcon = graphics.icon({
-								width: feedback.image.width,
-								height: feedback.image.height,
-								type: mute,
-								offsetX: 13,
-								offsetY: feedback.image.height === 72 ? 38 : 24,
-							})
-
-							const headsetIcon = graphics.icon({
-								width: feedback.image.width,
-								height: feedback.image.height,
-								type: deaf,
-								offsetX: 35,
-								offsetY: feedback.image.height === 72 ? 38 : 24,
-							})
-
-							return {
-								imageBuffer: (graphics.stackImage([micIcon, headsetIcon]) as any).toString('base64'),
-							}
-						}
-
-						return {}
-					},
-				},
-			}
-		: {}
-
 	return {
 		selfMute: {
 			type: 'boolean',
@@ -506,7 +434,5 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 				}
 			},
 		},
-
-		...preV3,
 	}
 }

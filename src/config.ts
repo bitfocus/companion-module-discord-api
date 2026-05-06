@@ -62,24 +62,21 @@ export const getConfigFields = (): SomeCompanionConfigField[] => {
 		},
 		{
 			type: 'static-text',
-			id: 'info2',
+			id: 'infoPreV3',
 			width: 12,
-			label: 'Information2',
+			label: 'Pre v3 API compatibility',
 			value: `
-                    <br />
-                ---
-                    <br /><br />
-                Pre-v3 variables and feedback are kept for compatibility with existing setups.
+                Pre-v3 variables are kept for compatibility with existing setups.
                     <br />
                 For new or updated setups, please disable the next option.
-                When disabled, every pre-v3 option in this module is automatically disabled, but when enabled, all pre v3 options are removed.
+                When disabled, every pre-v3 variable in this module is automatically disabled, but when enabled, all pre-v3 variable are added.
                     <br /><br />
                 This is to allow users to transition at their own pace, and to allow users to keep using their existing setups without having to update them immediately.
             `,
 		},
 		{
 			type: 'checkbox',
-			label: 'Add pre v3 api structure',
+			label: 'Add pre v3 variables structure',
 			id: 'preV3',
 			width: 12,
 			default: true,
