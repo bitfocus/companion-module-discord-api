@@ -278,8 +278,8 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 
 		showImageContent: {
 			type: 'advanced',
-			name: 'Content background',
-			description: 'Use content as background (Guild icon, user avatar, user mic or user headphone)',
+			name: 'Content background (of current voice channel)',
+			description: 'Use content of current voice channel as background (Guild icon, user avatar, user mic or user headphone)',
 			options: [
 				{
 					type: 'dropdown',
