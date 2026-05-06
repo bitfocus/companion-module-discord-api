@@ -26,7 +26,7 @@ export default class DiscordInstance extends InstanceBase<Manifest> {
 	}
 
 	public discord: Discord = new Discord(this)
-	public logger = createModuleLogger('Discord')
+	public logger = createModuleLogger('DiscordInstance')
 
 	public config: Config = {
 		clientID: '',

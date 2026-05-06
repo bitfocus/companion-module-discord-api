@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions, CompanionActionSchema, JsonObject } from '@companion-module/base'
+import { CompanionActionDefinitions, CompanionActionSchema, createModuleLogger, JsonObject } from '@companion-module/base'
 import { type UserVoiceSettings } from '@distdev/discord-ipc'
 import { RichPresence } from './client.js'
 import DiscordInstance, { Manifest } from './index.js'
@@ -46,6 +46,8 @@ export type DiscordActions = {
 	clearRichPresence: CompanionActionSchema<JsonObject>
 	sendWebhookMessage: CompanionActionSchema<WebhookActionValues>
 }
+
+const logger = createModuleLogger('Actions')
 
 export function getActions(instance: DiscordInstance): CompanionActionDefinitions<Manifest['actions']> {
 	return {
@@ -207,7 +209,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				let voiceMode = action.options.mode
 				if (voiceMode === 'toggle') voiceMode = instance.discord.data.userVoiceSettings!.mode.type === 'PUSH_TO_TALK' ? 'VOICE_ACTIVITY' : 'PUSH_TO_TALK'
 
-				instance.logger.debug(`Setting Input Mode: ${voiceMode}`)
+				logger.debug(`Setting Input Mode: ${voiceMode}`)
 				instance.discord.data.userVoiceSettings = await instance.discord.client.setVoiceSettings({ mode: { type: voiceMode } } as Partial<UserVoiceSettings>)
 				instance.checkFeedbacks('selfInputMode')
 			},
@@ -227,7 +229,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				},
 			],
 			callback: async (action) => {
-				instance.logger.debug(`PTT: ${action.options.active}`)
+				logger.debug(`PTT: ${action.options.active}`)
 				await instance.discord.client.setPushToTalk(action.options.active).then()
 			},
 		},
@@ -249,16 +251,16 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				if (instance.discord.data.voiceChannel) {
 					const [guild_id, sound_id] = action.options.sound.split(':')
-					instance.logger.debug(`Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
+					logger.debug(`Playing Soundboard - Guild ID ${guild_id} - Sound ID ${sound_id}`)
 
 					return instance.discord.client
 						.playSoundboardSound(guild_id, sound_id)
 						.catch((err) => {
 							if (err?.data) {
-								instance.logger.warn(`Error playing Soundboard: ${JSON.stringify(err.data)}`)
+								logger.warn(`Error playing Soundboard: ${JSON.stringify(err.data)}`)
 							} else {
-								instance.logger.warn('Error playing Soundboard')
-								instance.logger.debug(err)
+								logger.warn('Error playing Soundboard')
+								logger.debug(err)
 							}
 						})
 						.then()
@@ -461,9 +463,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			options: [],
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
-					instance.logger.debug(`Toggling Camera`)
+					logger.debug(`Toggling Camera`)
 					await instance.discord.client.toggleVideo().catch((err) => {
-						instance.logger.warn(`Error toggling camera: ${err}`)
+						logger.warn(`Error toggling camera: ${err}`)
 					})
 				}
 			},
@@ -473,9 +475,9 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			options: [],
 			callback: async () => {
 				if (instance.discord.data.voiceChannel) {
-					instance.logger.debug(`Toggling Screen sharing`)
+					logger.debug(`Toggling Screen sharing`)
 					await instance.discord.client.toggleScreenshare().catch((err) => {
-						instance.logger.warn(`Error toggling screen sharing: ${err}`)
+						logger.warn(`Error toggling screen sharing: ${err}`)
 					})
 				}
 			},
@@ -576,7 +578,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 				}
 
 				if (!action.options.state || !action.options.details) {
-					instance.logger.warn('Discord Rich Presence must have a State and Details')
+					logger.warn('Discord Rich Presence must have a State and Details')
 					return
 				}
 
@@ -600,7 +602,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 
 				if (action.options.startTime) activity.startTimestamp = new Date()
 
-				instance.logger.debug(`Setting activity: ${JSON.stringify(activity)}`)
+				logger.debug(`Setting activity: ${JSON.stringify(activity)}`)
 
 				return instance.discord.client.setActivity(activity).then()
 			},
@@ -610,7 +612,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			description: 'Clears the Activity set by this connection',
 			options: [],
 			callback: async () => {
-				instance.logger.debug('Clearing activity')
+				logger.debug('Clearing activity')
 				return instance.discord.client.clearActivity().then()
 			},
 		},
@@ -618,7 +620,7 @@ export function getActions(instance: DiscordInstance): CompanionActionDefinition
 			name: 'Webhooks - Send Webhook Message',
 			description: 'Sends a message to a Webhook URL set up on a Discord Channel',
 			options: generateWebhookOptions(),
-			callback: async (action) => webhookAction(instance, action),
+			callback: async (action) => webhookAction(action),
 		},
 		//endregion
 	}

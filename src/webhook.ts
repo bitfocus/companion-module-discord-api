@@ -1,6 +1,7 @@
-import type DiscordInstance from './index.js'
-import { CompanionActionEvent, SomeCompanionActionInputField } from '@companion-module/base'
+import { CompanionActionEvent, createModuleLogger, SomeCompanionActionInputField } from '@companion-module/base'
 import { IntRange } from './utils.js'
+
+const logger = createModuleLogger('WebhookAction')
 
 type WebhookBody = {
 	username?: string
@@ -456,7 +457,7 @@ export const generateWebhookOptions = (): WebhookActionInputField[] => {
 	return options
 }
 
-const sendWebhook = async (url: string, webhookBody: WebhookBody, instance: DiscordInstance) => {
+const sendWebhook = async (url: string, webhookBody: WebhookBody) => {
 	await fetch(url, {
 		method: 'POST',
 		headers: {
@@ -469,14 +470,14 @@ const sendWebhook = async (url: string, webhookBody: WebhookBody, instance: Disc
 			return ''
 		})
 		.then((res) => {
-			if (res) instance.logger.warn(`Webhook err: ${res}`)
+			if (res) logger.warn(`Webhook err: ${res}`)
 		})
-		.catch((err) => instance.logger.warn(`Webhook err: ${err}`))
+		.catch((err) => logger.warn(`Webhook err: ${err}`))
 }
 
-export const webhookAction = async (instance: DiscordInstance, action: CompanionActionEvent<WebhookActionValues>): Promise<void> => {
+export const webhookAction = async (action: CompanionActionEvent<WebhookActionValues>): Promise<void> => {
 	if (!action.options.url) {
-		instance.logger.warn('Invalid Webhook URL')
+		logger.warn('Invalid Webhook URL')
 		return
 	}
 
@@ -486,13 +487,13 @@ export const webhookAction = async (instance: DiscordInstance, action: Companion
 			try {
 				customBody = JSON.parse(action.options.customBody)
 			} catch (err) {
-				instance.logger.warn(`Invalid custom webhook body JSON: ${err}`)
+				logger.warn(`Invalid custom webhook body JSON: ${err}`)
 				return
 			}
 		} else {
 			customBody = action.options.customBody ?? ({} as any)
 		}
-		return await sendWebhook(action.options.url, customBody, instance)
+		return await sendWebhook(action.options.url, customBody)
 	}
 
 	const webhookBody: WebhookBody = {
@@ -576,8 +577,8 @@ export const webhookAction = async (instance: DiscordInstance, action: Companion
 		if (action.options.allowedMentionsUsers) webhookBody.allowed_mentions.users = action.options.allowedMentionsUsers.split(' ')
 	}
 
-	instance.logger.debug(`Sending Webhook message to ${action.options.url} with body:`)
-	instance.logger.debug(JSON.stringify(webhookBody, null, 2))
+	logger.debug(`Sending Webhook message to ${action.options.url} with body:`)
+	logger.debug(JSON.stringify(webhookBody, null, 2))
 
-	await sendWebhook(action.options.url, webhookBody, instance)
+	await sendWebhook(action.options.url, webhookBody)
 }

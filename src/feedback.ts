@@ -1,6 +1,6 @@
 import DiscordInstance, { Manifest } from './index.js'
 import { graphics } from 'companion-module-utils'
-import { CompanionAdvancedFeedbackResult, CompanionFeedbackDefinitions, CompanionFeedbackSchema, JsonObject } from '@companion-module/base'
+import { CompanionAdvancedFeedbackResult, CompanionFeedbackDefinitions, CompanionFeedbackSchema, createModuleLogger, JsonObject } from '@companion-module/base'
 import { scaleIconBuffer, urlToPng64 } from './utilFetchImage.js'
 
 export type DiscordFeedbacks = {
@@ -19,6 +19,8 @@ export type DiscordFeedbacks = {
 
 	voiceStyling?: CompanionFeedbackSchema<{ user: string }>
 }
+
+const logger = createModuleLogger('Feedbacks')
 
 export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefinitions<Manifest['feedbacks']> {
 	return {
@@ -335,7 +337,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 
 						return { png64 }
 					} catch (error) {
-						instance.logger.warn(`Failed to convert guild icon: ${error}`)
+						logger.warn(`Failed to convert guild icon: ${error}`)
 						return {}
 					}
 				}
@@ -376,7 +378,7 @@ export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefini
 
 							return { png64 }
 						} catch (error) {
-							instance.logger.warn(`Failed to convert user avatar: ${error}`)
+							logger.warn(`Failed to convert user avatar: ${error}`)
 							return {}
 						}
 					}
