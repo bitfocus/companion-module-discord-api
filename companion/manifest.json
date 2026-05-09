@@ -28,5 +28,6 @@
 	"keywords": [
 		"Software",
 		"Chat"
-	]
+	],
+    "$schema": "../node_modules/@companion-module/base/assets/manifest.schema.json"
 }

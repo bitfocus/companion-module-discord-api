@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
     "target": "es2019",
     "strict": true,
     "alwaysStrict": false,
@@ -13,7 +13,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "sourceMap": false,
     "outDir": "dist",
@@ -26,7 +26,7 @@
     "listFiles": false,
     "traceResolution": false,
     "pretty": true,
-    "lib": ["es6", "es2019"],
+    "lib": ["es6", "esnext"],
     "types": ["node"],
     "typeRoots": ["./node_modules/@types", "./types"],
     "esModuleInterop": true

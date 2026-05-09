@@ -1,15 +1,14 @@
 import { CompanionStaticUpgradeResult, CompanionStaticUpgradeScript } from '@companion-module/base'
-import { Config } from './config'
+import { Manifest } from './index.js'
 
-const upgradeV1_5_0: CompanionStaticUpgradeScript<Config> = (_context, props): CompanionStaticUpgradeResult<Config> => {
-	const actions: any = props.actions
-	const changes: CompanionStaticUpgradeResult<Config> = {
+const upgradeV1_5_0: CompanionStaticUpgradeScript<Manifest['config']> = (_context, props): CompanionStaticUpgradeResult<Manifest['config'], Manifest['secrets']> => {
+	const changes: CompanionStaticUpgradeResult<Manifest['config'], Manifest['secrets']> = {
 		updatedConfig: null,
 		updatedActions: [],
 		updatedFeedbacks: [],
 	}
 
-	actions.forEach((action: any) => {
+	props.actions.forEach((action) => {
 		if (action.actionId === 'clearRichPresnce') {
 			action.actionId = 'clearRichPresence'
 			changes.updatedActions.push(action)
@@ -18,7 +17,26 @@ const upgradeV1_5_0: CompanionStaticUpgradeScript<Config> = (_context, props): C
 
 	return changes
 }
+const upgradeV1_6_0: CompanionStaticUpgradeScript<Manifest['config']> = (_context, props): CompanionStaticUpgradeResult<Manifest['config'], Manifest['secrets']> => {
+	const changes: CompanionStaticUpgradeResult<Manifest['config'], Manifest['secrets']> = {
+		updatedConfig: null,
+		updatedSecrets: null,
+		updatedActions: [],
+		updatedFeedbacks: [],
+	}
 
-export const getUpgrades = (): CompanionStaticUpgradeScript<Config>[] => {
-	return [upgradeV1_5_0]
+	props.feedbacks.forEach((feedback) => {
+		if (feedback.feedbackId === 'voiceStyling') {
+			feedback.feedbackId = 'showImageContent'
+			feedback.options.content = { isExpression: false, value: 'mix' }
+			feedback.options.selected = { isExpression: false, value: 'custom' }
+			changes.updatedFeedbacks.push(feedback)
+		}
+	})
+
+	return changes
+}
+
+export const getUpgrades = (): CompanionStaticUpgradeScript<Manifest['config']>[] => {
+	return [upgradeV1_5_0, upgradeV1_6_0]
 }

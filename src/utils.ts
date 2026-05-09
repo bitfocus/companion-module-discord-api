@@ -21,3 +21,9 @@ export const createUUID = (): string => {
 	}
 	return uuid
 }
+
+// Range [0, N)
+export type Range<N extends number, T extends unknown[] = []> = T['length'] extends N ? never : T['length'] | Range<N, [...T, unknown]>
+
+// Range [Min, Max]
+export type IntRange<Min extends number, Max extends number> = Exclude<Range<Max>, Range<Min>> | Min
