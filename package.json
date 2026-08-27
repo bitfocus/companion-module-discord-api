@@ -1,7 +1,8 @@
 {
 	"name": "discord-api",
-	"version": "1.5.1",
+	"version": "2.0.0",
 	"main": "dist/index.js",
+	"type": "module",
 	"scripts": {
 		"dev": "yarn build:watch",
 		"build": "rimraf dist && yarn build:main",
@@ -35,30 +36,31 @@
 	],
 	"license": "MIT",
 	"engines": {
-		"node": "^22.21"
+		"node": "^22.22"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.12.0",
+		"@companion-module/base": "~2.1.0",
 		"@distdev/discord-ipc": "^1.1.0",
 		"companion-module-utils": "^0.4.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^2.6.1",
+		"@companion-module/tools": "^3.0.0",
 		"@types/discord-rpc": "~4.0.3",
 		"@types/jest": "~29.5.14",
 		"@types/node": "22.9.0",
-		"@typescript-eslint/eslint-plugin": "^8.14.0",
-		"@typescript-eslint/parser": "^8.14.0",
-		"eslint": "^9.10.0",
-		"eslint-config-prettier": "9.1.0",
-		"eslint-plugin-prettier": "5.2.1",
-		"husky": "9.1.6",
+		"@typescript-eslint/eslint-plugin": "^8.32.1",
+		"@typescript-eslint/parser": "^8.32.1",
+		"eslint": "9.26.0",
+		"eslint-config-prettier": "10.1.5",
+		"eslint-plugin-prettier": "5.4.0",
+		"globals": "16.1.0",
+		"husky": "9.1.7",
 		"jest": "^29.7.0",
-		"lint-staged": "15.2.10",
-		"prettier": "3.3.3",
+		"lint-staged": "16.0.0",
+		"prettier": "3.5.3",
 		"rimraf": "6.0.1",
-		"ts-jest": "29.2.5",
-		"typescript": "5.6.3",
-		"typescript-eslint": "^8.21.0"
+		"ts-jest": "29.3.3",
+		"typescript": "5.8.3",
+		"typescript-eslint": "^8.32.1"
 	}
 }

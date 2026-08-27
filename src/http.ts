@@ -1,5 +1,5 @@
 import { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
-import DiscordInstance from './index'
+import DiscordInstance from './index.js'
 
 interface Endpoints {
 	GET: {
@@ -44,7 +44,7 @@ export const httpHandler = async (instance: DiscordInstance, request: CompanionH
 			await instance.discord.createVoiceSubscriptions()
 
 			instance.variables.updateVariables()
-			instance.checkFeedbacks()
+			instance.checkAllFeedbacks()
 			response.status = 200
 			response.body = ''
 		} else if (type === 'sortedVoiceUsers') {

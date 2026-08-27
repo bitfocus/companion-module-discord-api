@@ -1,23 +1,54 @@
-export const createUUID = (): string => {
-	let uuid = ''
+import type { CompanionInputFieldDropdown, CompanionInputFieldNumber } from '@companion-module/base'
+import type DiscordInstance from './index.js'
 
-	for (let i = 0; i < 32; i += 1) {
-		if (i === 8 || i === 12 || i === 16 || i === 20) uuid += '-'
+export interface Options {
+	adjustmentType: CompanionInputFieldDropdown<'type'>
+	channelText: CompanionInputFieldDropdown<'channel'>
+	channelVoice: CompanionInputFieldDropdown<'channel'>
+	volume: CompanionInputFieldNumber<'volume'>
+}
 
-		let n
-		if (i === 12) {
-			n = 4
-		} else {
-			const random = (Math.random() * 16) | 0
+export const options = (instance: DiscordInstance): Options => {
+	return {
+		adjustmentType: {
+			type: 'dropdown',
+			label: 'Adjustment',
+			id: 'type',
+			default: 'Set',
+			choices: [
+				{ id: 'Set', label: 'Set' },
+				{ id: 'Increase', label: 'Increase' },
+				{ id: 'Decrease', label: 'Decrease' },
+			],
+			expressionDescription: `Valid Values: 'Set', 'Increase', 'Decrease'`,
+		},
 
-			if (i === 16) {
-				n = (random & 3) | 0
-			} else {
-				n = random
-			}
-		}
+		channelText: {
+			type: 'dropdown',
+			label: 'Channel',
+			id: 'channel',
+			default: '0',
+			choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedTextChannelChoices() || [])],
+			disableAutoExpression: true,
+		},
 
-		uuid += n.toString(16)
+		channelVoice: {
+			type: 'dropdown',
+			label: 'Channel',
+			id: 'channel',
+			default: '0',
+			choices: [{ id: '0', label: 'Select Channel' }, ...(instance.discord.sortedVoiceChannelChoices() || [])],
+			disableAutoExpression: true,
+		},
+
+		volume: {
+			type: 'number',
+			label: 'Volume',
+			id: 'volume',
+			default: 100,
+			min: 0,
+			max: 100,
+			expressionDescription: `Valid Values: 0 to 100`,
+		},
 	}
-	return uuid
 }

@@ -1,17 +1,22 @@
-import { InstanceBase, runEntrypoint, CompanionFeedbackDefinitions, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
-import { getActions } from './actions'
-import { Discord } from './client'
-import { Config, getConfigFields } from './config'
-import { getFeedbacks } from './feedback'
-import { httpHandler } from './http'
-import { getPresets } from './presets'
-import { getUpgrades } from './upgrade'
-import { Variables } from './variables'
+import { InstanceBase, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
+import { type ActionsSchema, getActions } from './actions/actions.js'
+import { Discord } from './client.js'
+import { Config, getConfigFields } from './config.js'
+import { type FeedbacksSchema , getFeedbacks } from './feedbacks/feedback.js'
+import { httpHandler } from './http.js'
+import { getPresetDefinitions, getPresetStructure } from './presets/presets.js'
+import { getUpgrades } from './upgrade.js'
+import { Variables, VariablesSchema } from './variables/variables.js'
 
-/**
- * Companion instance class for Discord's API
- */
-class DiscordInstance extends InstanceBase<Config> {
+export interface InstanceTypes {
+	config: Config
+	secrets: undefined
+	actions: ActionsSchema
+	feedbacks: FeedbacksSchema
+	variables: VariablesSchema
+}
+
+export default class DiscordInstance extends InstanceBase<InstanceTypes> {
 	constructor(internal: unknown) {
 		super(internal)
 		this.instanceOptions.disableVariableValidation = true
@@ -20,6 +25,7 @@ class DiscordInstance extends InstanceBase<Config> {
 	public discord: Discord = new Discord(this)
 
 	public config: Config = {
+		accessToken: '',
 		clientID: '',
 		clientSecret: '',
 		refreshToken: '',
@@ -33,10 +39,8 @@ class DiscordInstance extends InstanceBase<Config> {
 	 * @description triggered on instance being enabled
 	 */
 	public async init(config: Config): Promise<void> {
-		this.log('debug', `Process ID: ${process.pid}`)
 		await this.configUpdated(config)
 		this.updateInstance()
-		this.setPresetDefinitions(getPresets())
 		this.clientInit()
 	}
 
@@ -81,7 +85,7 @@ class DiscordInstance extends InstanceBase<Config> {
 	public async configUpdated(config: Config): Promise<void> {
 		if (config.clearOAuth) {
 			this.saveConfig({ ...config, clearOAuth: false, accessToken: '', refreshToken: '' })
-		} else if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret) {
+		} else if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret|| this.config.accessToken !== config.accessToken) {
 			this.config = config
 			this.clientInit()
 		} else {
@@ -91,17 +95,23 @@ class DiscordInstance extends InstanceBase<Config> {
 		this.updateInstance()
 	}
 
+	public async updatePresets(): Promise<void> {
+		const presetStructure = await getPresetStructure(this)
+		const presetDefinitions = await getPresetDefinitions(this)
+    this.setPresetDefinitions(presetStructure, presetDefinitions)
+	}
+
 	/**
 	 * @description sets channels, token, actions, and feedbacks available for this instance
 	 */
 	public async updateInstance(): Promise<void> {
 		// Cast actions and feedbacks from Discord types to Companion types
 		const actions = getActions(this)
-		const feedbacks = getFeedbacks(this) as unknown as CompanionFeedbackDefinitions
-
+		const feedbacks = getFeedbacks(this)
 		this.setActionDefinitions(actions)
 		this.setFeedbackDefinitions(feedbacks)
-		this.checkFeedbacks()
+		this.checkAllFeedbacks()
+		await this.updatePresets()
 		this.variables.updateVariables()
 	}
 
@@ -114,6 +124,4 @@ class DiscordInstance extends InstanceBase<Config> {
 	}
 }
 
-export = DiscordInstance
-
-runEntrypoint(DiscordInstance, getUpgrades())
+export const UpgradeScripts = getUpgrades

@@ -1,12 +1,14 @@
-import { SomeCompanionConfigField } from '@companion-module/base'
+import type { SomeCompanionConfigField, JsonValue } from '@companion-module/base'
 
 export interface Config {
-	accessToken?: string
-	refreshToken?: string
+	accessToken: string
+	refreshToken: string
 	clientID: string
 	clientSecret: string
 	speakerDelay: number
 	clearOAuth: boolean
+
+  [x: string]: JsonValue
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {
