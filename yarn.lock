@@ -277,10 +277,10 @@
   dependencies:
     colord "^2.9.3"
 
-"@companion-module/tools@^3.0.0":
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/@companion-module/tools/-/tools-3.0.2.tgz#7d6533cb61bf4b34e42bbbe21ba333477e084eae"
-  integrity sha512-No7XJbWo4BD3Jow7C+eRGKbbEV8eLmxY80n+bnte+Zd05uafPkq+L64fc0/16oGX+de5m9BvZe9MrdYzZHPBfg==
+"@companion-module/tools@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@companion-module/tools/-/tools-3.1.0.tgz#6d68cb0dc8933dbf2b25a9cea36377aa3258989f"
+  integrity sha512-Qe9mZrYGdDH4msuMfAYCY1VamErW05CANp7EL6dqEhzdKeqNiOzDx35DLxH6tOV4VUJCND+7cQE7kh4+oCRwyA==
   dependencies:
     "@eslint/js" "^10.0.1"
     esbuild "^0.28.1"
@@ -289,7 +289,8 @@
     eslint-plugin-prettier "^5.5.6"
     find-up "^8.0.0"
     semver "^7.8.4"
-    tar "^7.5.16"
+    spdx-expression-parse "^5.0.0"
+    tar "^7.5.21"
     zx "^8.8.5"
 
 "@distdev/discord-ipc@^1.1.0":
@@ -3649,6 +3650,24 @@ source-map@^0.6.0, source-map@^0.6.1:
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
 
+spdx-exceptions@^2.1.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/spdx-exceptions/-/spdx-exceptions-2.5.0.tgz#5d607d27fc806f66d7b64a766650fa890f04ed66"
+  integrity sha512-PiU42r+xO4UbUS1buo3LPJkjlO7430Xn5SVAhdpzzsPHsjbYVflnnFdATgabnLude+Cqu25p6N+g2lw/PFsa4w==
+
+spdx-expression-parse@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/spdx-expression-parse/-/spdx-expression-parse-5.0.0.tgz#d337d2cfb7ed5528cbae52bd24a960f5b04c5a41"
+  integrity sha512-vngmw3Rgn+o2arXNbnZaj5UtOEBuWBfvaI+Wc8GFfykIhA5/vdK9/Sp/XkLv63dykz2rxKDvKEHupF5P0FORcQ==
+  dependencies:
+    spdx-exceptions "^2.1.0"
+    spdx-license-ids "^3.0.0"
+
+spdx-license-ids@^3.0.0:
+  version "3.0.23"
+  resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-3.0.23.tgz#b069e687b1291a32f126893ed76a27a745ee2133"
+  integrity sha512-CWLcCCH7VLu13TgOH+r8p1O/Znwhqv/dbb6lqWy67G+pT1kHmeD/+V36AVb/vq8QMIQwVShJ6Ssl5FPh0fuSdw==
+
 sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
@@ -3757,7 +3776,7 @@ tapable@^2.3.3:
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.3.3.tgz#5da7c9992c46038221267985ab28421a8879f160"
   integrity sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==
 
-tar@^7.5.16:
+tar@^7.5.21:
   version "7.5.22"
   resolved "https://registry.yarnpkg.com/tar/-/tar-7.5.22.tgz#a696f998136e71487dc3f869a85bba2c67971ba9"
   integrity sha512-MFO/QzvtAOmJbkhOaCTvbGcFN9L9b+JunIsDwaKljSOdcLMea3NJ1k9Usz/rjdfSXTq4dfzfeS7W4p4YOAAHeA==
