@@ -1,12 +1,12 @@
-import { InstanceBase, CompanionHTTPRequest, CompanionHTTPResponse, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, type CompanionHTTPRequest, type CompanionHTTPResponse, type SomeCompanionConfigField } from '@companion-module/base'
 import { type ActionsSchema, getActions } from './actions/actions.js'
 import { Discord } from './client.js'
-import { Config, getConfigFields } from './config.js'
-import { type FeedbacksSchema , getFeedbacks } from './feedbacks/feedback.js'
+import { type Config, getConfigFields } from './config.js'
+import { type FeedbacksSchema, getFeedbacks } from './feedbacks/feedback.js'
 import { httpHandler } from './http.js'
 import { getPresetDefinitions, getPresetStructure } from './presets/presets.js'
 import { getUpgrades } from './upgrade.js'
-import { Variables, VariablesSchema } from './variables/variables.js'
+import { Variables, type VariablesSchema } from './variables/variables.js'
 
 export interface InstanceTypes {
 	config: Config
@@ -85,7 +85,7 @@ export default class DiscordInstance extends InstanceBase<InstanceTypes> {
 	public async configUpdated(config: Config): Promise<void> {
 		if (config.clearOAuth) {
 			this.saveConfig({ ...config, clearOAuth: false, accessToken: '', refreshToken: '' })
-		} else if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret|| this.config.accessToken !== config.accessToken) {
+		} else if (this.config.clientID !== config.clientID || this.config.clientSecret !== config.clientSecret || this.config.accessToken !== config.accessToken) {
 			this.config = config
 			this.clientInit()
 		} else {
@@ -97,8 +97,8 @@ export default class DiscordInstance extends InstanceBase<InstanceTypes> {
 
 	public async updatePresets(): Promise<void> {
 		const presetStructure = await getPresetStructure(this)
-		const presetDefinitions = await getPresetDefinitions(this)
-    this.setPresetDefinitions(presetStructure, presetDefinitions)
+		const presetDefinitions = getPresetDefinitions(this)
+		this.setPresetDefinitions(presetStructure, presetDefinitions)
 	}
 
 	/**

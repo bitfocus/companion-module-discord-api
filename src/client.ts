@@ -1,7 +1,11 @@
 import { Client } from '@distdev/discord-ipc'
 import type { Application, Channel, Guild, VoiceSettings, VoiceState, SoundboardSound } from '@distdev/discord-ipc'
-import type DiscordInstance from './index.js'
 import { type DropdownChoice, InstanceStatus, createModuleLogger } from '@companion-module/base'
+import type DiscordInstance from './index.js'
+import { getImage } from './utils.js'
+
+type CustomGuild = Partial<Guild> & { icon_base64?: string }
+type CustomVoiceState = VoiceState & { avatar?: string }
 
 export interface ClientData {
 	accessToken: null | string
@@ -9,7 +13,7 @@ export interface ClientData {
 	application: Partial<Application> | null
 	baseURL: 'https://discord.com/api'
 	channels: Partial<Channel>[]
-	guilds: Partial<Guild>[]
+	guilds: CustomGuild[]
 	guildNames: Map<string, string>
 	reconnectTimer: NodeJS.Timeout | null
 	scopes: string[]
@@ -23,6 +27,7 @@ export interface ClientData {
 	soundboard: SoundboardSound[]
 	subscriptions: Subscriptions
 	user: any
+	userAvatarCache: Record<string, string>
 	userVoiceSettings: null | VoiceSettings
 	videoActive: boolean
 	voiceChannel: null | Channel
@@ -131,6 +136,7 @@ export class Discord {
 			SCREENSHARE_STATE_UPDATE: null,
 		},
 		user: null,
+		userAvatarCache: {},
 		userVoiceSettings: null,
 		videoActive: false,
 		voiceChannel: null,
@@ -150,6 +156,7 @@ export class Discord {
 	init = async (): Promise<void> => {
 		if (this.initialized) return
 		this.initialized = true
+		log.debug(`Current credentials: ${JSON.stringify(this.instance.config)}`)
 		log.debug('Initializing Discord client')
 		this.initListeners()
 
@@ -281,6 +288,8 @@ export class Discord {
 					})
 				}
 
+				await this.updateVoiceAvatars()
+
 				this.instance.variables.updateVariables()
 				this.instance.checkAllFeedbacks()
 			} catch (e) {
@@ -355,23 +364,29 @@ export class Discord {
 
 		// Triggers when a user joins the voice channel
 		this.client.on('VOICE_STATE_CREATE', (voiceState: VoiceState) => {
-			try {
-				log.debug(`Event: VOICE_STATE_CREATE - ${JSON.stringify(voiceState)}`)
-				if (this.data.voiceChannel === null) return
+			const handleVoiceStateCreate = async (): Promise<void> => {
+				try {
+					log.debug(`Event: VOICE_STATE_CREATE - ${JSON.stringify(voiceState)}`)
+					if (this.data.voiceChannel === null) return
 
-				this.data.voiceChannel.voice_states?.push(voiceState)
-				this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
-					if (a.nick < b.nick) return -1
-					if (b.nick > a.nick) return 1
-					return a.user.id < b.user.id ? -1 : 1
-				})
+					this.data.voiceChannel.voice_states?.push(voiceState)
+					this.data.voiceChannel.voice_states?.sort((a: VoiceState, b: VoiceState) => {
+						if (a.nick < b.nick) return -1
+						if (b.nick > a.nick) return 1
+						return a.user.id < b.user.id ? -1 : 1
+					})
 
-				this.instance.updatePresets()
-				this.instance.variables.updateVariables()
-				this.instance.checkFeedbacks('voiceStyling')
-			} catch (e) {
-				log.warn(`VOICE_STATE_CREATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+					await this.updateVoiceAvatars()
+
+					this.instance.updatePresets()
+					this.instance.variables.updateVariables()
+					this.instance.checkFeedbacks('voiceStyling')
+				} catch (e) {
+					log.warn(`VOICE_STATE_CREATE err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
+				}
 			}
+
+			handleVoiceStateCreate()
 		})
 
 		// Triggers when a user leaves the voice channelTriggers
@@ -507,6 +522,7 @@ export class Discord {
 	updateChannelList = async (): Promise<void> => {
 		try {
 			this.data.guilds = await this.client.getGuilds()
+			await this.updateGuildImages()
 
 			await this.delay()
 			this.data.channels = await this.getChannelsAll()
@@ -716,10 +732,10 @@ export class Discord {
 	}
 
 	// Sort voice users in current channel by nickname
-	sortedVoiceUsers = (): VoiceState[] => {
+	sortedVoiceUsers = (): CustomVoiceState[] => {
 		try {
 			if (!this.data.voiceChannel?.voice_states) return []
-			const voiceUsers = [...this.data.voiceChannel.voice_states]
+			const voiceUsers: CustomVoiceState[] = [...this.data.voiceChannel.voice_states]
 
 			voiceUsers.sort((a, b) => {
 				return a.nick.localeCompare(b.nick) !== 0 ? a.nick.localeCompare(b.nick) : 0
@@ -756,6 +772,34 @@ export class Discord {
 		} catch (e) {
 			log.warn(`sortedSoundboardChoices err: ${typeof e === 'string' ? e : JSON.stringify(e)}`)
 			return []
+		}
+	}
+
+	updateGuildImages = async (): Promise<void> => {
+		log.debug('Updating Guild icons')
+		const missingIcon = this.data.guilds.filter((guild) => guild.icon_url && !guild.icon_base64)
+
+		for (const guild of missingIcon) {
+			const base64Image = await getImage(guild.icon_url as string)
+			guild.icon_base64 = base64Image
+
+			if (!base64Image) log.debug(`Unable to get guild icon for ${guild.name}`)
+		}
+	}
+
+	updateVoiceAvatars = async (): Promise<void> => {
+		if (this.data.voiceChannel?.voice_states) {
+			for (const user of this.data.voiceChannel.voice_states) {
+				const id = user.user.id
+
+				if (!user.avatar && this.data.userAvatarCache[id]) {
+					user.avatar = this.data.userAvatarCache[id]
+				} else {
+					const image = await getImage(`https://cdn.discordapp.com/avatars/${id}/${user.user.avatar}`)
+					user.avatar = image
+					this.data.userAvatarCache[id] = image
+				}
+			}
 		}
 	}
 

@@ -8,7 +8,7 @@ export interface Config {
 	speakerDelay: number
 	clearOAuth: boolean
 
-  [x: string]: JsonValue
+	[x: string]: JsonValue
 }
 
 export const getConfigFields = (): SomeCompanionConfigField[] => {

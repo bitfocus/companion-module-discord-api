@@ -2,8 +2,8 @@ import { type CompanionActionDefinitions, type CompanionActionSchema, createModu
 import type DiscordInstance from '../index.js'
 
 export type VideoActionsSchema = {
-	videoToggleCamera: CompanionActionSchema<{}, void>
-	videoToggleScreenshare: CompanionActionSchema<{}, void>
+	videoToggleCamera: CompanionActionSchema<Record<string, never>, void>
+	videoToggleScreenshare: CompanionActionSchema<Record<string, never>, void>
 }
 
 const log = createModuleLogger('Actions')

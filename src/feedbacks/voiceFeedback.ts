@@ -85,7 +85,7 @@ export const getVoiceFeedbacks = (instance: DiscordInstance): CompanionFeedbackD
 					})
 
 					return {
-						imageBuffer: Buffer.from(graphics.stackImage([micIcon, headsetIcon])).toString('base64')//graphics.stackImage([micIcon, headsetIcon]),
+						imageBuffer: Buffer.from(graphics.stackImage([micIcon, headsetIcon])).toString('base64'),
 					}
 				}
 

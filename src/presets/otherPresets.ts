@@ -1,6 +1,6 @@
 import type { CompanionPresetDefinitions, CompanionPresetGroup, CompanionPresetSection } from '@companion-module/base'
 import type { InstanceTypes } from '../index.js'
-import DiscordInstance from '../index.js'
+import type DiscordInstance from '../index.js'
 
 export const getOtherDefinitions = (instance: DiscordInstance): CompanionPresetDefinitions<InstanceTypes> => {
 	const otherDefinitions: CompanionPresetDefinitions<InstanceTypes> = {

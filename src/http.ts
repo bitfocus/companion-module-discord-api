@@ -1,5 +1,5 @@
-import { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
-import DiscordInstance from './index.js'
+import type { CompanionHTTPRequest, CompanionHTTPResponse } from '@companion-module/base'
+import type DiscordInstance from './index.js'
 
 interface Endpoints {
 	GET: {
@@ -55,6 +55,9 @@ export const httpHandler = async (instance: DiscordInstance, request: CompanionH
 			const data = await instance.discord.client.getSelectedVoiceChannel()
 			response.status = 200
 			response.body = JSON.stringify(data, null, 2)
+		} else if (type === 'data') {
+			response.status = 200
+			response.body = JSON.stringify(instance.discord.data, null, 2)
 		}
 	}
 

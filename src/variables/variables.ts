@@ -1,5 +1,6 @@
-import DiscordInstance from '../index.js'
+import type DiscordInstance from '../index.js'
 import type { CompanionVariableDefinitions, JsonValue } from '@companion-module/base'
+import { type GuildVariablesSchema, guildDefinitions, guildValues } from './guildVariables.js'
 import { type VideoVariablesSchema, videoDefinitions, videoValues } from './videoVariables.js'
 import { type VoiceVariablesSchema, voiceDefinitions, voiceValues } from './voiceVariables.js'
 
@@ -7,7 +8,7 @@ export interface InstanceVariableValue {
 	[key: string]: string | number | JsonValue | undefined
 }
 
-export type VariablesSchema = VideoVariablesSchema & VoiceVariablesSchema
+export type VariablesSchema = GuildVariablesSchema & VideoVariablesSchema & VoiceVariablesSchema
 
 export class Variables {
 	private readonly instance: DiscordInstance
@@ -47,6 +48,7 @@ export class Variables {
 		}, 100)
 
 		const variableDefinitions: CompanionVariableDefinitions<VariablesSchema> = {
+			...guildDefinitions(this.instance),
 			...videoDefinitions(this.instance),
 			...voiceDefinitions(this.instance),
 		}
@@ -57,7 +59,7 @@ export class Variables {
 
 	public readonly updateVariables = async (): Promise<void> => {
 		let newVariables: Partial<VariablesSchema> = {}
-		const variablesPromise = await Promise.all([videoValues(this.instance), voiceValues(this.instance)])
+		const variablesPromise = await Promise.all([guildValues(this.instance), videoValues(this.instance), voiceValues(this.instance)])
 
 		variablesPromise.forEach((variables: Partial<VariablesSchema>) => {
 			newVariables = { ...newVariables, ...variables }

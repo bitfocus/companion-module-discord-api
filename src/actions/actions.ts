@@ -16,8 +16,6 @@ export type ActionsSchema = ChannelActionsSchema &
 	VideoActionsSchema &
 	WebhookActionsSchema
 
-export type ActionsSchema2 = {}
-
 export const getActions = (instance: DiscordInstance): CompanionActionDefinitions<ActionsSchema> => {
 	return {
 		...getChannelActions(instance),

@@ -1,6 +1,6 @@
 import type { CompanionPresetDefinitions, CompanionPresetSection } from '@companion-module/base'
 import type { InstanceTypes } from '../index.js'
-import DiscordInstance from '../index.js'
+import type DiscordInstance from '../index.js'
 
 export const getSoundboardDefinitions = (instance: DiscordInstance): CompanionPresetDefinitions<InstanceTypes> => {
 	const soundboardDefinitions: CompanionPresetDefinitions<InstanceTypes> = {}

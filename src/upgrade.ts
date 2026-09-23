@@ -1,13 +1,13 @@
-import { CompanionStaticUpgradeResult, CompanionStaticUpgradeScript } from '@companion-module/base'
+import type { CompanionStaticUpgradeResult, CompanionStaticUpgradeScript } from '@companion-module/base'
 import type { Config } from './config.js'
 
 const upgradeV1_5_0: CompanionStaticUpgradeScript<Config> = (_context, props): CompanionStaticUpgradeResult<Config, undefined> => {
-  const changes: CompanionStaticUpgradeResult<Config, undefined> = {
-    updatedConfig: null,
-    updatedSecrets: null,
-    updatedActions: [],
-    updatedFeedbacks: [],
-  }
+	const changes: CompanionStaticUpgradeResult<Config, undefined> = {
+		updatedConfig: null,
+		updatedSecrets: null,
+		updatedActions: [],
+		updatedFeedbacks: [],
+	}
 
 	for (const action of props.actions) {
 		if (action.actionId === 'clearRichPresnce') {

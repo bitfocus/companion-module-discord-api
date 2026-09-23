@@ -19,7 +19,7 @@ export type RichPresenceActionsSchema = {
 		},
 		void
 	>
-	clearRichPresence: CompanionActionSchema<{}, void>
+	clearRichPresence: CompanionActionSchema<Record<string, never>, void>
 }
 
 const log = createModuleLogger('Rich Presence')

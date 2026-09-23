@@ -52,3 +52,18 @@ export const options = (instance: DiscordInstance): Options => {
 		},
 	}
 }
+
+export const getImage = async (url: string): Promise<string> => {
+	const res = await fetch(url)
+
+	if (!res.ok) {
+		return ''
+	}
+
+	const arrayBuffer = await res.arrayBuffer()
+	return Buffer.from(arrayBuffer).toString('base64')
+}
+
+export const sanitizeVariableID = (id: string): string => {
+	return id.replace(/ /g, '_').replace(/[^A-Za-z0-9_-]/g, '')
+}

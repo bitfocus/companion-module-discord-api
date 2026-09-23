@@ -1,4 +1,13 @@
-import { type SomeCompanionActionInputField, createModuleLogger } from '@companion-module/base'
+import {
+	type CompanionActionEvent,
+	type CompanionInputFieldTextInput,
+	type CompanionInputFieldColor,
+	type CompanionInputFieldCheckbox,
+	type CompanionInputFieldNumber,
+	type SomeCompanionActionInputField,
+	createModuleLogger,
+} from '@companion-module/base'
+import type { WebhookOptions } from './actions/webhookActions.js'
 import type DiscordInstance from './index.js'
 
 type WebhookBody = {
@@ -103,17 +112,44 @@ const customWebhookTemplate = {
 	],
 }
 
-export const generateWebhookOptions = (): SomeCompanionActionInputField[] => {
+type GeneratedWebhookOptions = [
+	CompanionInputFieldTextInput<'url'>,
+	CompanionInputFieldCheckbox<'useCustomBody'>,
+	CompanionInputFieldTextInput<'customBody'>,
+	CompanionInputFieldTextInput<'username'>,
+	CompanionInputFieldTextInput<'avatarURL'>,
+	CompanionInputFieldTextInput<'content'>,
+	CompanionInputFieldCheckbox<'embed'>,
+	CompanionInputFieldColor<`embed${number}Color`>,
+	CompanionInputFieldTextInput<`embed${number}AuthorName`>,
+	CompanionInputFieldTextInput<`embed${number}AuthorURL`>,
+	CompanionInputFieldTextInput<`embed${number}AuthorIconURL`>,
+	CompanionInputFieldTextInput<`embed${number}Title`>,
+	CompanionInputFieldTextInput<`embed${number}URL`>,
+	CompanionInputFieldTextInput<`embed${number}Description`>,
+	CompanionInputFieldNumber<`embed${number}Fields`>,
+	CompanionInputFieldTextInput<`embed${number}Field${number}Name`>,
+	CompanionInputFieldTextInput<`embed${number}Field${number}Value`>,
+	CompanionInputFieldCheckbox<`embed${number}Field${number}Inline`>,
+	CompanionInputFieldTextInput<`embed${number}ThumbnailURL`>,
+	CompanionInputFieldTextInput<`embed${number}ImageURL`>,
+	CompanionInputFieldTextInput<`embed${number}Footer`>,
+	CompanionInputFieldTextInput<`embed${number}FooterIconURL`>,
+	CompanionInputFieldTextInput<`embed${number}Timestamp`>,
+	CompanionInputFieldCheckbox<'poll'>,
+	CompanionInputFieldTextInput<'pollQuestion'>,
+	CompanionInputFieldTextInput<`pollAnswer${number}`>,
+	CompanionInputFieldNumber<`pollDuration`>,
+	CompanionInputFieldCheckbox<`pollMultiSelect`>,
+	CompanionInputFieldCheckbox<'tts'>,
+	CompanionInputFieldCheckbox<'allowedMentions'>,
+	CompanionInputFieldTextInput<'allowedMentionsParse'>,
+	CompanionInputFieldTextInput<'allowedMentionsUsers'>,
+	CompanionInputFieldTextInput<'allowedMentionsRoles'>,
+]
+
+export const generateWebhookOptions = (): GeneratedWebhookOptions => {
 	const embed: SomeCompanionActionInputField[] = [
-		{
-			type: 'checkbox',
-			label: 'Embed',
-			description: 'Enable to show Embed related options',
-			id: 'embed',
-			default: false,
-			isVisibleExpression: `!$(options:useCustomBody)`,
-			disableAutoExpression: true,
-		},
 		{
 			type: 'colorpicker',
 			label: 'Embed Color',
@@ -240,27 +276,10 @@ export const generateWebhookOptions = (): SomeCompanionActionInputField[] => {
 		},
 	)
 
-	const poll: SomeCompanionActionInputField[] = [
-		{
-			type: 'checkbox',
-			label: 'Poll',
-			description: 'Enable to show Poll related options',
-			id: 'poll',
-			default: false,
-			isVisibleExpression: `!$(options:useCustomBody)`,
-			disableAutoExpression: true,
-		},
-		{
-			type: 'textinput',
-			label: 'Poll Question',
-			id: 'pollQuestion',
-			default: '',
-			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
-		},
-	]
+	const poll: SomeCompanionActionInputField[] = []
 
 	for (let i = 1; i < 11; i++) {
-		let visibility = `!$(options:useCustomBody) && $(options:poll) === true`
+		const visibility = `!$(options:useCustomBody) && $(options:poll) === true`
 
 		poll.push({
 			type: 'textinput',
@@ -316,8 +335,51 @@ export const generateWebhookOptions = (): SomeCompanionActionInputField[] => {
 			default: '',
 			isVisibleExpression: `!$(options:useCustomBody)`,
 		},
-
+		{
+			type: 'checkbox',
+			label: 'Embed',
+			description: 'Enable to show Embed related options',
+			id: 'embed',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody)`,
+			disableAutoExpression: true,
+		},
 		...embed,
+
+		{
+			type: 'checkbox',
+			label: 'Poll',
+			description: 'Enable to show Poll related options',
+			id: 'poll',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody)`,
+			disableAutoExpression: true,
+		},
+		{
+			type: 'textinput',
+			label: 'Poll Question',
+			id: 'pollQuestion',
+			default: '',
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
+		},
+		{
+			type: 'number',
+			label: 'Poll Duration',
+			description: 'Valid Values: 1 to 720 (hours)',
+			id: 'pollDuration',
+			default: 1,
+			min: 1,
+			max: 720,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
+		},
+		{
+			type: 'checkbox',
+			label: 'Poll Multi-Select',
+			description: 'Enable selecting multiple answers',
+			id: 'pollMultiSelect',
+			default: false,
+			isVisibleExpression: `!$(options:useCustomBody) && $(options:poll) === true`,
+		},
 		...poll,
 
 		{
@@ -363,16 +425,16 @@ export const generateWebhookOptions = (): SomeCompanionActionInputField[] => {
 		},
 	]
 
-	return options
+	return options as GeneratedWebhookOptions
 }
 
-export const webhookAction = async (_instance: DiscordInstance, action: any): Promise<void> => {
+export const webhookAction = async (_instance: DiscordInstance, action: CompanionActionEvent<WebhookOptions>): Promise<void> => {
 	const url = action.options.url
 	let webhookBody: WebhookBody = {
 		username: '',
 		avatar_url: '',
 		embeds: [],
-		tts: action.options.tts as boolean,
+		tts: action.options.tts,
 	}
 
 	if (!url) {
@@ -389,7 +451,7 @@ export const webhookAction = async (_instance: DiscordInstance, action: any): Pr
 
 		if (action.options.embed) {
 			const embedOptions: WebhookEmbed = {
-				color: action.options[`embed1Color`] as number,
+				color: action.options[`embed1Color`],
 				fields: [],
 			}
 
@@ -413,7 +475,7 @@ export const webhookAction = async (_instance: DiscordInstance, action: any): Pr
 						embedOptions.fields.push({
 							name: action.options[`embed1Field${j}Name`],
 							value: action.options[`embed1Field${j}Value`],
-							inline: action.options[`embed1Field${j}Inline`] as boolean,
+							inline: action.options[`embed1Field${j}Inline`],
 						})
 
 						fieldCount++
@@ -440,7 +502,7 @@ export const webhookAction = async (_instance: DiscordInstance, action: any): Pr
 					text: action.options.pollQuestion,
 				},
 				answers: [],
-				allow_multiselect: action.options.pollMultiSelect as boolean,
+				allow_multiselect: action.options.pollMultiSelect,
 			}
 
 			let answers = 1

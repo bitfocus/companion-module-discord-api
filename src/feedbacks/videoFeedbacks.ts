@@ -2,8 +2,8 @@ import type { CompanionFeedbackSchema, CompanionFeedbackDefinitions } from '@com
 import type DiscordInstance from '../index.js'
 
 export type VideoFeedbacksSchema = {
-	videoCamera: CompanionFeedbackSchema<{}>
-	videoScreenShare: CompanionFeedbackSchema<{}>
+	videoCamera: CompanionFeedbackSchema<Record<string, never>>
+	videoScreenShare: CompanionFeedbackSchema<Record<string, never>>
 }
 
 export const getVideoFeedbacks = (instance: DiscordInstance): CompanionFeedbackDefinitions<VideoFeedbacksSchema> => {

@@ -11,7 +11,7 @@ export type ChannelActionsSchema = {
 		},
 		void
 	>
-	leaveCurrentVoiceChannel: CompanionActionSchema<{}, void>
+	leaveCurrentVoiceChannel: CompanionActionSchema<Record<string, never>, void>
 	joinTextChannel: CompanionActionSchema<
 		{
 			channel: string

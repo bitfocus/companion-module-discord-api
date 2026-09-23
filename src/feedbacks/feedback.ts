@@ -5,18 +5,15 @@ import { type SelfFeedbacksSchema, getSelfFeedbacks } from './selfFeedbacks.js'
 import { type VideoFeedbacksSchema, getVideoFeedbacks } from './videoFeedbacks.js'
 import { type VoiceFeedbacksSchema, getVoiceFeedbacks } from './voiceFeedback.js'
 
-export type FeedbacksSchema = OtherFeedbackSchema &
-  SelfFeedbacksSchema &
-  VideoFeedbacksSchema &
-  VoiceFeedbacksSchema
+export type FeedbacksSchema = OtherFeedbackSchema & SelfFeedbacksSchema & VideoFeedbacksSchema & VoiceFeedbacksSchema
 
 export type FeedbackId = StringKeys<FeedbacksSchema>
 
 export function getFeedbacks(instance: DiscordInstance): CompanionFeedbackDefinitions<FeedbacksSchema> {
-  return {
-    ...getOtherFeedbacks(instance),
-    ...getSelfFeedbacks(instance),
-    ...getVideoFeedbacks(instance),
-    ...getVoiceFeedbacks(instance),
-  }
+	return {
+		...getOtherFeedbacks(instance),
+		...getSelfFeedbacks(instance),
+		...getVideoFeedbacks(instance),
+		...getVoiceFeedbacks(instance),
+	}
 }

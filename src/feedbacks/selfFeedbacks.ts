@@ -2,12 +2,12 @@ import type { CompanionFeedbackSchema, CompanionFeedbackDefinitions } from '@com
 import type DiscordInstance from '../index.js'
 
 export type SelfFeedbacksSchema = {
-	selfMute: CompanionFeedbackSchema<{}>
-	selfDeaf: CompanionFeedbackSchema<{}>
+	selfMute: CompanionFeedbackSchema<Record<string, never>>
+	selfDeaf: CompanionFeedbackSchema<Record<string, never>>
 	selfInputMode: CompanionFeedbackSchema<{
 		state: 'PUSH_TO_TALK' | 'VOICE_ACTIVITY'
 	}>
-	selfMicActive: CompanionFeedbackSchema<{}>
+	selfMicActive: CompanionFeedbackSchema<Record<string, never>>
 }
 
 export const getSelfFeedbacks = (instance: DiscordInstance): CompanionFeedbackDefinitions<SelfFeedbacksSchema> => {

@@ -1,5 +1,4 @@
 import type { CompanionVariableDefinitions } from '@companion-module/base'
-import { type VoiceState } from '@distdev/discord-ipc'
 import type DiscordInstance from '../index.js'
 
 export type VoiceVariablesSchema = {
@@ -21,12 +20,15 @@ export type VoiceVariablesSchema = {
 	[key: `voice_user_${string}_self_mute`]: boolean
 	[key: `voice_user_${string}_self_deaf`]: boolean
 	[key: `voice_user_${string}_speaking`]: boolean
+	[key: `voice_user_${string}_avatar`]: string
 	voice_current_speaker_id: string
 	voice_current_speaker_nick: string
 	voice_current_speaker_number: number | string
+	voice_current_speaker_avatar: string
 	voice_user_selected_id: string
 	voice_user_selected_nick: string
 	voice_user_selected_volume: number | string
+	voice_user_selected_avatar: string
 }
 
 export const voiceDefinitions = (instance: DiscordInstance): CompanionVariableDefinitions<VoiceVariablesSchema> => {
@@ -44,9 +46,11 @@ export const voiceDefinitions = (instance: DiscordInstance): CompanionVariableDe
 		voice_current_speaker_id: { name: 'Voice Current Speaker ID' },
 		voice_current_speaker_nick: { name: 'Voice Current Speaker Nick' },
 		voice_current_speaker_number: { name: 'Voice Current Speaker Number' },
+		voice_current_speaker_avatar: { name: 'Voice Current Speaker Avatar' },
 		voice_user_selected_id: { name: 'Voice User Selected ID' },
 		voice_user_selected_nick: { name: 'Voice User Selected Nick' },
 		voice_user_selected_volume: { name: 'Voice User Selected Volume' },
+		voice_user_selected_avatar: { name: 'Voice User Selected Avatar' },
 	}
 
 	const voiceUsers: any[] = instance.discord.sortedVoiceUsers() || []
@@ -65,6 +69,7 @@ export const voiceDefinitions = (instance: DiscordInstance): CompanionVariableDe
 			definitions[`voice_user_${safeID}_self_mute`] = { name: `Voice User ${id} Self Mute` }
 			definitions[`voice_user_${safeID}_self_deaf`] = { name: `Voice User ${id} Self Deaf` }
 			definitions[`voice_user_${safeID}_speaking`] = { name: `Voice User ${id} Speaking` }
+			definitions[`voice_user_${safeID}_avatar`] = { name: `Voice User ${id} Avatar` }
 		})
 	})
 
@@ -86,17 +91,26 @@ export const voiceValues = async (instance: DiscordInstance): Promise<VoiceVaria
 		voice_current_speaker_id: '',
 		voice_current_speaker_nick: '',
 		voice_current_speaker_number: '',
+		voice_current_speaker_avatar: '',
 		voice_user_selected_id: instance.discord.data.selectedUser || '',
 		voice_user_selected_nick: '',
 		voice_user_selected_volume: '',
+		voice_user_selected_avatar: '',
 	}
 
 	if (instance.discord.data) {
 		for (let i = 0; i < 200; i++) {
-			variables[`voice_user_${i}_nick`] = instance.discord.sortedVoiceUsers()[i]?.nick || ''
+			variables[`voice_user_${i}_nick`] = ''
+			variables[`voice_user_${i}_volume`] = ''
+			variables[`voice_user_${i}_mute`] = false
+			variables[`voice_user_${i}_deaf`] = false
+			variables[`voice_user_${i}_self_mute`] = false
+			variables[`voice_user_${i}_self_deaf`] = false
+			variables[`voice_user_${i}_speaking`] = false
+			variables[`voice_user_${i}_avatar`] = ''
 		}
 
-		const voiceUsers: VoiceState[] = instance.discord.sortedVoiceUsers() || []
+		const voiceUsers = instance.discord.sortedVoiceUsers() || []
 
 		voiceUsers.forEach((voiceState, index) => {
 			variables[`voice_user_${index}_nick`] = voiceState.nick
@@ -111,6 +125,7 @@ export const voiceValues = async (instance: DiscordInstance): Promise<VoiceVaria
 				variables[`voice_user_${safeId}_self_mute`] = voiceState.voice_state.self_mute
 				variables[`voice_user_${safeId}_self_deaf`] = voiceState.voice_state.self_deaf
 				variables[`voice_user_${safeId}_speaking`] = instance?.discord.data?.delayedSpeaking.has(voiceState.user.id)
+				variables[`voice_user_${safeId}_avatar`] = voiceState.avatar || ''
 			})
 		})
 
@@ -123,11 +138,13 @@ export const voiceValues = async (instance: DiscordInstance): Promise<VoiceVaria
 			variables.voice_current_speaker_id = currentSpeaker || ''
 			variables.voice_current_speaker_nick = user?.nick || ''
 			variables.voice_current_speaker_number = userIndex || ''
+			variables.voice_current_speaker_avatar = user?.avatar || ''
 		}
 
 		const selectedUser = instance.discord.sortedVoiceUsers().find((voiceState: any) => voiceState.user.id === instance.discord.data.selectedUser)
 		variables.voice_user_selected_nick = selectedUser?.nick || ''
 		variables.voice_user_selected_volume = selectedUser?.volume.toFixed(2) || ''
+		variables.voice_user_selected_avatar = selectedUser?.avatar || ''
 	}
 
 	return variables
